@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profissional {
+  idProfissional Int               @id @default(autoincrement())
+  nome           String
+  email          String            @unique
+  senhaHash      String
+  cref           String
+  profissao      String            @default("Personal Trainer")
+  telefone       String?
+  instagram      String?
+  logoUrl        String?           // Link público do arquivo no Supabase Storage
+  dataCadastro   DateTime          @default(now())
+  ativo          Boolean           @default(false) // Pendente de aprovação por padrão
+  role           String            @default("USER") // USER ou ADMIN
+  
+  alunos           Aluno[]
+  protocolos       ProtocoloTreino[]
+  gruposMusculares GrupoMuscular[]
+  exercicios       Exercicio[]
+  tecnicas         TecnicaTreino[]
+}
+
+model Aluno {
+  idAluno        Int               @id @default(autoincrement())
+  idProfissional Int
+  nome           String
+  email          String?
+  telefone       String?
+  dataCadastro   DateTime          @default(now())
+  ativo          Boolean           @default(true)
+  tokenAcesso    String?           @unique
+
+  profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
+  protocolos     ProtocoloTreino[]
+}
+
+model ProtocoloTreino {
+  idProtocolo    Int               @id @default(autoincrement())
+  idAluno        Int
+  idProfissional Int
+  nome           String
+  objetivo       String?
+  dataInicio     DateTime?
+  dataFim        DateTime?
+  ativo          Boolean           @default(true)
+
+  aluno          Aluno             @relation(fields: [idAluno], references: [idAluno])
+  profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
+  treinos        Treino[]
+}
+
+model Treino {
+  idTreino    Int                  @id @default(autoincrement())
+  idProtocolo Int
+  nome        String
+  observacao  String?
+  ordem       Int                  // Controla a ordem (ex: 1 = Treino A, 2 = Treino B)
+  ativo       Boolean              @default(true)
+
+  protocolo   ProtocoloTreino      @relation(fields: [idProtocolo], references: [idProtocolo], onDelete: Cascade)
+  exercicios  TreinoExercicio[]
+}
+
+model GrupoMuscular {
+  idGrupoMuscular Int            @id @default(autoincrement())
+  idProfissional  Int
+  nome            String
+  ativo           Boolean        @default(true)
+  
+  profissional    Profissional   @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
+  exercicios      Exercicio[]
+
+  @@unique([nome, idProfissional])
+}
+
+model Exercicio {
+  idExercicio     Int            @id @default(autoincrement())
+  idGrupoMuscular Int
+  idProfissional  Int
+  nome            String
+  descricao       String?
+  videoUrl        String?
+  ativo           Boolean        @default(true)
+
+  grupoMuscular   GrupoMuscular  @relation(fields: [idGrupoMuscular], references: [idGrupoMuscular], onDelete: Cascade)
+  profissional    Profissional   @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
+  treinos         TreinoExercicio[]
+
+  @@unique([nome, idProfissional])
+}
+
+model TecnicaTreino {
+  idTecnica      Int                @id @default(autoincrement())
+  idProfissional Int
+  nome           String
+  descricao      String?
+  ativo          Boolean            @default(true)
+
+  profissional   Profissional       @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
+  exercicios     TreinoExercicio[]
+
+  @@unique([nome, idProfissional])
+}
+
+model TreinoExercicio {
+  idTreinoExercicio Int            @id @default(autoincrement())
+  idTreino          Int
+  idExercicio       Int
+  idTecnica         Int?
+  series            Int            @default(3)
+  repeticoes        String         @default("10")
+  carga             String?
+  descansoSegundos  Int?           @default(60)
+  observacao        String?
+  ordem             Int            // Controla a sequencia do exercicio na ficha (ex: 1, 2, 3...)
+
+  treino            Treino         @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
+  exercicio         Exercicio      @relation(fields: [idExercicio], references: [idExercicio])
+  tecnica           TecnicaTreino? @relation(fields: [idTecnica], references: [idTecnica], onDelete: SetNull)
+}
