@@ -117,15 +117,18 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  // Auto-select first tab when activeProtocol changes
+  // Auto-select first tab when activeProtocol changes if none is selected or current no longer exists
   useEffect(() => {
     if (activeProtocol && activeProtocol.treinos.length > 0) {
-      const sorted = [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem);
-      setActiveTabId(sorted[0].idTreino);
+      const stillExists = activeProtocol.treinos.some(t => t.idTreino === activeTabId);
+      if (!stillExists) {
+        const sorted = [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem);
+        setActiveTabId(sorted[0].idTreino);
+      }
     } else {
       setActiveTabId(null);
     }
-  }, [activeProtocol]);
+  }, [activeProtocol, activeTabId]);
 
   const cancelEdit = () => {
     setEditingExercisePrescriptionId(null);
