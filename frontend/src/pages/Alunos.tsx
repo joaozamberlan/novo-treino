@@ -73,7 +73,7 @@ export const Alunos: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-1)' }}>
         Carregando seus alunos...
       </div>
     );
@@ -89,7 +89,7 @@ export const Alunos: React.FC = () => {
           onClick={() => setShowAddForm(!showAddForm)}
         >
           <Plus size={16} />
-          <span>{showAddForm ? 'Cancelar' : '+ Novo'}</span>
+          <span>{showAddForm ? 'Cancelar' : 'Novo Aluno'}</span>
         </button>
       </div>
 
@@ -173,7 +173,7 @@ export const Alunos: React.FC = () => {
 
       {/* Student List */}
       {filteredAlunos.length > 0 ? (
-        <div style={{ borderRadius: 'var(--radius, 12px)', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
+        <div style={{ borderRadius: 'var(--radius-l)', border: '1px solid var(--border)', overflow: 'hidden' }}>
           <div className="student-list">
             {filteredAlunos.map((aluno) => (
               <Link
@@ -196,7 +196,7 @@ export const Alunos: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-1)' }}>
           Nenhum aluno encontrado.
         </div>
       )}

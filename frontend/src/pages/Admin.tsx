@@ -124,17 +124,17 @@ export const Admin: React.FC = () => {
       {/* Estatísticas Rápidas de Contas */}
       <div className="grid grid-cols-3">
         <div className="card">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Total de Clientes</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Total de Clientes</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem' }}>{professionals.length}</div>
         </div>
         <div className="card">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Contas Ativas (Pagas)</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Contas Ativas (Pagas)</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--success)' }}>
             {professionals.filter(p => p.ativo).length}
           </div>
         </div>
         <div className="card">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Aprovações Pendentes</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Aprovações Pendentes</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--warning)' }}>
             {professionals.filter(p => !p.ativo).length}
           </div>
@@ -143,7 +143,7 @@ export const Admin: React.FC = () => {
 
       {/* Barra de Busca */}
       <div className="card" style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-secondary)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-2)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
           <Search size={18} style={{ color: 'var(--text-muted)' }} />
           <input
             type="text"
@@ -185,17 +185,17 @@ export const Admin: React.FC = () => {
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          border: '1px solid var(--card-border)'
+                          border: '1px solid var(--border)'
                         }}>
                           {prof.logoUrl ? (
                             <img src={prof.logoUrl} alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
-                            <User size={16} style={{ color: 'var(--text-secondary)' }} />
+                            <User size={16} style={{ color: 'var(--text-1)' }} />
                           )}
                         </div>
                         <div>
                           <div style={{ fontWeight: '600' }}>{prof.nome}</div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ID: {prof.idProfissional}</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>ID: {prof.idProfissional}</div>
                         </div>
                       </div>
                     </td>
@@ -216,7 +216,7 @@ export const Admin: React.FC = () => {
                     <td>
                       <div>
                         <div style={{ fontWeight: '500' }}>CREF: {prof.cref}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{prof.profissao}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>{prof.profissao}</div>
                       </div>
                     </td>
                     <td>
@@ -226,7 +226,7 @@ export const Admin: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <span className="badge" style={{ backgroundColor: prof.role === 'SUPERADMIN' ? 'rgba(204,255,0,0.1)' : 'rgba(255,255,255,0.05)', color: prof.role === 'SUPERADMIN' ? 'var(--accent)' : 'var(--text-secondary)', border: '1px solid var(--card-border)' }}>
+                      <span className="badge" style={{ backgroundColor: prof.role === 'SUPERADMIN' ? 'rgba(204,255,0,0.1)' : 'rgba(255,255,255,0.05)', color: prof.role === 'SUPERADMIN' ? 'var(--accent)' : 'var(--text-1)', border: '1px solid var(--border)' }}>
                         {prof.role}
                       </span>
                     </td>
@@ -277,7 +277,7 @@ export const Admin: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-1)' }}>
                     Nenhum profissional encontrado.
                   </td>
                 </tr>

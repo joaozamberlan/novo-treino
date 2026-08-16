@@ -260,7 +260,9 @@ export const PublicTreino: React.FC = () => {
             </h2>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.1rem' }}>
               <Award size={12} className="text-accent" />
-              <span>{profissional.profissao} · CREF {profissional.cref}</span>
+              <span>{profissional.profissao}</span>
+              <span style={{ color: 'var(--text-2)' }}>|</span>
+              <span>CREF {profissional.cref}</span>
             </div>
           </div>
           
@@ -293,7 +295,7 @@ export const PublicTreino: React.FC = () => {
         {/* Student welcome & Active protocol details */}
         <div style={{ marginBottom: '1.5rem' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Olá, {aluno.nome.split(' ')[0]} 👋
+            Olá, {aluno.nome.split(' ')[0]}
           </span>
           <h1 style={{ fontSize: '1.25rem', marginTop: '0.2rem', marginBottom: '0.25rem' }}>
             {protocolo?.nome || 'Ficha de Treinos'}

@@ -549,7 +549,7 @@ export const Catalog: React.FC = () => {
       <div className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
           <button 
             className={`btn`} 
             style={{ 
@@ -558,7 +558,7 @@ export const Catalog: React.FC = () => {
               borderRadius: '6px',
               fontSize: '0.9rem',
               backgroundColor: activeTab === 'exercicios' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'exercicios' ? 'var(--accent)' : 'var(--text-secondary)'
+              color: activeTab === 'exercicios' ? 'var(--accent)' : 'var(--text-1)'
             }}
             onClick={() => {
               setActiveTab('exercicios');
@@ -578,7 +578,7 @@ export const Catalog: React.FC = () => {
               borderRadius: '6px',
               fontSize: '0.9rem',
               backgroundColor: activeTab === 'grupos' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'grupos' ? 'var(--accent)' : 'var(--text-secondary)'
+              color: activeTab === 'grupos' ? 'var(--accent)' : 'var(--text-1)'
             }}
             onClick={() => {
               setActiveTab('grupos');
@@ -598,7 +598,7 @@ export const Catalog: React.FC = () => {
               borderRadius: '6px',
               fontSize: '0.9rem',
               backgroundColor: activeTab === 'tecnicas' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'tecnicas' ? 'var(--accent)' : 'var(--text-secondary)'
+              color: activeTab === 'tecnicas' ? 'var(--accent)' : 'var(--text-1)'
             }}
             onClick={() => {
               setActiveTab('tecnicas');
@@ -614,16 +614,16 @@ export const Catalog: React.FC = () => {
 
         {/* Filtro de Grupo Muscular (Apenas para Exercícios) */}
         {activeTab === 'exercicios' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', minWidth: '180px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', minWidth: '180px' }}>
             <select
               className="form-control"
               style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer' }}
               value={selectedGrupoFilter}
               onChange={(e) => setSelectedGrupoFilter(Number(e.target.value))}
             >
-              <option value={0} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>Todos os Grupos</option>
+              <option value={0} style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-primary)' }}>Todos os Grupos</option>
               {grupos.map((g) => (
-                <option key={g.idGrupoMuscular} value={g.idGrupoMuscular} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+                <option key={g.idGrupoMuscular} value={g.idGrupoMuscular} style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-primary)' }}>
                   {g.nome}
                 </option>
               ))}
@@ -632,7 +632,7 @@ export const Catalog: React.FC = () => {
         )}
 
         {/* Search Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 1rem', borderRadius: '8px', border: '1px solid var(--card-border)', flex: 1, maxWidth: '300px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', flex: 1, maxWidth: '300px' }}>
           <input
             type="text"
             className="form-control"
@@ -668,7 +668,7 @@ export const Catalog: React.FC = () => {
                           {ex.grupoMuscular.nome}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ex.descricao || '-'}
                       </td>
                       <td>
@@ -723,7 +723,7 @@ export const Catalog: React.FC = () => {
                   filteredTecnicas.map((tec) => (
                     <tr key={tec.idTecnica}>
                       <td style={{ fontWeight: '600', color: 'var(--accent)' }}>{tec.nome}</td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
                         {tec.descricao || '-'}
                       </td>
                       <td style={{ textAlign: 'right' }}>
@@ -771,7 +771,7 @@ export const Catalog: React.FC = () => {
                       <tr key={g.idGrupoMuscular}>
                         <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{g.nome}</td>
                         <td>
-                          <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)', border: '1px solid var(--card-border)' }}>
+                          <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-1)', border: '1px solid var(--border)' }}>
                             {count} {count === 1 ? 'exercício' : 'exercícios'}
                           </span>
                         </td>

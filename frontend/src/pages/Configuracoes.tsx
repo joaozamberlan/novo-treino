@@ -142,7 +142,7 @@ export const Configuracoes: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-1)' }}>
         Carregando configurações...
       </div>
     );
@@ -245,7 +245,7 @@ export const Configuracoes: React.FC = () => {
       {/* Group 2: Visual Identity */}
       <div className="settings-group">
         <div className="settings-group-title">IDENTIDADE VISUAL (PDF)</div>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
           Estas informações aparecerão no cabeçalho das fichas impressas.
         </p>
 
@@ -255,8 +255,8 @@ export const Configuracoes: React.FC = () => {
               width: '40px',
               height: '40px',
               borderRadius: '8px',
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--card-border)',
+              backgroundColor: 'var(--bg-2)',
+              border: '1px solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -294,7 +294,7 @@ export const Configuracoes: React.FC = () => {
       {/* Group 3: Exercise Library */}
       <div className="settings-group">
         <div className="settings-group-title">BIBLIOTECA DE EXERCÍCIOS</div>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
           {exerciciosCount} exercícios · {tecnicasCount} técnicas cadastradas
         </p>
 

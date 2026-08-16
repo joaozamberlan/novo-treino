@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   ArrowLeft, Plus, Calendar, 
   Trash2, Printer, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Share2
+  ArrowUp, ArrowDown, Edit, Share2, X
 } from 'lucide-react';
 
 interface GrupoMuscular {
@@ -417,8 +417,10 @@ export const Treinos: React.FC = () => {
             <h1>{aluno?.nome}</h1>
             <p>
               {activeProtocol?.nome || 'Sem protocolo ativo'}
-              {activeProtocol?.objetivo && ` · ${activeProtocol.objetivo}`}
-              {refreshing && ' · Atualizando...'}
+              {activeProtocol?.objetivo && (
+                <span style={{ color: 'var(--text-2)', margin: '0 0.35rem' }}>|</span>
+              )}{activeProtocol?.objetivo}
+              {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
             </p>
           </div>
         </div>
@@ -507,7 +509,7 @@ export const Treinos: React.FC = () => {
                   type="button"
                   className="btn btn-ghost btn-sm"
                   style={{
-                    border: proto.ativo ? '1px solid var(--accent)' : '1px solid var(--card-border)',
+                    border: proto.ativo ? '1px solid var(--accent)' : '1px solid var(--border)',
                     backgroundColor: proto.ativo ? 'rgba(204, 255, 0, 0.05)' : undefined,
                   }}
                   onClick={async () => {
@@ -767,7 +769,9 @@ export const Treinos: React.FC = () => {
                   {editingExercisePrescriptionId ? 'Salvar' : 'Adicionar'}
                 </button>
                 {editingExercisePrescriptionId && (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={cancelEdit}>✕</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={cancelEdit} title="Cancelar edição">
+                    <X size={14} />
+                  </button>
                 )}
               </form>
 

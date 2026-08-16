@@ -175,17 +175,17 @@ export const Dashboard: React.FC = () => {
             <Users size={32} />
           </div>
           <div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Alunos Cadastrados</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)' }}>Alunos Cadastrados</div>
             <div style={{ fontSize: '2rem', fontWeight: '800' }}>{alunosCount}</div>
           </div>
         </div>
 
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)' }}>
+          <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-0)' }}>
             <Award size={32} />
           </div>
           <div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Especialidade</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)' }}>Especialidade</div>
             <div style={{ fontSize: '1.25rem', fontWeight: '700', marginTop: '0.25rem' }}>{user?.profissao}</div>
           </div>
         </div>
@@ -259,8 +259,8 @@ export const Dashboard: React.FC = () => {
                     width: '60px', 
                     height: '60px', 
                     borderRadius: '8px', 
-                    backgroundColor: 'var(--bg-secondary)', 
-                    border: '1px solid var(--card-border)',
+                    backgroundColor: 'var(--bg-2)', 
+                    border: '1px solid var(--border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -279,7 +279,7 @@ export const Dashboard: React.FC = () => {
                     disabled={uploadingLogo}
                     style={{ padding: '0.4rem 0.75rem', height: 'auto' }}
                   />
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.25rem' }}>
                     {uploadingLogo ? 'Enviando arquivo...' : 'Escolha uma imagem para usar de logotipo no cabeçalho das fichas.'}
                   </div>
                 </div>
@@ -341,9 +341,9 @@ export const Dashboard: React.FC = () => {
           Para prescrever treinos para seus alunos, o sistema precisa de um catálogo básico de exercícios e técnicas. Você pode inicializá-los ou recarregá-los a qualquer momento abaixo.
         </p>
 
-        <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '12px', width: '100%', border: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ backgroundColor: 'var(--bg-2)', padding: '1.25rem', borderRadius: '12px', width: '100%', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Status do Catálogo</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Status do Catálogo</div>
             <div style={{ fontWeight: '700', fontSize: '1.05rem', marginTop: '0.25rem' }}>
               {exerciciosCount > 0 ? (
                 <span style={{ color: 'var(--success)' }}>

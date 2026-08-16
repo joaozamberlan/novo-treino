@@ -198,6 +198,29 @@ body {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+  min-width: 0;
+}
+
+/* ── Grid utilities ────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 640px) {
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Typography ────────────────────────────────────────────────────────── */
@@ -723,6 +746,7 @@ select.form-input {
   display: flex;
   gap: 0.5rem;
   align-items: flex-end;
+  flex-wrap: wrap;
   padding: 0.75rem;
   background: var(--bg-2);
   border: 1px dashed var(--border);
@@ -733,6 +757,7 @@ select.form-input {
 .add-exercise-bar .form-group {
   margin: 0;
   flex: 1;
+  min-width: 80px;
 }
 
 .add-exercise-bar .form-input {
@@ -742,6 +767,7 @@ select.form-input {
 
 .add-exercise-bar .btn {
   height: 30px;
+  flex-shrink: 0;
 }
 
 /* ── Volume Footer ─────────────────────────────────────────────────────── */
@@ -949,6 +975,24 @@ select.form-input {
   }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1151,6 +1195,10 @@ select.form-input {
   .ficha-tabs {
     overflow-x: auto;
     flex-wrap: nowrap;
+  }
+
+  .add-exercise-bar .form-group {
+    width: 100%;
   }
 
   .app-sidebar {
