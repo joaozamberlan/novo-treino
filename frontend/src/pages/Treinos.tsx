@@ -63,6 +63,13 @@ interface Aluno {
   tokenAcesso?: string;
 }
 
+// Cache em memória para catálogos estáticos
+let cachedCatalogs: {
+  exercicios: Exercicio[];
+  tecnicas: TecnicaTreino[];
+  grupos: GrupoMuscular[];
+} | null = null;
+
 export const Treinos: React.FC = () => {
   const { idAluno } = useParams<{ idAluno: string }>();
   const { user } = useAuth();
@@ -73,9 +80,9 @@ export const Treinos: React.FC = () => {
   const [volume, setVolume] = useState<Record<string, number>>({});
   
   // Catalogs
-  const [catalogExercicios, setCatalogExercicios] = useState<Exercicio[]>([]);
-  const [catalogTecnicas, setCatalogTecnicas] = useState<TecnicaTreino[]>([]);
-  const [catalogGrupos, setCatalogGrupos] = useState<GrupoMuscular[]>([]);
+  const [catalogExercicios, setCatalogExercicios] = useState<Exercicio[]>(cachedCatalogs?.exercicios || []);
+  const [catalogTecnicas, setCatalogTecnicas] = useState<TecnicaTreino[]>(cachedCatalogs?.tecnicas || []);
+  const [catalogGrupos, setCatalogGrupos] = useState<GrupoMuscular[]>(cachedCatalogs?.grupos || []);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -141,62 +148,61 @@ export const Treinos: React.FC = () => {
     setExObs('');
   };
 
-  const loadStaticData = async () => {
+  // Carrega catálogos (com cache instantâneo)
+  const loadCatalogs = async () => {
+    if (cachedCatalogs) {
+      setCatalogExercicios(cachedCatalogs.exercicios);
+      setCatalogTecnicas(cachedCatalogs.tecnicas);
+      setCatalogGrupos(cachedCatalogs.grupos);
+      return;
+    }
     try {
-      setError('');
-      const [studentRes, exerciciosRes, tecnicasRes, gruposRes] = await Promise.all([
-        api.get(`/alunos/${idAluno}`),
+      const [exerciciosRes, tecnicasRes, gruposRes] = await Promise.all([
         api.get('/exercicios'),
         api.get('/exercicios/tecnicas'),
         api.get('/exercicios/grupos')
       ]);
-      setAluno(studentRes.data);
+      cachedCatalogs = {
+        exercicios: exerciciosRes.data,
+        tecnicas: tecnicasRes.data,
+        grupos: gruposRes.data,
+      };
       setCatalogExercicios(exerciciosRes.data);
       setCatalogTecnicas(tecnicasRes.data);
       setCatalogGrupos(gruposRes.data);
     } catch (err) {
-      console.error('Erro ao carregar dados estáticos:', err);
-      setError('Erro ao carregar dados da biblioteca.');
+      console.error('Erro ao carregar catálogo:', err);
     }
   };
 
-  const loadDynamicData = async (showGlobalLoading = false) => {
+  // Carregamento consolidado rápido em 1 requisição
+  const loadOverview = async (showGlobalLoading = false) => {
     try {
       if (showGlobalLoading) setLoading(true);
       else setRefreshing(true);
       setError('');
 
-      const protocolsRes = await api.get(`/treinos/protocolos/${idAluno}`);
-      setProtocolos(protocolsRes.data);
+      const [overviewRes] = await Promise.all([
+        api.get(`/treinos/visao-geral/${idAluno}`),
+        loadCatalogs(),
+      ]);
 
-      const active = protocolsRes.data.find((p: any) => p.ativo === true);
-      if (active) {
-        const [detailsRes, volumeRes] = await Promise.all([
-          api.get(`/treinos/protocolos/detalhes/${active.idProtocolo}`),
-          api.get(`/treinos/volume/${idAluno}`)
-        ]);
-        setActiveProtocol(detailsRes.data);
-        setVolume(volumeRes.data);
-      } else {
-        setActiveProtocol(null);
-        setVolume({});
-      }
+      const { aluno: stAluno, protocolos: stProtocolos, activeProtocol: stActive, volume: stVolume } = overviewRes.data;
+      setAluno(stAluno);
+      setProtocolos(stProtocolos);
+      setActiveProtocol(stActive);
+      setVolume(stVolume || {});
     } catch (err) {
-      console.error('Erro ao carregar periodização:', err);
-      setError('Erro ao carregar periodização.');
+      console.error('Erro ao carregar visão geral do aluno:', err);
+      setError('Erro ao carregar dados do aluno.');
     } finally {
-      if (showGlobalLoading) setLoading(false);
-      else setRefreshing(false);
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([loadStaticData(), loadDynamicData(false)]);
-      setLoading(false);
-    };
-    init();
+    loadOverview(true);
   }, [idAluno]);
 
   useEffect(() => {
@@ -213,7 +219,6 @@ export const Treinos: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // 1. Create muscle groups
       const grupos = ['Peito', 'Costas', 'Pernas', 'Ombros', 'Braços', 'Core'];
       const grupoIds: Record<string, number> = {};
       
@@ -222,7 +227,6 @@ export const Treinos: React.FC = () => {
         grupoIds[g] = res.data.idGrupoMuscular;
       }
 
-      // 2. Create exercises
       const exercicios = [
         { nome: 'Supino Reto', grupo: 'Peito' },
         { nome: 'Supino Inclinado c/ Halteres', grupo: 'Peito' },
@@ -247,7 +251,6 @@ export const Treinos: React.FC = () => {
         });
       }
 
-      // 3. Create techniques
       const tecnicas = [
         { nome: 'Drop-set', desc: 'Realiza falha, reduz carga 20-30%, falha novamente sem descanso.' },
         { nome: 'Rest-Pause', desc: 'Falha, descansa 15s, realiza mais reps com mesma carga.' },
@@ -258,8 +261,8 @@ export const Treinos: React.FC = () => {
         await api.post('/exercicios/tecnicas', { nome: t.nome, descricao: t.desc });
       }
 
-      // Reload
-      await Promise.all([loadStaticData(), loadDynamicData(false)]);
+      cachedCatalogs = null; // Invalida cache
+      await loadOverview(true);
     } catch (err: any) {
       console.error(err);
       setError('Erro ao gerar catálogo padrão. Talvez alguns nomes já existam.');
@@ -284,45 +287,109 @@ export const Treinos: React.FC = () => {
       setProtoInicio('');
       setProtoFim('');
       setCreatingProtocol(false);
-      loadDynamicData(false);
+      loadOverview(false);
     } catch (err) {
       console.error(err);
       setError('Erro ao criar protocolo de treino.');
     }
   };
 
-  // Ficha operations
+  // Ficha operations (com adição instantânea)
   const handleCreateTreino = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProtocol) return;
 
     try {
-      await api.post(`/treinos/fichas/${activeProtocol.idProtocolo}`, {
+      const res = await api.post(`/treinos/fichas/${activeProtocol.idProtocolo}`, {
         nome: treinoNome,
         observacao: treinoObs || undefined,
         ordem: Number(treinoOrdem)
       });
 
+      const newTreino: FichaTreino = {
+        idTreino: res.data.idTreino,
+        nome: res.data.nome,
+        observacao: res.data.observacao,
+        ordem: res.data.ordem,
+        exercicios: [],
+      };
+
+      setActiveProtocol(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          treinos: [...prev.treinos, newTreino],
+        };
+      });
+
+      setActiveTabId(newTreino.idTreino);
       setTreinoNome('');
       setTreinoObs('');
       setTreinoOrdem(activeProtocol.treinos.length + 2);
       setCreatingTreino(false);
-      loadDynamicData(false);
     } catch (err) {
       console.error(err);
       setError('Erro ao criar ficha de treino.');
     }
   };
 
-  // Prescribe Exercise operations
+  // Prescribe Exercise operations com Optimistic UI instantâneo
   const handlePrescribeExercise = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeTabId) return;
+    if (!activeTabId || !activeProtocol) return;
 
-    try {
-      if (editingExercisePrescriptionId) {
-        // Edit existing prescription
-        await api.patch(`/treinos/exercicios/${editingExercisePrescriptionId}`, {
+    const exObj = catalogExercicios.find(e => e.idExercicio === Number(selectedExercicio));
+    const tecObj = catalogTecnicas.find(t => t.idTecnica === Number(selectedTecnica));
+    if (!exObj) return;
+
+    const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
+
+    if (editingExercisePrescriptionId) {
+      // --- EDIÇÃO OTIMISTA INSTANTÂNEA ---
+      const editId = editingExercisePrescriptionId;
+      const oldItem = currentFicha?.exercicios.find(x => x.idTreinoExercicio === editId);
+      const oldSeries = oldItem?.series || 0;
+      const oldGroup = oldItem?.exercicio.grupoMuscular.nome;
+
+      const updatedItem: PrescribedExercise = {
+        idTreinoExercicio: editId,
+        series: Number(exSeries),
+        repeticoes: String(exReps),
+        descansoSegundos: Number(exDescanso) || 60,
+        observacao: exObs || undefined,
+        ordem: oldItem?.ordem || 1,
+        exercicio: exObj,
+        tecnica: tecObj,
+      };
+
+      // Atualiza tela imediatamente (0ms)
+      setActiveProtocol(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          treinos: prev.treinos.map(t => {
+            if (t.idTreino !== activeTabId) return t;
+            return {
+              ...t,
+              exercicios: t.exercicios.map(x => x.idTreinoExercicio === editId ? updatedItem : x),
+            };
+          }),
+        };
+      });
+
+      // Atualiza volume imediatamente (0ms)
+      setVolume(prev => {
+        const next = { ...prev };
+        if (oldGroup) next[oldGroup] = Math.max(0, (next[oldGroup] || 0) - oldSeries);
+        next[exObj.grupoMuscular.nome] = (next[exObj.grupoMuscular.nome] || 0) + Number(exSeries);
+        return next;
+      });
+
+      cancelEdit();
+
+      // Salva no backend em background
+      try {
+        await api.patch(`/treinos/exercicios/${editId}`, {
           idExercicio: Number(selectedExercicio),
           idTecnica: selectedTecnica ? Number(selectedTecnica) : null,
           series: Number(exSeries),
@@ -330,24 +397,80 @@ export const Treinos: React.FC = () => {
           descansoSegundos: Number(exDescanso) || null,
           observacao: exObs || null,
         });
-      } else {
-        // Create new prescription
-        await api.post(`/treinos/exercicios/${activeTabId}`, {
+      } catch (err) {
+        console.error('Erro ao salvar edição:', err);
+        setError('Erro ao salvar no servidor.');
+        loadOverview(false);
+      }
+    } else {
+      // --- ADIÇÃO OTIMISTA INSTANTÂNEA ---
+      const tempId = -Date.now();
+      const newOrder = (currentFicha?.exercicios.length || 0) + 1;
+      const newItem: PrescribedExercise = {
+        idTreinoExercicio: tempId,
+        series: Number(exSeries),
+        repeticoes: String(exReps),
+        descansoSegundos: Number(exDescanso) || 60,
+        observacao: exObs || undefined,
+        ordem: newOrder,
+        exercicio: exObj,
+        tecnica: tecObj,
+      };
+
+      // Adiciona na lista na tela imediatamente (0ms)
+      setActiveProtocol(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          treinos: prev.treinos.map(t => {
+            if (t.idTreino !== activeTabId) return t;
+            return {
+              ...t,
+              exercicios: [...t.exercicios, newItem],
+            };
+          }),
+        };
+      });
+
+      // Atualiza volume imediatamente (0ms)
+      setVolume(prev => ({
+        ...prev,
+        [exObj.grupoMuscular.nome]: (prev[exObj.grupoMuscular.nome] || 0) + Number(exSeries),
+      }));
+
+      cancelEdit();
+
+      // Salva no backend em background e sincroniza o ID real
+      try {
+        const res = await api.post(`/treinos/exercicios/${activeTabId}`, {
           idExercicio: Number(selectedExercicio),
           idTecnica: selectedTecnica ? Number(selectedTecnica) : undefined,
           series: Number(exSeries),
           repeticoes: exReps,
           descansoSegundos: Number(exDescanso) || undefined,
           observacao: exObs || undefined,
-          ordem: activeProtocol?.treinos.find(t => t.idTreino === activeTabId)?.exercicios.length || 1
+          ordem: newOrder,
         });
-      }
 
-      cancelEdit();
-      loadDynamicData(false);
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao salvar/editar prescrição.');
+        // Substitui ID temporário pelo real do banco
+        setActiveProtocol(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            treinos: prev.treinos.map(t => {
+              if (t.idTreino !== activeTabId) return t;
+              return {
+                ...t,
+                exercicios: t.exercicios.map(x => x.idTreinoExercicio === tempId ? res.data : x),
+              };
+            }),
+          };
+        });
+      } catch (err) {
+        console.error('Erro ao adicionar exercício:', err);
+        setError('Erro ao salvar no servidor.');
+        loadOverview(false);
+      }
     }
   };
 
@@ -361,39 +484,86 @@ export const Treinos: React.FC = () => {
     setExDescanso(item.descansoSegundos || 60);
     setExObs(item.observacao || '');
     setActiveTabId(idTreino);
-    // Smooth scroll to the form
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
+  // Reordenação otimista instantânea
   const handleMoveExercise = async (treino: FichaTreino, index: number, direction: 'up' | 'down') => {
-    setError('');
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= treino.exercicios.length) return;
 
     const currentEx = treino.exercicios[index];
     const targetEx = treino.exercicios[targetIndex];
 
+    const updatedList = [...treino.exercicios];
+    const tempOrdem = currentEx.ordem;
+    updatedList[index] = { ...targetEx, ordem: tempOrdem };
+    updatedList[targetIndex] = { ...currentEx, ordem: targetEx.ordem };
+
+    // Swap na UI imediatamente (0ms)
+    setActiveProtocol(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        treinos: prev.treinos.map(t => {
+          if (t.idTreino !== treino.idTreino) return t;
+          return {
+            ...t,
+            exercicios: updatedList,
+          };
+        }),
+      };
+    });
+
     try {
       await Promise.all([
         api.patch(`/treinos/exercicios/${currentEx.idTreinoExercicio}`, { ordem: targetEx.ordem }),
         api.patch(`/treinos/exercicios/${targetEx.idTreinoExercicio}`, { ordem: currentEx.ordem })
       ]);
-      
-      loadDynamicData(false);
     } catch (err) {
-      console.error('Erro ao reordenar exercício:', err);
-      setError('Erro ao reordenar exercício.');
+      console.error('Erro ao reordenar:', err);
+      loadOverview(false);
     }
   };
 
+  // Remoção otimista instantânea
   const handleRemoveExercise = async (idTreinoExercicio: number) => {
     if (!confirm('Deseja excluir esta prescrição?')) return;
+    if (!activeProtocol || !activeTabId) return;
+
+    const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
+    const removed = currentFicha?.exercicios.find(x => x.idTreinoExercicio === idTreinoExercicio);
+
+    // Remove da tela imediatamente (0ms)
+    setActiveProtocol(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        treinos: prev.treinos.map(t => {
+          if (t.idTreino !== activeTabId) return t;
+          return {
+            ...t,
+            exercicios: t.exercicios.filter(x => x.idTreinoExercicio !== idTreinoExercicio),
+          };
+        }),
+      };
+    });
+
+    if (removed) {
+      setVolume(prev => {
+        const group = removed.exercicio.grupoMuscular.nome;
+        return {
+          ...prev,
+          [group]: Math.max(0, (prev[group] || 0) - removed.series),
+        };
+      });
+    }
+
     try {
       await api.delete(`/treinos/exercicios/${idTreinoExercicio}`);
-      loadDynamicData(false);
     } catch (err) {
-      console.error(err);
-      setError('Erro ao remover exercício.');
+      console.error('Erro ao remover no servidor:', err);
+      loadOverview(false);
     }
   };
 

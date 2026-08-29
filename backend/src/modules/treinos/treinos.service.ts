@@ -137,6 +137,65 @@ export class TreinosService {
     });
   }
 
+  // --- VISÃO GERAL CONSOLIDADA (ALUNO + PROTOCOLOS + TREINOS + VOLUME EM 1 REQUISIÇÃO) ---
+  async getVisaoGeralAluno(idAluno: number, idProfissional: number) {
+    const aluno = await this.prisma.aluno.findFirst({
+      where: { idAluno, idProfissional },
+      select: {
+        idAluno: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        tokenAcesso: true,
+      },
+    });
+
+    if (!aluno) {
+      throw new NotFoundException('Aluno não encontrado');
+    }
+
+    const protocolos = await this.prisma.protocoloTreino.findMany({
+      where: { idAluno, idProfissional },
+      orderBy: { dataInicio: 'desc' },
+      include: {
+        treinos: {
+          where: { ativo: true },
+          orderBy: { ordem: 'asc' },
+          include: {
+            exercicios: {
+              orderBy: { ordem: 'asc' },
+              include: {
+                exercicio: {
+                  include: { grupoMuscular: true },
+                },
+                tecnica: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const activeProtocol = protocolos.find((p) => p.ativo) || null;
+
+    const volumePorGrupo: Record<string, number> = {};
+    if (activeProtocol) {
+      activeProtocol.treinos.forEach((treino) => {
+        treino.exercicios.forEach((item) => {
+          const grupo = item.exercicio.grupoMuscular.nome;
+          volumePorGrupo[grupo] = (volumePorGrupo[grupo] || 0) + item.series;
+        });
+      });
+    }
+
+    return {
+      aluno,
+      protocolos,
+      activeProtocol,
+      volume: volumePorGrupo,
+    };
+  }
+
   // --- TREINO EXERCICIOS ---
   async addExercicioToTreino(idTreino: number, idProfissional: number, addDto: AddExercicioDto) {
     const treino = await this.prisma.treino.findFirst({
@@ -168,7 +227,9 @@ export class TreinosService {
         idTreino,
       },
       include: {
-        exercicio: true,
+        exercicio: {
+          include: { grupoMuscular: true },
+        },
         tecnica: true,
       },
     });
@@ -194,6 +255,12 @@ export class TreinosService {
     return this.prisma.treinoExercicio.update({
       where: { idTreinoExercicio },
       data: updateDto,
+      include: {
+        exercicio: {
+          include: { grupoMuscular: true },
+        },
+        tecnica: true,
+      },
     });
   }
 
@@ -253,3 +320,4 @@ export class TreinosService {
     return volumePorGrupo;
   }
 }
+

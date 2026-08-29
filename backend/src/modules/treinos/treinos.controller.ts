@@ -23,6 +23,14 @@ export class TreinosController {
     return this.treinosService.createProtocolo(idAluno, profissional.idProfissional, createDto);
   }
 
+  @Get('visao-geral/:idAluno')
+  async getVisaoGeralAluno(
+    @Param('idAluno', ParseIntPipe) idAluno: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.treinosService.getVisaoGeralAluno(idAluno, profissional.idProfissional);
+  }
+
   @Get('protocolos/:idAluno')
   async findAllProtocolos(
     @Param('idAluno', ParseIntPipe) idAluno: number,

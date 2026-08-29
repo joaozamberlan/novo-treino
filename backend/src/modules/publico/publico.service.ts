@@ -77,7 +77,7 @@ export class PublicoService {
     return {
       idSessao: sessao.idSessao,
       data: sessao.data,
-      concluidosIds: sessao.concluidos.map((c) => c.idTreinoExercicio),
+      concluidosIds: sessao.concluidos.map((c: any) => c.idTreinoExercicio),
     };
   }
 
