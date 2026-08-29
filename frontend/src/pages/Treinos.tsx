@@ -595,6 +595,21 @@ export const Treinos: React.FC = () => {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>Carregando ficha e periodização do aluno...</div>;
   }
 
+  if (!aluno && error) {
+    return (
+      <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <AlertCircle size={36} style={{ color: 'var(--danger)' }} />
+        <h2>Aluno não encontrado</h2>
+        <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
+          Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
+        </p>
+        <Link to="/alunos" className="btn btn-primary btn-sm">
+          Ir para Meus Alunos
+        </Link>
+      </div>
+    );
+  }
+
   const sortedTreinos = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const activeFicha = activeProtocol?.treinos.find(t => t.idTreino === activeTabId);
   const sortedExercicios = activeFicha ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
