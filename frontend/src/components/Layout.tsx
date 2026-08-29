@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Dumbbell, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon } from 'lucide-react';
+import { Dumbbell, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download } from 'lucide-react';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { canInstall, install } = usePWAInstall();
+  const [showIosHint, setShowIosHint] = useState(false);
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = localStorage.getItem('sidebar-expanded');
     return saved === 'true';
@@ -13,6 +16,11 @@ export const Layout: React.FC = () => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+
+  // Detecta iOS (Safari não suporta beforeinstallprompt)
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = (window.navigator as any).standalone === true;
+  const showIosInstall = isIos && !isStandalone;
 
   // Toggle theme class on body
   useEffect(() => {
@@ -65,6 +73,41 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="app-shell">
+      {/* iOS install hint */}
+      {showIosHint && (
+        <div
+          onClick={() => setShowIosHint(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.5)', display: 'flex',
+            alignItems: 'flex-end', justifyContent: 'center', padding: '1rem',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-2)', border: '1px solid var(--border)',
+              borderRadius: '1rem', padding: '1.5rem', maxWidth: '360px',
+              width: '100%', textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📲</div>
+            <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
+            <p style={{ color: 'var(--text-1)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
+              <strong>"Adicionar à Tela de Início"</strong>
+            </p>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowIosHint(false)}
+              style={{ marginTop: '1rem', width: '100%' }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <header className="topbar">
         <div className="topbar-left">
@@ -83,6 +126,28 @@ export const Layout: React.FC = () => {
         </div>
 
         <div className="topbar-right">
+          {/* Botão instalar PWA — Android/Chrome */}
+          {canInstall && (
+            <button
+              className="topbar-btn"
+              onClick={install}
+              title="Instalar app"
+              style={{ color: 'var(--accent)' }}
+            >
+              <Download size={16} />
+            </button>
+          )}
+          {/* Botão instalar PWA — iOS (instrução manual) */}
+          {showIosInstall && !canInstall && (
+            <button
+              className="topbar-btn"
+              onClick={() => setShowIosHint(true)}
+              title="Instalar app no iPhone"
+              style={{ color: 'var(--accent)' }}
+            >
+              <Download size={16} />
+            </button>
+          )}
           <button 
             className="topbar-btn" 
             onClick={toggleTheme} 
@@ -96,6 +161,7 @@ export const Layout: React.FC = () => {
           </button>
         </div>
       </header>
+
 
       {/* Main Layout containing Sidebar and Page Content */}
       <div className="main-layout">
