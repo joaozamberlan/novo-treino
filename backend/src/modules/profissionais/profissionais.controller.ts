@@ -27,6 +27,18 @@ export class ProfissionaisController {
     return this.profissionaisService.updateProfile(profissional.idProfissional, updateDto);
   }
 
+  /**
+   * NOTA PARA MIGRAÇÃO FUTURA (CLOUDFLARE R2):
+   * Atualmente os arquivos são salvos no disco efêmero do container (pasta /uploads).
+   * Para deploy estável em produção no Railway sem perder arquivos em redeploys,
+   * migrar este upload para o Cloudflare R2 (gratuito até 10GB, compatível com S3 API):
+   * 
+   * 1. Instalar: npm install @aws-sdk/client-s3
+   * 2. Configurar S3Client com as credenciais do Cloudflare R2 (Endpoint, AccessKeyId, SecretAccessKey)
+   * 3. Trocar diskStorage por memoryStorage() no Multer
+   * 4. Fazer PutObjectCommand enviando file.buffer para o Bucket R2
+   * 5. Salvar a URL pública do R2 (ex: https://pub-xxxx.r2.dev/logos/logo-id.ext ou seu domínio customizado)
+   */
   @Post('me/logo')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -55,3 +67,4 @@ export class ProfissionaisController {
     return { logoUrl };
   }
 }
+
