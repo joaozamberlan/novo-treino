@@ -85,8 +85,10 @@ export const PublicTreino: React.FC = () => {
   const [error, setError] = useState('');
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
 
-  // Completed exercises local state
+  // Progresso persistido no servidor
   const [completedList, setCompletedList] = useState<Record<number, boolean>>({});
+  const [sessaoId, setSessaoId] = useState<number | null>(null);
+  const [savingId, setSavingId] = useState<number | null>(null);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -192,11 +194,50 @@ export const PublicTreino: React.FC = () => {
     setTimeLeft(0);
   };
 
-  const toggleExerciseCompleted = (id: number) => {
-    setCompletedList(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  // ── Sessão persistida no servidor ──────────────────────────────
+  const fetchSessao = async (idTreino: number) => {
+    if (!token) return;
+    try {
+      const res = await api.get(`/publico/sessao/${token}/${idTreino}`);
+      setSessaoId(res.data.idSessao);
+      const mapa: Record<number, boolean> = {};
+      (res.data.concluidosIds as number[]).forEach(id => { mapa[id] = true; });
+      setCompletedList(mapa);
+    } catch (err) {
+      console.error('Erro ao buscar sessão:', err);
+    }
+  };
+
+  // Busca sessão sempre que o treino ativo muda
+  useEffect(() => {
+    if (activeTabId !== null) {
+      fetchSessao(activeTabId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId]);
+
+  // Toggle com optimistic update + persistência no servidor
+  const toggleExerciseCompleted = async (id: number) => {
+    if (!sessaoId || savingId !== null) return;
+    setCompletedList(prev => ({ ...prev, [id]: !prev[id] }));
+    setSavingId(id);
+    try {
+      const res = await api.post(`/publico/sessao/${sessaoId}/toggle/${id}`);
+      setCompletedList(prev => ({ ...prev, [id]: res.data.concluido }));
+    } catch (err) {
+      // Reverte em caso de erro
+      setCompletedList(prev => ({ ...prev, [id]: !prev[id] }));
+      console.error('Erro ao salvar progresso:', err);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  // Troca de aba: limpa lista antes de buscar nova sessão
+  const handleTabChange = (idTreino: number) => {
+    setActiveTabId(idTreino);
+    setCompletedList({});
+    setSessaoId(null);
   };
 
   if (loading) {
@@ -315,7 +356,7 @@ export const PublicTreino: React.FC = () => {
                 <button
                   key={treino.idTreino}
                   className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
-                  onClick={() => setActiveTabId(treino.idTreino)}
+                  onClick={() => handleTabChange(treino.idTreino)}
                   style={{ flex: 1, textAlign: 'center', padding: '0.6rem 0' }}
                 >
                   {treino.nome.replace('Treino ', '')}
@@ -351,22 +392,27 @@ export const PublicTreino: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => toggleExerciseCompleted(item.idTreinoExercicio)}
+                        disabled={savingId !== null}
                         style={{
                           width: '28px',
                           height: '28px',
                           borderRadius: '6px',
                           border: isCompleted ? '1px solid var(--success)' : '1px solid var(--border)',
                           background: isCompleted ? 'rgba(18, 183, 106, 0.1)' : 'transparent',
-                          color: 'var(--success)',
-                          cursor: 'pointer',
+                          color: savingId === item.idTreinoExercicio ? 'var(--text-2)' : 'var(--success)',
+                          cursor: savingId !== null ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          opacity: savingId !== null && savingId !== item.idTreinoExercicio ? 0.5 : 1,
                         }}
                         title={isCompleted ? "Desmarcar conclusão" : "Marcar conclusão"}
                       >
-                        {isCompleted && <Check size={16} />}
+                        {savingId === item.idTreinoExercicio
+                          ? <RefreshCw size={14} className="animate-spin" />
+                          : isCompleted && <Check size={16} />
+                        }
                       </button>
 
                       <div className="exercise-block-info" style={{ minWidth: 0 }}>

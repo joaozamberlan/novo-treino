@@ -42,6 +42,7 @@ model Aluno {
 
   profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
   protocolos     ProtocoloTreino[]
+  sessoes        SessaoTreino[]
 }
 
 model ProtocoloTreino {
@@ -69,6 +70,7 @@ model Treino {
 
   protocolo   ProtocoloTreino      @relation(fields: [idProtocolo], references: [idProtocolo], onDelete: Cascade)
   exercicios  TreinoExercicio[]
+  sessoes     SessaoTreino[]
 }
 
 model GrupoMuscular {
@@ -127,4 +129,30 @@ model TreinoExercicio {
   treino            Treino         @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
   exercicio         Exercicio      @relation(fields: [idExercicio], references: [idExercicio])
   tecnica           TecnicaTreino? @relation(fields: [idTecnica], references: [idTecnica], onDelete: SetNull)
+  concluidos        ExercicioConcluido[]
+}
+
+model SessaoTreino {
+  idSessao  Int      @id @default(autoincrement())
+  idAluno   Int
+  idTreino  Int
+  data      String   // formato 'YYYY-MM-DD'
+  criadoEm DateTime @default(now())
+
+  aluno     Aluno              @relation(fields: [idAluno], references: [idAluno], onDelete: Cascade)
+  treino    Treino             @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
+  concluidos ExercicioConcluido[]
+
+  @@unique([idAluno, idTreino, data])
+}
+
+model ExercicioConcluido {
+  idConcluido       Int @id @default(autoincrement())
+  idSessao          Int
+  idTreinoExercicio Int
+
+  sessao          SessaoTreino    @relation(fields: [idSessao], references: [idSessao], onDelete: Cascade)
+  treinoExercicio TreinoExercicio @relation(fields: [idTreinoExercicio], references: [idTreinoExercicio], onDelete: Cascade)
+
+  @@unique([idSessao, idTreinoExercicio])
 }
