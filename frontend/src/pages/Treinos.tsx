@@ -175,25 +175,49 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  // Carregamento consolidado rápido em 1 requisição
+  // Carregamento consolidado rápido em 1 requisição (com fallback resiliente)
   const loadOverview = async (showGlobalLoading = false) => {
     try {
       if (showGlobalLoading) setLoading(true);
       else setRefreshing(true);
       setError('');
 
-      const [overviewRes] = await Promise.all([
-        api.get(`/treinos/visao-geral/${idAluno}`),
-        loadCatalogs(),
-      ]);
+      try {
+        const [overviewRes] = await Promise.all([
+          api.get(`/treinos/visao-geral/${idAluno}`),
+          loadCatalogs(),
+        ]);
 
-      const { aluno: stAluno, protocolos: stProtocolos, activeProtocol: stActive, volume: stVolume } = overviewRes.data;
-      setAluno(stAluno);
-      setProtocolos(stProtocolos);
-      setActiveProtocol(stActive);
-      setVolume(stVolume || {});
+        const { aluno: stAluno, protocolos: stProtocolos, activeProtocol: stActive, volume: stVolume } = overviewRes.data;
+        setAluno(stAluno);
+        setProtocolos(stProtocolos);
+        setActiveProtocol(stActive);
+        setVolume(stVolume || {});
+      } catch (fastErr) {
+        console.warn('Fallback para carregamento tradicional enquanto deploy finaliza:', fastErr);
+        const [studentRes, protocolsRes] = await Promise.all([
+          api.get(`/alunos/${idAluno}`),
+          api.get(`/treinos/protocolos/${idAluno}`),
+          loadCatalogs(),
+        ]);
+        setAluno(studentRes.data);
+        setProtocolos(protocolsRes.data);
+
+        const active = protocolsRes.data.find((p: any) => p.ativo === true);
+        if (active) {
+          const [detailsRes, volumeRes] = await Promise.all([
+            api.get(`/treinos/protocolos/detalhes/${active.idProtocolo}`),
+            api.get(`/treinos/volume/${idAluno}`)
+          ]);
+          setActiveProtocol(detailsRes.data);
+          setVolume(volumeRes.data);
+        } else {
+          setActiveProtocol(null);
+          setVolume({});
+        }
+      }
     } catch (err) {
-      console.error('Erro ao carregar visão geral do aluno:', err);
+      console.error('Erro ao carregar dados do aluno:', err);
       setError('Erro ao carregar dados do aluno.');
     } finally {
       setLoading(false);

@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
 import { CreateTreinoDto } from './dto/create-treino.dto';
 import { AddExercicioDto } from './dto/add-exercicio.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class TreinosService {
@@ -139,7 +140,7 @@ export class TreinosService {
 
   // --- VISÃO GERAL CONSOLIDADA (ALUNO + PROTOCOLOS + TREINOS + VOLUME EM 1 REQUISIÇÃO) ---
   async getVisaoGeralAluno(idAluno: number, idProfissional: number) {
-    const aluno = await this.prisma.aluno.findFirst({
+    let aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
       select: {
         idAluno: true,
@@ -152,6 +153,21 @@ export class TreinosService {
 
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
+    }
+
+    if (!aluno.tokenAcesso) {
+      const tokenAcesso = randomUUID();
+      aluno = await this.prisma.aluno.update({
+        where: { idAluno },
+        data: { tokenAcesso },
+        select: {
+          idAluno: true,
+          nome: true,
+          email: true,
+          telefone: true,
+          tokenAcesso: true,
+        },
+      });
     }
 
     const protocolos = await this.prisma.protocoloTreino.findMany({
