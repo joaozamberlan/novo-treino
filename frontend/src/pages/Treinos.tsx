@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   ArrowLeft, Plus, Calendar, 
   Trash2, Printer, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Share2, X
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X
 } from 'lucide-react';
 
 interface GrupoMuscular {
@@ -90,6 +90,11 @@ export const Treinos: React.FC = () => {
   const [creatingTreino, setCreatingTreino] = useState(false);
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [editingExercisePrescriptionId, setEditingExercisePrescriptionId] = useState<number | null>(null);
+
+  // Edit Ficha state
+  const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
+  const [editFichaNome, setEditFichaNome] = useState('');
+  const [editFichaObs, setEditFichaObs] = useState('');
 
   // New Protocol inputs
   const [protoNome, setProtoNome] = useState('');
@@ -354,6 +359,92 @@ export const Treinos: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError('Erro ao criar ficha de treino.');
+    }
+  };
+
+  // Ficha update (renomear / editar observação)
+  const handleUpdateTreino = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFichaId || !activeProtocol) return;
+
+    const targetId = editingFichaId;
+    const newNome = editFichaNome;
+    const newObs = editFichaObs;
+
+    // Optimistic UI
+    setActiveProtocol(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        treinos: prev.treinos.map(t =>
+          t.idTreino === targetId ? { ...t, nome: newNome, observacao: newObs || undefined } : t
+        ),
+      };
+    });
+
+    setEditingFichaId(null);
+
+    try {
+      await api.patch(`/treinos/fichas/${targetId}`, {
+        nome: newNome,
+        observacao: newObs || null,
+      });
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao salvar alterações da ficha.');
+      loadOverview(false);
+    }
+  };
+
+  // Ficha delete
+  const handleDeleteTreino = async (idTreino: number, nome: string) => {
+    if (!confirm(`Deseja excluir a ficha "${nome}" e todos os seus exercícios?`)) return;
+    if (!activeProtocol) return;
+
+    // Optimistic UI
+    const remaining = activeProtocol.treinos.filter(t => t.idTreino !== idTreino);
+    setActiveProtocol(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        treinos: remaining,
+      };
+    });
+
+    if (activeTabId === idTreino) {
+      const sorted = [...remaining].sort((a, b) => a.ordem - b.ordem);
+      setActiveTabId(sorted.length > 0 ? sorted[0].idTreino : null);
+    }
+
+    try {
+      await api.delete(`/treinos/fichas/${idTreino}`);
+      loadOverview(false);
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao excluir ficha no servidor.');
+      loadOverview(false);
+    }
+  };
+
+  // Protocol delete
+  const handleDeleteProtocolo = async (idProtocolo: number, nome: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Deseja excluir o protocolo "${nome}" e todas as suas fichas?`)) return;
+
+    // Optimistic UI
+    setProtocolos(prev => prev.filter(p => p.idProtocolo !== idProtocolo));
+    if (activeProtocol?.idProtocolo === idProtocolo) {
+      setActiveProtocol(null);
+      setActiveTabId(null);
+    }
+
+    try {
+      await api.delete(`/treinos/protocolos/${idProtocolo}`);
+      loadOverview(false);
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao excluir protocolo no servidor.');
+      loadOverview(false);
     }
   };
 
@@ -713,22 +804,40 @@ export const Treinos: React.FC = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {protocolos.length > 0 ? (
               protocolos.map((proto) => (
-                <button
+                <div
                   key={proto.idProtocolo}
-                  type="button"
-                  className="btn btn-ghost btn-sm"
                   style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
                     border: proto.ativo ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    backgroundColor: proto.ativo ? 'rgba(204, 255, 0, 0.05)' : undefined,
-                  }}
-                  onClick={async () => {
-                    const res = await api.get(`/treinos/protocolos/detalhes/${proto.idProtocolo}`);
-                    setActiveProtocol(res.data);
+                    backgroundColor: proto.ativo ? 'rgba(204, 255, 0, 0.05)' : 'var(--bg-3)',
+                    borderRadius: 'var(--radius-m)',
+                    padding: '0.2rem 0.5rem',
                   }}
                 >
-                  {proto.nome}
-                  {proto.ativo && <span className="badge badge-success" style={{ marginLeft: '0.4rem' }}>Ativo</span>}
-                </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ border: 'none', background: 'transparent', padding: '0.25rem 0.4rem' }}
+                    onClick={async () => {
+                      const res = await api.get(`/treinos/protocolos/detalhes/${proto.idProtocolo}`);
+                      setActiveProtocol(res.data);
+                    }}
+                  >
+                    {proto.nome}
+                    {proto.ativo && <span className="badge badge-success" style={{ marginLeft: '0.4rem' }}>Ativo</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className="exercise-action-btn danger"
+                    style={{ width: '22px', height: '22px' }}
+                    onClick={(e) => handleDeleteProtocolo(proto.idProtocolo, proto.nome, e)}
+                    title="Excluir protocolo"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               ))
             ) : (
               <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>Nenhum protocolo cadastrado.</span>
@@ -763,6 +872,7 @@ export const Treinos: React.FC = () => {
                 className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
                 onClick={() => {
                   setActiveTabId(treino.idTreino);
+                  setEditingFichaId(null);
                   cancelEdit();
                 }}
               >
@@ -775,6 +885,7 @@ export const Treinos: React.FC = () => {
                 setCreatingTreino(!creatingTreino);
                 setTreinoOrdem(activeProtocol.treinos.length + 1);
               }}
+              title="Nova Ficha de Treino"
             >
               <Plus size={16} />
             </button>
@@ -807,6 +918,71 @@ export const Treinos: React.FC = () => {
           {/* Active Ficha Content */}
           {activeFicha ? (
             <>
+              {/* Active Ficha Toolbar (Renomear / Excluir Ficha) */}
+              <div className="flex-between" style={{ alignItems: 'center', marginBottom: '0.75rem', padding: '0.25rem 0' }}>
+                {editingFichaId === activeFicha.idTreino ? (
+                  <form onSubmit={handleUpdateTreino} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+                    <input
+                      type="text"
+                      className="form-input form-input-sm"
+                      value={editFichaNome}
+                      onChange={(e) => setEditFichaNome(e.target.value)}
+                      placeholder="Nome da ficha (ex: Treino A)"
+                      required
+                      style={{ maxWidth: '240px' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-input form-input-sm"
+                      value={editFichaObs}
+                      onChange={(e) => setEditFichaObs(e.target.value)}
+                      placeholder="Observações da ficha (opcional)"
+                      style={{ flex: 1, maxWidth: '350px' }}
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm">Salvar</button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditingFichaId(null)}>Cancelar</button>
+                  </form>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                        {activeFicha.nome}
+                      </h3>
+                      {activeFicha.observacao && (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>
+                          • {activeFicha.observacao}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => {
+                          setEditingFichaId(activeFicha.idTreino);
+                          setEditFichaNome(activeFicha.nome);
+                          setEditFichaObs(activeFicha.observacao || '');
+                        }}
+                        title="Renomear / Editar ficha"
+                      >
+                        <Edit2 size={13} />
+                        <span style={{ fontSize: '0.75rem' }}>Renomear</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--danger)' }}
+                        onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
+                        title="Excluir ficha de treino"
+                      >
+                        <Trash2 size={13} />
+                        <span style={{ fontSize: '0.75rem' }}>Excluir Ficha</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {/* Exercise Stack */}
               <div className="exercise-stack">
                 {sortedExercicios.length > 0 ? (

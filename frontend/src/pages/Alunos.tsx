@@ -1,25 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Plus, ChevronRight } from 'lucide-react';
+import { Plus, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
 
 interface Aluno {
   idAluno: number;
   nome: string;
   email?: string | null;
-  telefone?: string;
+  telefone?: string | null;
   ativo: boolean;
   dataCadastro: string;
 }
 
 export const Alunos: React.FC = () => {
+  const navigate = useNavigate();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [search, setSearch] = useState('');
 
+  // Add form state
   const [showAddForm, setShowAddForm] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+
+  // Edit form state
+  const [editingAlunoId, setEditingAlunoId] = useState<number | null>(null);
+  const [editNome, setEditNome] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editTelefone, setEditTelefone] = useState('');
+  const [editAtivo, setEditAtivo] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -48,22 +57,92 @@ export const Alunos: React.FC = () => {
     setError('');
 
     try {
-      await api.post('/alunos', {
+      const res = await api.post('/alunos', {
         nome,
         email: email || undefined,
         telefone: telefone || undefined,
       });
 
+      setAlunos(prev => [res.data, ...prev]);
       setNome('');
       setEmail('');
       setTelefone('');
       setShowAddForm(false);
-      fetchAlunos();
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || 'Erro ao adicionar aluno.');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const startEditAluno = (aluno: Aluno, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditingAlunoId(aluno.idAluno);
+    setEditNome(aluno.nome);
+    setEditEmail(aluno.email || '');
+    setEditTelefone(aluno.telefone || '');
+    setEditAtivo(aluno.ativo);
+  };
+
+  const cancelEdit = () => {
+    setEditingAlunoId(null);
+    setEditNome('');
+    setEditEmail('');
+    setEditTelefone('');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAlunoId) return;
+
+    setActionLoading(true);
+    setError('');
+
+    const updatedData = {
+      nome: editNome,
+      email: editEmail || null,
+      telefone: editTelefone || null,
+      ativo: editAtivo,
+    };
+
+    // Optimistic UI
+    setAlunos(prev =>
+      prev.map(a => (a.idAluno === editingAlunoId ? { ...a, ...updatedData } : a))
+    );
+
+    const targetId = editingAlunoId;
+    cancelEdit();
+
+    try {
+      await api.patch(`/alunos/${targetId}`, updatedData);
+    } catch (err: any) {
+      console.error('Erro ao atualizar aluno:', err);
+      setError(err.response?.data?.message || 'Erro ao atualizar dados do aluno.');
+      fetchAlunos();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteAluno = async (aluno: Aluno, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!confirm(`Tem certeza que deseja excluir o aluno "${aluno.nome}" e todo o histórico de treinos?`)) {
+      return;
+    }
+
+    // Optimistic UI
+    setAlunos(prev => prev.filter(a => a.idAluno !== aluno.idAluno));
+
+    try {
+      await api.delete(`/alunos/${aluno.idAluno}`);
+    } catch (err: any) {
+      console.error('Erro ao excluir aluno:', err);
+      setError('Erro ao excluir aluno no servidor.');
+      fetchAlunos();
     }
   };
 
@@ -86,7 +165,10 @@ export const Alunos: React.FC = () => {
         <h1>Meus Alunos</h1>
         <button
           className="btn btn-primary btn-sm"
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            cancelEdit();
+          }}
         >
           <Plus size={16} />
           <span>{showAddForm ? 'Cancelar' : 'Novo Aluno'}</span>
@@ -102,38 +184,39 @@ export const Alunos: React.FC = () => {
 
       {/* Inline Add Form */}
       {showAddForm && (
-        <div className="card" style={{ marginBottom: '0.75rem' }}>
+        <div className="card animate-in" style={{ marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Cadastrar Novo Aluno</h3>
           <form onSubmit={handleAddAluno}>
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label" htmlFor="nomeAluno">Nome</label>
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label" htmlFor="nomeAluno">Nome Completo</label>
                 <input
                   id="nomeAluno"
                   type="text"
-                  className="form-input"
+                  className="form-input form-input-sm"
                   placeholder="Nome do aluno"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="form-group" style={{ flex: 2 }}>
                 <label className="form-label" htmlFor="emailAluno">Email</label>
                 <input
                   id="emailAluno"
                   type="email"
-                  className="form-input"
+                  className="form-input form-input-sm"
                   placeholder="email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label" htmlFor="telAluno">Telefone</label>
+                <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
                 <input
                   id="telAluno"
                   type="text"
-                  className="form-input"
+                  className="form-input form-input-sm"
                   placeholder="(00) 90000-0000"
                   value={telefone}
                   onChange={(e) => setTelefone(e.target.value)}
@@ -143,17 +226,88 @@ export const Alunos: React.FC = () => {
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="btn btn-ghost btn-sm"
                 onClick={() => setShowAddForm(false)}
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Salvando...' : 'Salvar'}
+                {actionLoading ? 'Salvando...' : 'Cadastrar Aluno'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal / Card de Edição de Aluno */}
+      {editingAlunoId && (
+        <div className="card animate-in" style={{ marginBottom: '1rem', border: '1px solid var(--accent)' }}>
+          <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent)' }}>Editar Informações do Aluno</h3>
+            <button className="btn btn-ghost btn-icon" onClick={cancelEdit} title="Fechar">
+              <X size={16} />
+            </button>
+          </div>
+          <form onSubmit={handleSaveEdit}>
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label">Nome</label>
+                <input
+                  type="text"
+                  className="form-input form-input-sm"
+                  value={editNome}
+                  onChange={(e) => setEditNome(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label">Email</label>
+                <input
+                  type="email"
+                  className="form-input form-input-sm"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">WhatsApp</label>
+                <input
+                  type="text"
+                  className="form-input form-input-sm"
+                  value={editTelefone}
+                  onChange={(e) => setEditTelefone(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-input form-input-sm"
+                  value={editAtivo ? 'true' : 'false'}
+                  onChange={(e) => setEditAtivo(e.target.value === 'true')}
+                >
+                  <option value="true">Ativo</option>
+                  <option value="false">Inativo</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={cancelEdit}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm"
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>
           </form>
@@ -176,22 +330,50 @@ export const Alunos: React.FC = () => {
         <div style={{ borderRadius: 'var(--radius-l)', border: '1px solid var(--border)', overflow: 'hidden' }}>
           <div className="student-list">
             {filteredAlunos.map((aluno) => (
-              <Link
+              <div
                 key={aluno.idAluno}
-                to={`/alunos/${aluno.idAluno}/treinos`}
                 className="student-item"
+                onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem' }}
               >
-                <span className="student-item-name">{aluno.nome}</span>
-                <span className="student-item-meta">
-                  {aluno.email}
-                  <span className={`badge ${aluno.ativo ? 'badge-success' : 'badge-danger'}`}>
-                    {aluno.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </span>
-                <span className="student-item-arrow">
-                  <ChevronRight size={18} />
-                </span>
-              </Link>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <span className="student-item-name" style={{ fontWeight: 600 }}>{aluno.nome}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-1)' }}>
+                    {aluno.email && <span>{aluno.email}</span>}
+                    {aluno.telefone && <span>• {aluno.telefone}</span>}
+                    <span className={`badge ${aluno.ativo ? 'badge-success' : 'badge-danger'}`} style={{ height: '18px', padding: '0 0.4rem', fontSize: '0.65rem' }}>
+                      {aluno.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="exercise-action-btn accent"
+                    onClick={(e) => startEditAluno(aluno, e)}
+                    title="Editar informações do aluno"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="exercise-action-btn danger"
+                    onClick={(e) => handleDeleteAluno(aluno, e)}
+                    title="Excluir aluno"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="exercise-action-btn"
+                    onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
+                    title="Abrir fichas de treino"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -203,3 +385,4 @@ export const Alunos: React.FC = () => {
     </div>
   );
 };
+

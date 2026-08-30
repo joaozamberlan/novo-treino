@@ -56,6 +56,14 @@ export class TreinosController {
     return this.treinosService.updateProtocolo(idProtocolo, profissional.idProfissional, updateDto);
   }
 
+  @Delete('protocolos/:idProtocolo')
+  async deleteProtocolo(
+    @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.treinosService.deleteProtocolo(idProtocolo, profissional.idProfissional);
+  }
+
   // --- FICHAS (TREINOS) ---
   @Post('fichas/:idProtocolo')
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -74,6 +82,14 @@ export class TreinosController {
     @Body() updateDto: any,
   ) {
     return this.treinosService.updateTreino(idTreino, profissional.idProfissional, updateDto);
+  }
+
+  @Delete('fichas/:idTreino')
+  async deleteTreino(
+    @Param('idTreino', ParseIntPipe) idTreino: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.treinosService.deleteTreino(idTreino, profissional.idProfissional);
   }
 
   // --- EXERCICIOS NO TREINO ---

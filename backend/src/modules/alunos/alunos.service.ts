@@ -56,10 +56,10 @@ export class AlunosService {
     // Check if student exists and belongs to the personal trainer
     await this.findOne(idAluno, idProfissional);
 
-    // Soft delete / deactivate the student
-    return this.prisma.aluno.update({
-      where: { idAluno },
-      data: { ativo: false },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.sessaoTreino.deleteMany({ where: { idAluno } });
+      await tx.protocoloTreino.deleteMany({ where: { idAluno } });
+      return tx.aluno.delete({ where: { idAluno } });
     });
   }
 }

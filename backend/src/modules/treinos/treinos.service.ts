@@ -107,6 +107,19 @@ export class TreinosService {
     });
   }
 
+  async deleteProtocolo(idProtocolo: number, idProfissional: number) {
+    const protocolo = await this.prisma.protocoloTreino.findFirst({
+      where: { idProtocolo, idProfissional },
+    });
+    if (!protocolo) {
+      throw new NotFoundException('Protocolo não encontrado');
+    }
+
+    return this.prisma.protocoloTreino.delete({
+      where: { idProtocolo },
+    });
+  }
+
   // --- TREINOS (FICHAS) ---
   async createTreino(idProtocolo: number, idProfissional: number, createDto: CreateTreinoDto) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
@@ -135,6 +148,19 @@ export class TreinosService {
     return this.prisma.treino.update({
       where: { idTreino },
       data: updateDto,
+    });
+  }
+
+  async deleteTreino(idTreino: number, idProfissional: number) {
+    const treino = await this.prisma.treino.findFirst({
+      where: { idTreino, protocolo: { idProfissional } },
+    });
+    if (!treino) {
+      throw new NotFoundException('Ficha de treino não encontrada');
+    }
+
+    return this.prisma.treino.delete({
+      where: { idTreino },
     });
   }
 
