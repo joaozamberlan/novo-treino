@@ -76,14 +76,16 @@ export const Layout: React.FC = () => {
       {/* iOS install hint */}
       {showIosHint && (
         <div
+          className="modal-backdrop"
           onClick={() => setShowIosHint(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.5)', display: 'flex',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', display: 'flex',
             alignItems: 'flex-end', justifyContent: 'center', padding: '1rem',
           }}
         >
           <div
+            className="modal-content"
             onClick={e => e.stopPropagation()}
             style={{
               background: 'var(--bg-2)', border: '1px solid var(--border)',
@@ -165,6 +167,14 @@ export const Layout: React.FC = () => {
 
       {/* Main Layout containing Sidebar and Page Content */}
       <div className="main-layout">
+        {/* Backdrop for mobile drawer */}
+        {isExpanded && (
+          <div 
+            className="sidebar-backdrop-mobile"
+            onClick={() => setIsExpanded(false)}
+            aria-hidden="true"
+          />
+        )}
         <aside 
           className={`app-sidebar ${isExpanded ? 'expanded' : ''}`}
           onClick={handleSidebarClick}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -125,6 +126,7 @@ export const Treinos: React.FC = () => {
       const url = `${window.location.origin}/v/${aluno.tokenAcesso}`;
       navigator.clipboard.writeText(url);
       setShareCopied(true);
+      toast.success('Link do treino copiado!');
       setTimeout(() => setShareCopied(false), 2000);
     }
   };

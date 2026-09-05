@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import api from '../services/api';
 import { Plus, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
 
@@ -68,9 +69,12 @@ export const Alunos: React.FC = () => {
       setEmail('');
       setTelefone('');
       setShowAddForm(false);
+      toast.success('Aluno cadastrado com sucesso!');
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Erro ao adicionar aluno.');
+      const errText = err.response?.data?.message || 'Erro ao adicionar aluno.';
+      setError(errText);
+      toast.error(errText);
     } finally {
       setActionLoading(false);
     }
@@ -117,9 +121,12 @@ export const Alunos: React.FC = () => {
 
     try {
       await api.patch(`/alunos/${targetId}`, updatedData);
+      toast.success('Dados do aluno atualizados!');
     } catch (err: any) {
       console.error('Erro ao atualizar aluno:', err);
-      setError(err.response?.data?.message || 'Erro ao atualizar dados do aluno.');
+      const errText = err.response?.data?.message || 'Erro ao atualizar dados do aluno.';
+      setError(errText);
+      toast.error(errText);
       fetchAlunos();
     } finally {
       setActionLoading(false);
@@ -139,9 +146,11 @@ export const Alunos: React.FC = () => {
 
     try {
       await api.delete(`/alunos/${aluno.idAluno}`);
+      toast.success('Aluno removido com sucesso.');
     } catch (err: any) {
       console.error('Erro ao excluir aluno:', err);
       setError('Erro ao excluir aluno no servidor.');
+      toast.error('Erro ao excluir aluno no servidor.');
       fetchAlunos();
     }
   };

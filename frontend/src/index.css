@@ -21,7 +21,10 @@
   --radius-m: 8px;
   --radius-l: 12px;
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --transition: 150ms ease;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --transition: 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 body.light-theme {
@@ -53,13 +56,13 @@ body {
   background-color: var(--bg-0);
   color: var(--text-0);
   font-family: var(--font);
-  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ── Layout Shell ──────────────────────────────────────────────────────── */
@@ -67,7 +70,7 @@ body {
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .topbar {
@@ -142,13 +145,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition), color var(--transition);
+  transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out), color 140ms var(--ease-out), border-color 140ms var(--ease-out);
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-.topbar-btn:hover {
-  background: var(--bg-2);
-  color: var(--text-0);
+.topbar-btn:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .topbar-btn:hover {
+    background: var(--bg-2);
+    color: var(--text-0);
+  }
 }
 
 .topbar-user {
@@ -265,10 +276,16 @@ p {
   height: 34px;
   border-radius: var(--radius-s);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out), border-color 140ms var(--ease-out), color 140ms var(--ease-out), opacity 140ms var(--ease-out);
   border: 1px solid transparent;
   white-space: nowrap;
   text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -277,8 +294,10 @@ p {
   border-color: var(--accent);
 }
 
-.btn-primary:hover {
-  filter: brightness(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
 }
 
 .btn-secondary {
@@ -287,8 +306,11 @@ p {
   border-color: var(--border);
 }
 
-.btn-secondary:hover {
-  border-color: var(--text-2);
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover {
+    border-color: var(--text-2);
+    background: var(--bg-3);
+  }
 }
 
 .btn-danger {
@@ -297,8 +319,10 @@ p {
   border-color: rgba(240, 68, 56, 0.25);
 }
 
-.btn-danger:hover {
-  background: rgba(240, 68, 56, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .btn-danger:hover {
+    background: rgba(240, 68, 56, 0.1);
+  }
 }
 
 .btn-ghost {
@@ -307,9 +331,11 @@ p {
   border-color: transparent;
 }
 
-.btn-ghost:hover {
-  background: var(--bg-2);
-  color: var(--text-0);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover {
+    background: var(--bg-2);
+    color: var(--text-0);
+  }
 }
 
 .btn-sm {
@@ -413,13 +439,21 @@ select.form-input {
 
 .card-clickable {
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
+  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.card-clickable:hover {
-  border-color: var(--accent);
-  background: var(--bg-2);
+@media (hover: hover) and (pointer: fine) {
+  .card-clickable:hover {
+    border-color: var(--accent);
+    background: var(--bg-2);
+    transform: translateY(-1px);
+  }
+}
+
+.card-clickable:active {
+  transform: scale(0.99);
 }
 
 .card-flat {
@@ -719,20 +753,27 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition), color var(--transition);
+  transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.exercise-action-btn:hover {
-  background: var(--bg-3);
-  color: var(--text-0);
+.exercise-action-btn:active {
+  transform: scale(0.92);
 }
 
-.exercise-action-btn.danger:hover {
-  color: var(--danger);
-}
+@media (hover: hover) and (pointer: fine) {
+  .exercise-action-btn:hover {
+    background: var(--bg-3);
+    color: var(--text-0);
+  }
 
-.exercise-action-btn.accent:hover {
-  color: var(--accent);
+  .exercise-action-btn.danger:hover {
+    color: var(--danger);
+  }
+
+  .exercise-action-btn.accent:hover {
+    color: var(--accent);
+  }
 }
 
 /* ── Add Exercise Bar ──────────────────────────────────────────────────── */
@@ -1025,10 +1066,17 @@ select.form-input {
 
 /* ── Sidebar Layout ────────────────────────────────────────────────────── */
 
+/* ── Sidebar Layout ────────────────────────────────────────────────────── */
+
 .main-layout {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 52px);
+  min-height: calc(100dvh - 52px);
+  position: relative;
+}
+
+.sidebar-backdrop-mobile {
+  display: none;
 }
 
 .app-sidebar {
@@ -1037,12 +1085,11 @@ select.form-input {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  transition: width var(--transition);
   overflow-x: hidden;
   overflow-y: auto;
   position: sticky;
   top: 52px;
-  height: calc(100vh - 52px);
+  height: calc(100dvh - 52px);
   z-index: 90;
 }
 
@@ -1067,8 +1114,14 @@ select.form-input {
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
-  transition: all var(--transition);
+  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
   height: 38px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.sidebar-item:active {
+  transform: scale(0.98);
 }
 
 .sidebar-item svg {
@@ -1080,20 +1133,19 @@ select.form-input {
 .sidebar-label {
   margin-left: 0.75rem;
   white-space: nowrap;
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  transition: opacity var(--transition), max-width var(--transition), margin var(--transition);
+  display: none;
 }
 
 .app-sidebar.expanded .sidebar-label {
-  opacity: 1;
-  max-width: 150px;
+  display: inline-block;
+  animation: fadeIn 160ms var(--ease-out) forwards;
 }
 
-.sidebar-item:hover {
-  background: var(--bg-2);
-  color: var(--text-0);
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-item:hover {
+    background: var(--bg-2);
+    color: var(--text-0);
+  }
 }
 
 .sidebar-item.active {
@@ -1107,13 +1159,16 @@ select.form-input {
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background-color 140ms var(--ease-out);
   height: 52px;
   overflow: hidden;
+  user-select: none;
 }
 
-.sidebar-footer:hover {
-  background: var(--bg-2);
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-footer:hover {
+    background: var(--bg-2);
+  }
 }
 
 .sidebar-avatar {
@@ -1138,18 +1193,14 @@ select.form-input {
 
 .sidebar-user-details {
   margin-left: 0.75rem;
-  display: flex;
+  display: none;
   flex-direction: column;
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  transition: opacity var(--transition), max-width var(--transition), margin var(--transition);
   white-space: nowrap;
 }
 
 .app-sidebar.expanded .sidebar-user-details {
-  opacity: 1;
-  max-width: 150px;
+  display: flex;
+  animation: fadeIn 160ms var(--ease-out) forwards;
 }
 
 .sidebar-user-name {
@@ -1201,18 +1252,61 @@ select.form-input {
     width: 100%;
   }
 
+  .sidebar-backdrop-mobile {
+    display: block;
+    position: fixed;
+    inset: 52px 0 0 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 85;
+    animation: fadeIn 180ms var(--ease-out) forwards;
+    backdrop-filter: blur(2px);
+  }
+
   .app-sidebar {
     position: fixed;
     left: 0;
     top: 52px;
-    height: calc(100vh - 52px);
-    width: 0;
-    border-right: none;
-    box-shadow: none;
-  }
-  .app-sidebar.expanded {
+    height: calc(100dvh - 52px);
     width: 240px;
     border-right: 1px solid var(--border);
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 220ms var(--ease-drawer);
+    visibility: hidden;
+  }
+
+  .app-sidebar.expanded {
+    transform: translateX(0);
+    visibility: visible;
+  }
+}
+
+/* ── Craft Utilities (Impeccable + Emil Kowalski) ───────────────────────── */
+
+.tabular-nums,
+.timer-display,
+.exercise-block-stat,
+.exercise-meta,
+.table-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.modal-backdrop {
+  animation: fadeIn 180ms var(--ease-out) forwards;
+}
+
+.modal-content {
+  animation: modalScaleIn 180ms var(--ease-out) forwards;
+  transform-origin: center;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

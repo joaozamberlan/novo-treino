@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
   Dumbbell, Award, Phone, Video, 
-  Timer, Check, RefreshCw, AlertCircle, Sun, Moon 
+  Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info 
 } from 'lucide-react';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -370,10 +370,13 @@ export const PublicTreino: React.FC = () => {
 
             {/* Ficha Observation */}
             {activeFicha?.observacao && (
-              <div className="card" style={{ padding: '0.75rem 1rem', marginBottom: '1rem', backgroundColor: 'var(--bg-1)', borderLeft: '3px solid var(--accent)' }}>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-0)', lineHeight: '1.4' }}>
-                  {activeFicha.observacao}
-                </p>
+              <div className="card" style={{ padding: '0.85rem 1rem', marginBottom: '1rem', backgroundColor: 'var(--bg-1)', border: '1px solid var(--border)', borderRadius: 'var(--radius-m)' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                  <Info size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-0)', lineHeight: '1.45' }}>
+                    {activeFicha.observacao}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -548,7 +551,7 @@ export const PublicTreino: React.FC = () => {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'monospace', color: 'var(--accent)' }}>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', color: 'var(--accent)' }}>
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </span>
             <button 
@@ -565,10 +568,12 @@ export const PublicTreino: React.FC = () => {
             position: 'absolute',
             bottom: 0,
             left: 0,
+            right: 0,
             height: '3px',
             backgroundColor: 'var(--accent)',
-            width: `${(timeLeft / timerDuration) * 100}%`,
-            transition: 'width 1s linear',
+            transform: `scaleX(${timerDuration > 0 ? timeLeft / timerDuration : 0})`,
+            transformOrigin: 'left',
+            transition: 'transform 1s linear',
             borderRadius: '0 0 12px 12px'
           }} />
         </div>

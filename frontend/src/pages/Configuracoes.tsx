@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Save, Upload, ExternalLink, Dumbbell } from 'lucide-react';
@@ -73,12 +74,12 @@ export const Configuracoes: React.FC = () => {
 
       updateUser(response.data);
       setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
+      toast.success('Perfil atualizado com sucesso!');
     } catch (err: any) {
       console.error(err);
-      setMessage({
-        type: 'danger',
-        text: err.response?.data?.message || 'Erro ao salvar alterações.',
-      });
+      const errText = err.response?.data?.message || 'Erro ao salvar alterações.';
+      setMessage({ type: 'danger', text: errText });
+      toast.error(errText);
     } finally {
       setSaving(false);
     }
@@ -110,12 +111,12 @@ export const Configuracoes: React.FC = () => {
       }
 
       setMessage({ type: 'success', text: 'Logotipo carregado com sucesso!' });
+      toast.success('Logotipo carregado com sucesso!');
     } catch (err: any) {
       console.error(err);
-      setMessage({
-        type: 'danger',
-        text: err.response?.data?.message || 'Erro ao carregar o arquivo do logotipo.',
-      });
+      const errText = err.response?.data?.message || 'Erro ao carregar o arquivo do logotipo.';
+      setMessage({ type: 'danger', text: errText });
+      toast.error(errText);
     } finally {
       setUploadingLogo(false);
     }
@@ -128,13 +129,13 @@ export const Configuracoes: React.FC = () => {
     try {
       await api.post('/exercicios/seed');
       setMessage({ type: 'success', text: 'Biblioteca de exercícios semeada com sucesso!' });
+      toast.success('Biblioteca de exercícios semeada com sucesso!');
       await fetchStats();
     } catch (err: any) {
       console.error(err);
-      setMessage({
-        type: 'danger',
-        text: err.response?.data?.message || 'Erro ao semear biblioteca.',
-      });
+      const errText = err.response?.data?.message || 'Erro ao semear biblioteca.';
+      setMessage({ type: 'danger', text: errText });
+      toast.error(errText);
     } finally {
       setSeeding(false);
     }
