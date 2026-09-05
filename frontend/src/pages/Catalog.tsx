@@ -4,6 +4,7 @@ import {
   Plus, Dumbbell, Sparkles, Edit, Trash2, 
   Video, Save, FolderPlus 
 } from 'lucide-react';
+import { memoryCache } from '../services/cache';
 
 interface GrupoMuscular {
   idGrupoMuscular: number;
@@ -26,14 +27,15 @@ interface TecnicaTreino {
 }
 
 export const Catalog: React.FC = () => {
+  const cached = memoryCache.get<any>('catalogo');
   const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos'>('exercicios');
-  const [exercicios, setExercicios] = useState<Exercicio[]>([]);
-  const [tecnicas, setTecnicas] = useState<TecnicaTreino[]>([]);
-  const [grupos, setGrupos] = useState<GrupoMuscular[]>([]);
+  const [exercicios, setExercicios] = useState<Exercicio[]>(cached?.exercicios || []);
+  const [tecnicas, setTecnicas] = useState<TecnicaTreino[]>(cached?.tecnicas || []);
+  const [grupos, setGrupos] = useState<GrupoMuscular[]>(cached?.grupos || []);
   const [search, setSearch] = useState('');
   const [selectedGrupoFilter, setSelectedGrupoFilter] = useState<number>(0);
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -63,20 +65,25 @@ export const Catalog: React.FC = () => {
 
   const loadData = async () => {
     try {
-      setLoading(true);
+      if (!cached) setLoading(true);
       setError('');
       
-      const exRes = await api.get('/exercicios');
+      const [exRes, tecRes, grpRes] = await Promise.all([
+        api.get('/exercicios'),
+        api.get('/exercicios/tecnicas'),
+        api.get('/exercicios/grupos')
+      ]);
       setExercicios(exRes.data);
-
-      const tecRes = await api.get('/exercicios/tecnicas');
       setTecnicas(tecRes.data);
-
-      const grpRes = await api.get('/exercicios/grupos');
       setGrupos(grpRes.data);
+      memoryCache.set('catalogo', {
+        exercicios: exRes.data,
+        tecnicas: tecRes.data,
+        grupos: grpRes.data
+      });
     } catch (err) {
       console.error(err);
-      setError('Erro ao carregar dados do catálogo.');
+      if (!cached) setError('Erro ao carregar dados do catálogo.');
     } finally {
       setLoading(false);
     }
@@ -299,8 +306,28 @@ export const Catalog: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>Carregando catálogo de exercícios...</div>;
+  if (loading && exercicios.length === 0 && tecnicas.length === 0 && grupos.length === 0) {
+    return (
+      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="flex-between">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="skeleton" style={{ width: '220px', height: '28px' }} />
+            <div className="skeleton" style={{ width: '320px', height: '14px' }} />
+          </div>
+          <div className="skeleton" style={{ width: '130px', height: '36px' }} />
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="skeleton" style={{ width: '100px', height: '34px' }} />
+          <div className="skeleton" style={{ width: '100px', height: '34px' }} />
+          <div className="skeleton" style={{ width: '100px', height: '34px' }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {[1, 2, 3, 4, 5, 6].map(n => (
+            <div key={n} className="skeleton" style={{ height: '90px' }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { Plus, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
+import { memoryCache } from '../services/cache';
 
 interface Aluno {
   idAluno: number;
@@ -15,7 +16,8 @@ interface Aluno {
 
 export const Alunos: React.FC = () => {
   const navigate = useNavigate();
-  const [alunos, setAlunos] = useState<Aluno[]>([]);
+  const cachedAlunos = memoryCache.get<Aluno[]>('alunos');
+  const [alunos, setAlunos] = useState<Aluno[]>(cachedAlunos || []);
   const [search, setSearch] = useState('');
 
   // Add form state
@@ -31,7 +33,8 @@ export const Alunos: React.FC = () => {
   const [editTelefone, setEditTelefone] = useState('');
   const [editAtivo, setEditAtivo] = useState(true);
 
-  const [loading, setLoading] = useState(true);
+  // Se já tem cache, não bloqueia com loading (0ms de espera)
+  const [loading, setLoading] = useState(!cachedAlunos);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,9 +42,12 @@ export const Alunos: React.FC = () => {
     try {
       const response = await api.get('/alunos');
       setAlunos(response.data);
+      memoryCache.set('alunos', response.data);
     } catch (err) {
       console.error(err);
-      setError('Erro ao carregar lista de alunos.');
+      if (!cachedAlunos) {
+        setError('Erro ao carregar lista de alunos.');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,7 +70,9 @@ export const Alunos: React.FC = () => {
         telefone: telefone || undefined,
       });
 
-      setAlunos(prev => [res.data, ...prev]);
+      const next = [res.data, ...alunos];
+      setAlunos(next);
+      memoryCache.set('alunos', next);
       setNome('');
       setEmail('');
       setTelefone('');
@@ -111,10 +119,10 @@ export const Alunos: React.FC = () => {
       ativo: editAtivo,
     };
 
-    // Optimistic UI
-    setAlunos(prev =>
-      prev.map(a => (a.idAluno === editingAlunoId ? { ...a, ...updatedData } : a))
-    );
+    // Optimistic UI + Cache
+    const nextList = alunos.map(a => (a.idAluno === editingAlunoId ? { ...a, ...updatedData } : a));
+    setAlunos(nextList);
+    memoryCache.set('alunos', nextList);
 
     const targetId = editingAlunoId;
     cancelEdit();
@@ -141,8 +149,11 @@ export const Alunos: React.FC = () => {
       return;
     }
 
-    // Optimistic UI
-    setAlunos(prev => prev.filter(a => a.idAluno !== aluno.idAluno));
+    // Optimistic UI + Cache
+    const nextList = alunos.filter(a => a.idAluno !== aluno.idAluno);
+    setAlunos(nextList);
+    memoryCache.set('alunos', nextList);
+    memoryCache.invalidate(`visao-geral-${aluno.idAluno}`);
 
     try {
       await api.delete(`/alunos/${aluno.idAluno}`);
@@ -159,10 +170,20 @@ export const Alunos: React.FC = () => {
     aluno.nome.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) {
+  // Skeleton Loading elegante se não houver dados em cache ainda
+  if (loading && alunos.length === 0) {
     return (
-      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-1)' }}>
-        Carregando alunos...
+      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="flex-between">
+          <h1>Alunos</h1>
+          <div className="skeleton" style={{ width: '110px', height: '32px' }} />
+        </div>
+        <div className="skeleton" style={{ height: '38px' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {[1, 2, 3, 4].map(n => (
+            <div key={n} className="skeleton" style={{ height: '62px' }} />
+          ))}
+        </div>
       </div>
     );
   }

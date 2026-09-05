@@ -8,6 +8,7 @@ import {
   Trash2, Printer, AlertCircle,
   ArrowUp, ArrowDown, Edit, Edit2, Share2, X
 } from 'lucide-react';
+import { memoryCache } from '../services/cache';
 
 interface GrupoMuscular {
   idGrupoMuscular: number;
@@ -200,6 +201,9 @@ export const Treinos: React.FC = () => {
         setProtocolos(stProtocolos);
         setActiveProtocol(stActive);
         setVolume(stVolume || {});
+        if (idAluno) {
+          memoryCache.set(`visao-geral-${idAluno}`, overviewRes.data);
+        }
       } catch (fastErr) {
         console.warn('Fallback para carregamento tradicional enquanto deploy finaliza:', fastErr);
         const [studentRes, protocolsRes] = await Promise.all([
@@ -218,6 +222,14 @@ export const Treinos: React.FC = () => {
           ]);
           setActiveProtocol(detailsRes.data);
           setVolume(volumeRes.data);
+          if (idAluno) {
+            memoryCache.set(`visao-geral-${idAluno}`, {
+              aluno: studentRes.data,
+              protocolos: protocolsRes.data,
+              activeProtocol: detailsRes.data,
+              volume: volumeRes.data,
+            });
+          }
         } else {
           setActiveProtocol(null);
           setVolume({});
@@ -233,7 +245,19 @@ export const Treinos: React.FC = () => {
   };
 
   useEffect(() => {
-    loadOverview(true);
+    const cached = idAluno ? memoryCache.get<any>(`visao-geral-${idAluno}`) : null;
+    if (cached) {
+      setAluno(cached.aluno);
+      setProtocolos(cached.protocolos);
+      setActiveProtocol(cached.activeProtocol);
+      setVolume(cached.volume || {});
+      setLoading(false);
+      // Revalida em segundo plano sem travar o usuário
+      loadOverview(false);
+    } else {
+      setLoading(true);
+      loadOverview(true);
+    }
   }, [idAluno]);
 
   useEffect(() => {
@@ -684,8 +708,39 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>Carregando ficha e periodização do aluno...</div>;
+  if (loading && !aluno) {
+    return (
+      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Header Skeleton */}
+        <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-s)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div className="skeleton" style={{ width: '180px', height: '26px' }} />
+              <div className="skeleton" style={{ width: '120px', height: '14px' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="skeleton" style={{ width: '90px', height: '32px' }} />
+            <div className="skeleton" style={{ width: '80px', height: '32px' }} />
+          </div>
+        </div>
+
+        {/* Ficha Tabs Skeleton */}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="skeleton" style={{ width: '110px', height: '36px', borderRadius: 'var(--radius-m)' }} />
+          <div className="skeleton" style={{ width: '110px', height: '36px', borderRadius: 'var(--radius-m)' }} />
+          <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-m)' }} />
+        </div>
+
+        {/* Exercises Stack Skeleton */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="skeleton" style={{ height: '70px', borderRadius: 'var(--radius-l)' }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (!aluno && error) {

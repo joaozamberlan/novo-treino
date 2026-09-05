@@ -1310,3 +1310,23 @@ select.form-input {
     transform: scale(1);
   }
 }
+
+/* ── Skeleton Loading ──────────────────────────────────────────────────── */
+@keyframes shimmerPulse {
+  0% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+  100% { opacity: 0.35; }
+}
+
+.skeleton {
+  background-color: var(--bg-3);
+  border-radius: var(--radius-m);
+  animation: shimmerPulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
