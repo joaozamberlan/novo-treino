@@ -1,0 +1,14 @@
+# Dependências e builds
+node_modules/
+dist/
+
+# Ferramentas locais e relatórios
+graphify-out/
+
+# Variáveis de ambiente
+.env
+.env*.local
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db

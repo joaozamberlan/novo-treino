@@ -164,11 +164,11 @@ export const Configuracoes: React.FC = () => {
 
       {/* Group 1: Professional Profile */}
       <div className="settings-group">
-        <div className="settings-group-title">PERFIL PROFISSIONAL</div>
+        <div className="settings-group-title">Perfil profissional</div>
         <form onSubmit={handleSaveProfile}>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" htmlFor="nomeProf">Nome de Exibição</label>
+              <label className="form-label" htmlFor="nomeProf">Nome de exibição</label>
               <input
                 id="nomeProf"
                 type="text"
@@ -193,7 +193,7 @@ export const Configuracoes: React.FC = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" htmlFor="profissaoProf">Profissão / Cargo</label>
+              <label className="form-label" htmlFor="profissaoProf">Profissão ou cargo</label>
               <input
                 id="profissaoProf"
                 type="text"
@@ -244,7 +244,7 @@ export const Configuracoes: React.FC = () => {
 
       {/* Group 2: Visual Identity */}
       <div className="settings-group">
-        <div className="settings-group-title">IDENTIDADE VISUAL (PDF)</div>
+        <div className="settings-group-title">Identidade visual (PDF)</div>
         <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
           Estas informações aparecerão no cabeçalho das fichas impressas.
         </p>
@@ -293,7 +293,7 @@ export const Configuracoes: React.FC = () => {
 
       {/* Group 3: Exercise Library */}
       <div className="settings-group">
-        <div className="settings-group-title">BIBLIOTECA DE EXERCÍCIOS</div>
+        <div className="settings-group-title">Biblioteca de exercícios</div>
         <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
           {exerciciosCount} exercícios · {tecnicasCount} técnicas cadastradas
         </p>

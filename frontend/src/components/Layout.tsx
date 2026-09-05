@@ -218,7 +218,7 @@ export const Layout: React.FC = () => {
                 }}
               >
                 <Shield size={16} />
-                <span className="sidebar-label">Admin Painel</span>
+                <span className="sidebar-label">Administração</span>
               </NavLink>
             )}
 

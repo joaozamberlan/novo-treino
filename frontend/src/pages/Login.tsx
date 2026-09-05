@@ -39,7 +39,7 @@ export const Login: React.FC = () => {
       <div className="card auth-card">
         <div className="auth-header">
           <h1 className="auth-logo">TreinosApp</h1>
-          <p>Painel de Prescrição do Personal Trainer</p>
+          <p>Prescrição de treinos e acompanhamento de alunos</p>
         </div>
 
         {error && (
@@ -81,14 +81,14 @@ export const Login: React.FC = () => {
             style={{ width: '100%', marginBottom: '1.5rem' }}
             disabled={loading}
           >
-            {loading ? 'Entrando...' : 'Entrar no Painel'}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
         <p style={{ fontSize: '0.9rem' }}>
           Não tem uma conta?{' '}
           <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: '600' }}>
-            Criar Conta
+            Criar conta
           </Link>
         </p>
       </div>

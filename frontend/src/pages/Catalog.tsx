@@ -326,7 +326,7 @@ export const Catalog: React.FC = () => {
             }}
           >
             <Plus size={18} />
-            <span>{showExForm ? 'Cancelar' : 'Novo Exercício'}</span>
+            <span>{showExForm ? 'Cancelar' : 'Novo exercício'}</span>
           </button>
         ) : activeTab === 'tecnicas' ? (
           <button 
@@ -339,7 +339,7 @@ export const Catalog: React.FC = () => {
             }}
           >
             <Plus size={18} />
-            <span>{showTecForm ? 'Cancelar' : 'Nova Técnica'}</span>
+            <span>{showTecForm ? 'Cancelar' : 'Nova técnica'}</span>
           </button>
         ) : (
           <button 
@@ -351,7 +351,7 @@ export const Catalog: React.FC = () => {
             }}
           >
             <Plus size={18} />
-            <span>{showGrupoTabForm ? 'Cancelar' : 'Novo Grupo'}</span>
+            <span>{showGrupoTabForm ? 'Cancelar' : 'Novo grupo'}</span>
           </button>
         )}
       </div>
@@ -371,11 +371,11 @@ export const Catalog: React.FC = () => {
       {/* --- FORMULÁRIO DE GRUPO MUSCULAR (TAB) --- */}
       {showGrupoTabForm && activeTab === 'grupos' && (
         <div className="card animate-fade-in" style={{ borderColor: 'var(--accent)' }}>
-          <h2>{editingGrupoId ? 'Editar Grupo Muscular' : 'Cadastrar Novo Grupo Muscular'}</h2>
+          <h2>{editingGrupoId ? 'Editar grupo muscular' : 'Novo grupo muscular'}</h2>
           
           <form onSubmit={handleSaveGrupoTab} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
             <div className="form-group">
-              <label className="form-label" htmlFor="grupoTabNome">Nome do Grupo Muscular</label>
+              <label className="form-label" htmlFor="grupoTabNome">Nome do grupo muscular</label>
               <input
                 id="grupoTabNome"
                 type="text"
@@ -391,7 +391,7 @@ export const Catalog: React.FC = () => {
               <button type="button" className="btn btn-secondary" onClick={() => setShowGrupoTabForm(false)}>Cancelar</button>
               <button type="submit" className="btn btn-primary">
                 <Save size={16} />
-                <span>Salvar Grupo</span>
+                <span>Salvar grupo</span>
               </button>
             </div>
           </form>

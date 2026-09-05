@@ -1049,7 +1049,7 @@ export const Treinos: React.FC = () => {
 
               {/* Add Exercise Bar */}
               {editingExercisePrescriptionId && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600 }}>
                   Editando exercício
                 </span>
               )}
@@ -1163,8 +1163,8 @@ export const Treinos: React.FC = () => {
               {/* Volume Footer */}
               {Object.keys(volume).length > 0 && (
                 <div className="volume-footer" style={{ alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-1)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: '0.25rem' }}>
-                    Volume Semanal:
+                  <span style={{ color: 'var(--text-1)', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.25rem' }}>
+                    Volume semanal:
                   </span>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {Object.entries(volume).map(([grupo, series]) => (

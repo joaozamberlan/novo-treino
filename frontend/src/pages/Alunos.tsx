@@ -153,7 +153,7 @@ export const Alunos: React.FC = () => {
   if (loading) {
     return (
       <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: 'var(--text-1)' }}>
-        Carregando seus alunos...
+        Carregando alunos...
       </div>
     );
   }
@@ -162,7 +162,7 @@ export const Alunos: React.FC = () => {
     <div className="animate-in">
       {/* Header */}
       <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-        <h1>Meus Alunos</h1>
+        <h1>Alunos</h1>
         <button
           className="btn btn-primary btn-sm"
           onClick={() => {
@@ -171,7 +171,7 @@ export const Alunos: React.FC = () => {
           }}
         >
           <Plus size={16} />
-          <span>{showAddForm ? 'Cancelar' : 'Novo Aluno'}</span>
+          <span>{showAddForm ? 'Cancelar' : 'Novo aluno'}</span>
         </button>
       </div>
 
@@ -185,11 +185,11 @@ export const Alunos: React.FC = () => {
       {/* Inline Add Form */}
       {showAddForm && (
         <div className="card animate-in" style={{ marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Cadastrar Novo Aluno</h3>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Novo aluno</h3>
           <form onSubmit={handleAddAluno}>
             <div className="form-row">
               <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label" htmlFor="nomeAluno">Nome Completo</label>
+                <label className="form-label" htmlFor="nomeAluno">Nome completo</label>
                 <input
                   id="nomeAluno"
                   type="text"
@@ -212,7 +212,7 @@ export const Alunos: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
+                <label className="form-label" htmlFor="telAluno">Telefone ou WhatsApp</label>
                 <input
                   id="telAluno"
                   type="text"
@@ -247,7 +247,7 @@ export const Alunos: React.FC = () => {
       {editingAlunoId && (
         <div className="card animate-in" style={{ marginBottom: '1rem', border: '1px solid var(--accent)' }}>
           <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent)' }}>Editar Informações do Aluno</h3>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent)' }}>Editar dados do aluno</h3>
             <button className="btn btn-ghost btn-icon" onClick={cancelEdit} title="Fechar">
               <X size={16} />
             </button>

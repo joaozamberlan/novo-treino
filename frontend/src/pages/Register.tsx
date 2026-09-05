@@ -52,7 +52,7 @@ export const Register: React.FC = () => {
       <div className="card auth-card" style={{ maxWidth: '500px' }}>
         <div className="auth-header">
           <h1 className="auth-logo">TreinosApp</h1>
-          <p>Crie sua conta de Personal Trainer</p>
+          <p>Cadastro de profissional</p>
         </div>
 
         {error && (
@@ -63,7 +63,7 @@ export const Register: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="nome">Nome Completo</label>
+            <label className="form-label" htmlFor="nome">Nome completo</label>
             <input
               id="nome"
               type="text"
@@ -131,7 +131,7 @@ export const Register: React.FC = () => {
 
           <div className="grid grid-cols-2" style={{ gap: '1rem', marginBottom: '2rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="telefone">Telefone (Opcional)</label>
+              <label className="form-label" htmlFor="telefone">Telefone (opcional)</label>
               <input
                 id="telefone"
                 type="text"
@@ -143,7 +143,7 @@ export const Register: React.FC = () => {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="instagram">Instagram @ (Opcional)</label>
+              <label className="form-label" htmlFor="instagram">Instagram (opcional)</label>
               <input
                 id="instagram"
                 type="text"
@@ -161,14 +161,14 @@ export const Register: React.FC = () => {
             style={{ width: '100%', marginBottom: '1.5rem' }}
             disabled={loading}
           >
-            {loading ? 'Cadastrando...' : 'Criar minha Conta'}
+            {loading ? 'Cadastrando...' : 'Criar conta'}
           </button>
         </form>
 
         <p style={{ fontSize: '0.9rem' }}>
           Já possui uma conta?{' '}
           <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: '600' }}>
-            Fazer Login
+            Entrar
           </Link>
         </p>
       </div>

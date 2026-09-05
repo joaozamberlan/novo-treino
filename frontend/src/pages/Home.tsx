@@ -14,11 +14,8 @@ export const Home: React.FC = () => {
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          Painel de Controle
-        </span>
-        <h1 style={{ marginTop: '0.2rem' }}>Olá, {user?.nome}</h1>
-        <p>Selecione um módulo para começar a trabalhar.</p>
+        <h1>Olá, {user?.nome}</h1>
+        <p>Acompanhe seus alunos, prescreva fichas e consulte a biblioteca de exercícios.</p>
       </div>
 
       <div className="grid grid-cols-2" style={{ gap: '1rem', marginTop: '0.5rem' }}>
@@ -33,7 +30,7 @@ export const Home: React.FC = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Alunos</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Acesse seus alunos cadastrados, adicione novos e prescreva treinos.</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Cadastro de alunos, histórico de treinos e novas prescrições.</p>
           </div>
         </div>
 
@@ -48,7 +45,7 @@ export const Home: React.FC = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Biblioteca</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Gerencie o catálogo completo de exercícios, grupos musculares e técnicas de treino.</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Exercícios e técnicas de treino organizados por grupos musculares.</p>
           </div>
         </div>
 
@@ -63,7 +60,7 @@ export const Home: React.FC = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Configurações</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Ajuste seus dados de perfil profissional, contatos e o logotipo impresso nos PDFs.</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Perfil profissional, dados de contato e logotipo impresso nos PDFs.</p>
           </div>
         </div>
 
@@ -78,8 +75,8 @@ export const Home: React.FC = () => {
               <Shield size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Painel Admin</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Gerencie profissionais cadastrados, aprove ou suspenda contas de usuários.</p>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Administração</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Permissões e controle de acesso para profissionais cadastrados.</p>
             </div>
           </div>
         )}

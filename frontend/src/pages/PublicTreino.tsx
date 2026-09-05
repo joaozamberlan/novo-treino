@@ -123,6 +123,10 @@ export const PublicTreino: React.FC = () => {
         setError('');
         const res = await api.get(`/publico/treinos/${token}`);
         setData(res.data);
+
+        const alunoNome = res.data.aluno?.nome ? res.data.aluno.nome.split(' ')[0] : 'Aluno';
+        const protocoloNome = res.data.protocolo?.nome || 'Treino';
+        document.title = `${protocoloNome} — ${alunoNome} | TreinosApp`;
         
         const treinos = res.data.protocolo?.treinos || [];
         if (treinos.length > 0) {
@@ -335,7 +339,7 @@ export const PublicTreino: React.FC = () => {
         
         {/* Student welcome & Active protocol details */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-1)', fontWeight: 500 }}>
             Olá, {aluno.nome.split(' ')[0]}
           </span>
           <h1 style={{ fontSize: '1.25rem', marginTop: '0.2rem', marginBottom: '0.25rem' }}>
@@ -484,8 +488,8 @@ export const PublicTreino: React.FC = () => {
             {/* Volume Summary */}
             {Object.keys(volume).length > 0 && (
               <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
-                <span style={{ color: 'var(--text-1)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.75rem' }}>
-                  Volume Semanal do Programa:
+                <span style={{ color: 'var(--text-1)', fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
+                  Volume semanal do programa:
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {Object.entries(volume).map(([grupo, series]) => (
