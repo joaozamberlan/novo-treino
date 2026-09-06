@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
@@ -168,14 +168,23 @@ export const PublicTreino: React.FC = () => {
   };
 
   // Progressão detalhada de séries (Série 1: 6 reps com 33kg, etc.)
-  const [setsProgressMap, setSetsProgressMap] = useState<Record<number, ExerciseSetEntry[]>>(() => {
-    try {
-      const saved = localStorage.getItem('workout-sets-progress');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
+  // Progressão detalhada de séries (Série 1: 6 reps com 33kg, etc.)
+  const [setsProgressMap, setSetsProgressMap] = useState<Record<number, ExerciseSetEntry[]>>({});
+  const setsProgressMapRef = useRef(setsProgressMap);
+  useEffect(() => {
+    setsProgressMapRef.current = setsProgressMap;
+  }, [setsProgressMap]);
+
+  const syncTimeoutRef = useRef<Record<number, any>>({});
+
+  const saveLocalSets = (newMap: Record<number, ExerciseSetEntry[]>, currentSessaoId?: number | null) => {
+    const sId = currentSessaoId || sessaoId;
+    if (sId) {
+      try {
+        localStorage.setItem(`workout-sets-progress-${sId}`, JSON.stringify(newMap));
+      } catch {}
     }
-  });
+  };
 
   const getExerciseSets = (item: PrescribedExercise): ExerciseSetEntry[] => {
     const existing = setsProgressMap[item.idTreinoExercicio];
@@ -200,16 +209,29 @@ export const PublicTreino: React.FC = () => {
     if (!activeSessao) return;
     try {
       await api.post(`/publico/sessao/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
-        series: setsToSync.map(s => ({
-          numeroSerie: s.setNumber,
-          cargaKg: s.kg.trim() !== '' && !isNaN(Number(s.kg)) ? Number(s.kg) : null,
-          repeticoes: s.reps.trim() !== '' && !isNaN(Number(s.reps)) ? Number(s.reps) : null,
-          concluido: s.completed,
-        })),
+        series: setsToSync.map(s => {
+          const kgClean = s.kg ? String(s.kg).trim().replace(',', '.') : '';
+          const repsClean = s.reps ? String(s.reps).trim() : '';
+          return {
+            numeroSerie: s.setNumber,
+            cargaKg: kgClean !== '' && !isNaN(Number(kgClean)) ? Number(kgClean) : null,
+            repeticoes: repsClean !== '' && !isNaN(Number(repsClean)) ? Number(repsClean) : null,
+            concluido: !!s.completed,
+          };
+        }),
       });
     } catch (err) {
       console.error('Erro ao sincronizar séries com o servidor:', err);
     }
+  };
+
+  const scheduleSyncSets = (idTreinoExercicio: number, setsToSync: ExerciseSetEntry[]) => {
+    if (syncTimeoutRef.current[idTreinoExercicio]) {
+      clearTimeout(syncTimeoutRef.current[idTreinoExercicio]);
+    }
+    syncTimeoutRef.current[idTreinoExercicio] = setTimeout(() => {
+      syncSetsToServer(idTreinoExercicio, setsToSync);
+    }, 600);
   };
 
   const updateSetKg = (idTreinoExercicio: number, setIndex: number, newKg: string, allSets: ExerciseSetEntry[]) => {
@@ -224,7 +246,8 @@ export const PublicTreino: React.FC = () => {
         }
       }
       const updated = { ...prev, [idTreinoExercicio]: sets };
-      try { localStorage.setItem('workout-sets-progress', JSON.stringify(updated)); } catch {}
+      saveLocalSets(updated);
+      scheduleSyncSets(idTreinoExercicio, sets);
       return updated;
     });
   };
@@ -235,7 +258,8 @@ export const PublicTreino: React.FC = () => {
       if (!sets[setIndex]) return prev;
       sets[setIndex].reps = newReps;
       const updated = { ...prev, [idTreinoExercicio]: sets };
-      try { localStorage.setItem('workout-sets-progress', JSON.stringify(updated)); } catch {}
+      saveLocalSets(updated);
+      scheduleSyncSets(idTreinoExercicio, sets);
       return updated;
     });
   };
@@ -256,7 +280,7 @@ export const PublicTreino: React.FC = () => {
       }
 
       const updated = { ...prev, [item.idTreinoExercicio]: sets };
-      try { localStorage.setItem('workout-sets-progress', JSON.stringify(updated)); } catch {}
+      saveLocalSets(updated);
 
       // Sincroniza status do exercício se todas as séries foram concluídas
       const allDone = sets.every(s => s.completed);
@@ -266,7 +290,10 @@ export const PublicTreino: React.FC = () => {
         toggleExerciseCompleted(item.idTreinoExercicio);
       }
 
-      // Sincroniza séries realizadas com o servidor
+      // Cancela debounce pendente e sincroniza séries imediatamente com o servidor
+      if (syncTimeoutRef.current[item.idTreinoExercicio]) {
+        clearTimeout(syncTimeoutRef.current[item.idTreinoExercicio]);
+      }
       syncSetsToServer(item.idTreinoExercicio, sets);
 
       return updated;
@@ -295,7 +322,10 @@ export const PublicTreino: React.FC = () => {
         return s;
       });
       const newMap = { ...prev, [item.idTreinoExercicio]: updated };
-      try { localStorage.setItem('workout-sets-progress', JSON.stringify(newMap)); } catch {}
+      saveLocalSets(newMap);
+      if (syncTimeoutRef.current[item.idTreinoExercicio]) {
+        clearTimeout(syncTimeoutRef.current[item.idTreinoExercicio]);
+      }
       syncSetsToServer(item.idTreinoExercicio, updated);
       return newMap;
     });
@@ -312,7 +342,7 @@ export const PublicTreino: React.FC = () => {
         completed: false
       });
       const updated = { ...prev, [item.idTreinoExercicio]: sets };
-      try { localStorage.setItem('workout-sets-progress', JSON.stringify(updated)); } catch {}
+      saveLocalSets(updated);
       syncSetsToServer(item.idTreinoExercicio, sets);
       return updated;
     });
@@ -441,20 +471,30 @@ export const PublicTreino: React.FC = () => {
 
       // Se há séries salvas hoje no servidor, sincroniza com o estado do app
       if (res.data.seriesHoje && Object.keys(res.data.seriesHoje).length > 0) {
-        setSetsProgressMap(prev => {
-          const next = { ...prev };
-          for (const [idStr, serverSets] of Object.entries(res.data.seriesHoje)) {
-            const id = Number(idStr);
-            next[id] = (serverSets as any[]).map(s => ({
-              setNumber: s.numeroSerie,
-              kg: s.cargaKg !== null && s.cargaKg !== undefined ? String(s.cargaKg) : '',
-              reps: s.repeticoes !== null && s.repeticoes !== undefined ? String(s.repeticoes) : '',
-              completed: !!s.concluido
-            }));
+        const next: Record<number, ExerciseSetEntry[]> = {};
+        for (const [idStr, serverSets] of Object.entries(res.data.seriesHoje)) {
+          const id = Number(idStr);
+          next[id] = (serverSets as any[]).map(s => ({
+            setNumber: s.numeroSerie,
+            kg: s.cargaKg !== null && s.cargaKg !== undefined ? String(s.cargaKg) : '',
+            reps: s.repeticoes !== null && s.repeticoes !== undefined ? String(s.repeticoes) : '',
+            completed: !!s.concluido
+          }));
+        }
+        setSetsProgressMap(next);
+        saveLocalSets(next, res.data.idSessao);
+      } else {
+        // Se a sessão ainda não tem séries no servidor, restaura cache desta sessão ou inicia limpo
+        try {
+          const sessionCache = localStorage.getItem(`workout-sets-progress-${res.data.idSessao}`);
+          if (sessionCache) {
+            setSetsProgressMap(JSON.parse(sessionCache));
+          } else {
+            setSetsProgressMap({});
           }
-          try { localStorage.setItem('workout-sets-progress', JSON.stringify(next)); } catch {}
-          return next;
-        });
+        } catch {
+          setSetsProgressMap({});
+        }
       }
     } catch (err) {
       console.error('Erro ao buscar sessão:', err);
@@ -516,7 +556,28 @@ export const PublicTreino: React.FC = () => {
       }
       playCelebrationSound();
 
-      const res = await api.post(`/publico/sessao/${sessaoId}/encerrar`);
+      // Monta payload atômico com todos os exercícios do treino atual e suas séries preenchidas
+      const exerciciosPayload = sortedExercicios.map(ex => {
+        const sets = setsProgressMapRef.current[ex.idTreinoExercicio] || getExerciseSets(ex);
+        return {
+          idTreinoExercicio: ex.idTreinoExercicio,
+          series: sets.map(s => {
+            const kgClean = s.kg ? String(s.kg).trim().replace(',', '.') : '';
+            const repsClean = s.reps ? String(s.reps).trim() : '';
+            return {
+              numeroSerie: s.setNumber,
+              cargaKg: kgClean !== '' && !isNaN(Number(kgClean)) ? Number(kgClean) : null,
+              repeticoes: repsClean !== '' && !isNaN(Number(repsClean)) ? Number(repsClean) : null,
+              concluido: !!s.completed,
+            };
+          }),
+        };
+      });
+
+      const res = await api.post(`/publico/sessao/${sessaoId}/encerrar`, {
+        exercicios: exerciciosPayload,
+      });
+
       setSessaoConcluida(true);
       setFinalizadoEm(res.data.finalizadoEm);
       setShowCelebrationModal(true);
@@ -531,15 +592,7 @@ export const PublicTreino: React.FC = () => {
     if (!token || activeTabId === null) return;
     try {
       setShowCelebrationModal(false);
-      // Limpa dados locais deste treino
-      setSetsProgressMap(prev => {
-        const next = { ...prev };
-        sortedExercicios.forEach(ex => {
-          delete next[ex.idTreinoExercicio];
-        });
-        try { localStorage.setItem('workout-sets-progress', JSON.stringify(next)); } catch {}
-        return next;
-      });
+      setSetsProgressMap({});
 
       const res = await api.post(`/publico/sessao/${token}/${activeTabId}/nova`);
       setSessaoId(res.data.idSessao);
@@ -886,9 +939,9 @@ export const PublicTreino: React.FC = () => {
                           const prevSet = prevExerciseSets?.find(p => p.numeroSerie === set.setNumber);
 
                           // Indicador de PR / Sobrecarga Progressiva
-                          const currentKg = parseFloat(set.kg);
+                          const currentKg = parseFloat(String(set.kg).replace(',', '.'));
                           const prevKg = prevSet?.cargaKg ?? null;
-                          const currentReps = parseInt(set.reps, 10);
+                          const currentReps = parseInt(String(set.reps), 10);
                           const prevReps = prevSet?.repeticoes ?? null;
 
                           const isKgPR = prevKg !== null && !isNaN(currentKg) && currentKg > prevKg;
@@ -927,16 +980,17 @@ export const PublicTreino: React.FC = () => {
                                 )}
                               </div>
 
-                              {/* Manual Carga (kg) input — aceita qualquer valor: 33, 12.5, 1, 2, 3kg */}
+                              {/* Manual Carga (kg) input — aceita qualquer valor: 33, 12.5, 33,5, 1, 2, 3kg */}
                               <div className="set-input-wrap">
                                 <input
-                                  type="number"
-                                  step="any"
-                                  min="0"
+                                  type="text"
                                   inputMode="decimal"
                                   value={set.kg}
                                   onChange={(e) => updateSetKg(item.idTreinoExercicio, idx, e.target.value, sets)}
-                                  onBlur={() => syncSetsToServer(item.idTreinoExercicio, sets)}
+                                  onBlur={() => {
+                                    const currentSets = setsProgressMapRef.current[item.idTreinoExercicio] || sets;
+                                    syncSetsToServer(item.idTreinoExercicio, currentSets);
+                                  }}
                                   placeholder={prevSet?.cargaKg !== null && prevSet?.cargaKg !== undefined ? String(prevSet.cargaKg) : "0"}
                                   className="set-input"
                                   aria-label={`Série ${set.setNumber} carga em kg`}
@@ -952,7 +1006,10 @@ export const PublicTreino: React.FC = () => {
                                   inputMode="numeric"
                                   value={set.reps}
                                   onChange={(e) => updateSetReps(item.idTreinoExercicio, idx, e.target.value, sets)}
-                                  onBlur={() => syncSetsToServer(item.idTreinoExercicio, sets)}
+                                  onBlur={() => {
+                                    const currentSets = setsProgressMapRef.current[item.idTreinoExercicio] || sets;
+                                    syncSetsToServer(item.idTreinoExercicio, currentSets);
+                                  }}
                                   placeholder={prevSet?.repeticoes !== null && prevSet?.repeticoes !== undefined ? String(prevSet.repeticoes) : "reps"}
                                   className="set-input"
                                   aria-label={`Série ${set.setNumber} repetições`}

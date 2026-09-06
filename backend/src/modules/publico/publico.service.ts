@@ -95,21 +95,55 @@ export class PublicoService {
       });
     }
 
-    // Busca a sessão anterior mais recente (que tenha séries) que não seja a sessão atual
-    const sessaoAnterior = await this.prisma.sessaoTreino.findFirst({
+    // Busca a sessão anterior mais recente que tenha séries registradas (prioriza concluídas)
+    let sessaoAnterior = await this.prisma.sessaoTreino.findFirst({
       where: {
         idAluno: aluno.idAluno,
         idTreino,
         idSessao: { not: sessao.idSessao },
-        seriesRealizadas: { some: {} },
+        concluida: true,
+        seriesRealizadas: {
+          some: {
+            OR: [
+              { cargaKg: { not: null } },
+              { repeticoes: { not: null } },
+              { concluido: true },
+            ],
+          },
+        },
       },
-      orderBy: [{ criadoEm: 'desc' }, { data: 'desc' }],
+      orderBy: [{ criadoEm: 'desc' }, { idSessao: 'desc' }],
       include: {
         seriesRealizadas: {
           orderBy: { numeroSerie: 'asc' },
         },
       },
     });
+
+    if (!sessaoAnterior) {
+      sessaoAnterior = await this.prisma.sessaoTreino.findFirst({
+        where: {
+          idAluno: aluno.idAluno,
+          idTreino,
+          idSessao: { not: sessao.idSessao },
+          seriesRealizadas: {
+            some: {
+              OR: [
+                { cargaKg: { not: null } },
+                { repeticoes: { not: null } },
+                { concluido: true },
+              ],
+            },
+          },
+        },
+        orderBy: [{ criadoEm: 'desc' }, { idSessao: 'desc' }],
+        include: {
+          seriesRealizadas: {
+            orderBy: { numeroSerie: 'asc' },
+          },
+        },
+      });
+    }
 
     // Mapeia as séries de hoje por idTreinoExercicio
     const seriesHoje: Record<number, Array<{ numeroSerie: number; cargaKg: number | null; repeticoes: number | null; concluido: boolean }>> = {};
@@ -165,7 +199,18 @@ export class PublicoService {
   }
 
   // Encerra a sessão atual do treino
-  async encerrarSessao(idSessao: number) {
+  async encerrarSessao(
+    idSessao: number,
+    exercicios?: Array<{
+      idTreinoExercicio: number;
+      series: Array<{
+        numeroSerie: number;
+        cargaKg?: number | null;
+        repeticoes?: number | null;
+        concluido?: boolean;
+      }>;
+    }>,
+  ) {
     const sessao = await this.prisma.sessaoTreino.findUnique({
       where: { idSessao },
       include: {
@@ -174,6 +219,15 @@ export class PublicoService {
       },
     });
     if (!sessao) throw new NotFoundException('Sessão não encontrada.');
+
+    // Se exercicios com séries foram enviados no encerramento, grava todos atomicamente
+    if (exercicios && Array.isArray(exercicios) && exercicios.length > 0) {
+      for (const ex of exercicios) {
+        if (ex.series && Array.isArray(ex.series) && ex.series.length > 0) {
+          await this.salvarSeriesExercicio(idSessao, ex.idTreinoExercicio, ex.series);
+        }
+      }
+    }
 
     const updated = await this.prisma.sessaoTreino.update({
       where: { idSessao },

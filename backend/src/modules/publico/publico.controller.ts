@@ -40,8 +40,21 @@ export class PublicoController {
 
   // POST /publico/sessao/:idSessao/encerrar — encerra o treino e comita para o histórico
   @Post('sessao/:idSessao/encerrar')
-  async encerrarSessao(@Param('idSessao', ParseIntPipe) idSessao: number) {
-    return this.publicoService.encerrarSessao(idSessao);
+  async encerrarSessao(
+    @Param('idSessao', ParseIntPipe) idSessao: number,
+    @Body() body?: {
+      exercicios?: Array<{
+        idTreinoExercicio: number;
+        series: Array<{
+          numeroSerie: number;
+          cargaKg?: number | null;
+          repeticoes?: number | null;
+          concluido?: boolean;
+        }>;
+      }>;
+    },
+  ) {
+    return this.publicoService.encerrarSessao(idSessao, body?.exercicios);
   }
 
   // POST /publico/sessao/:token/:idTreino/nova — inicia uma nova sessão (nova semana)
