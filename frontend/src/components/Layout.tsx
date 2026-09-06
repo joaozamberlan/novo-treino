@@ -145,10 +145,10 @@ export const Layout: React.FC = () => {
             className="topbar-btn" 
             onClick={toggleTheme} 
             title={theme === 'dark' ? "Ativar modo claro" : "Ativar modo escuro"}
-            style={{ marginRight: '0.25rem' }}
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+          <div className="topbar-divider" />
           <button className="topbar-btn" onClick={handleLogout} title="Sair">
             <LogOut size={16} />
           </button>
