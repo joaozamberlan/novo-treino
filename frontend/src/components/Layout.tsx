@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Dumbbell, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download } from 'lucide-react';
+import { Dumbbell, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Sparkles } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const Layout: React.FC = () => {
@@ -108,12 +108,13 @@ export const Layout: React.FC = () => {
             className="topbar-btn" 
             onClick={toggleSidebar} 
             title={isExpanded ? "Recolher menu" : "Expandir menu"}
+            aria-label={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
             style={{ marginRight: '0.25rem' }}
           >
-            <Menu size={16} />
+            <Menu size={18} aria-hidden="true" />
           </button>
-          <NavLink to="/" className="topbar-brand">
-            <Dumbbell size={18} />
+          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
+            <Dumbbell size={18} aria-hidden="true" />
             <span>TreinosApp</span>
           </NavLink>
         </div>
@@ -125,9 +126,10 @@ export const Layout: React.FC = () => {
               className="topbar-btn"
               onClick={install}
               title="Instalar app"
+              aria-label="Instalar aplicativo no dispositivo"
               style={{ color: 'var(--accent)' }}
             >
-              <Download size={16} />
+              <Download size={18} aria-hidden="true" />
             </button>
           )}
           {/* Botão instalar PWA — iOS (instrução manual) */}
@@ -136,21 +138,28 @@ export const Layout: React.FC = () => {
               className="topbar-btn"
               onClick={() => setShowIosHint(true)}
               title="Instalar app no iPhone"
+              aria-label="Instruções para instalar no iPhone"
               style={{ color: 'var(--accent)' }}
             >
-              <Download size={16} />
+              <Download size={18} aria-hidden="true" />
             </button>
           )}
           <button 
             className="topbar-btn" 
             onClick={toggleTheme} 
             title={theme === 'dark' ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label={theme === 'dark' ? "Alternar para modo claro" : "Alternar para modo escuro"}
           >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
           </button>
-          <div className="topbar-divider" />
-          <button className="topbar-btn" onClick={handleLogout} title="Sair">
-            <LogOut size={16} />
+          <div className="topbar-divider" aria-hidden="true" />
+          <button 
+            className="topbar-btn" 
+            onClick={handleLogout} 
+            title="Sair"
+            aria-label="Sair da conta"
+          >
+            <LogOut size={18} aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -233,6 +242,19 @@ export const Layout: React.FC = () => {
             >
               <Settings size={16} />
               <span className="sidebar-label">Configurações</span>
+            </NavLink>
+
+            <NavLink 
+              to="/prototypes/exercise-card" 
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
+              title="Protótipos UI"
+              onClick={() => {
+                if (window.innerWidth <= 768) setIsExpanded(false);
+              }}
+              style={{ color: 'var(--accent)' }}
+            >
+              <Sparkles size={16} />
+              <span className="sidebar-label">Protótipos UI</span>
             </NavLink>
           </nav>
 

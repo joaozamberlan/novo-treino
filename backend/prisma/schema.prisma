@@ -130,20 +130,24 @@ model TreinoExercicio {
   exercicio         Exercicio      @relation(fields: [idExercicio], references: [idExercicio])
   tecnica           TecnicaTreino? @relation(fields: [idTecnica], references: [idTecnica], onDelete: SetNull)
   concluidos        ExercicioConcluido[]
+  seriesRealizadas  SessaoExercicioSerie[]
 }
 
 model SessaoTreino {
-  idSessao  Int      @id @default(autoincrement())
-  idAluno   Int
-  idTreino  Int
-  data      String   // formato 'YYYY-MM-DD'
-  criadoEm DateTime @default(now())
+  idSessao     Int       @id @default(autoincrement())
+  idAluno      Int
+  idTreino     Int
+  data         String    // formato 'YYYY-MM-DD'
+  criadoEm     DateTime  @default(now())
+  finalizadoEm DateTime?
+  concluida    Boolean   @default(false)
 
-  aluno     Aluno              @relation(fields: [idAluno], references: [idAluno], onDelete: Cascade)
-  treino    Treino             @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
-  concluidos ExercicioConcluido[]
+  aluno            Aluno                  @relation(fields: [idAluno], references: [idAluno], onDelete: Cascade)
+  treino           Treino                 @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
+  concluidos       ExercicioConcluido[]
+  seriesRealizadas SessaoExercicioSerie[]
 
-  @@unique([idAluno, idTreino, data])
+  @@index([idAluno, idTreino])
 }
 
 model ExercicioConcluido {
@@ -155,4 +159,20 @@ model ExercicioConcluido {
   treinoExercicio TreinoExercicio @relation(fields: [idTreinoExercicio], references: [idTreinoExercicio], onDelete: Cascade)
 
   @@unique([idSessao, idTreinoExercicio])
+}
+
+model SessaoExercicioSerie {
+  idSerie           Int             @id @default(autoincrement())
+  idSessao          Int
+  idTreinoExercicio Int
+  numeroSerie       Int
+  cargaKg           Float?
+  repeticoes        Int?
+  concluido         Boolean         @default(false)
+  atualizadoEm      DateTime        @default(now()) @updatedAt
+
+  sessao            SessaoTreino    @relation(fields: [idSessao], references: [idSessao], onDelete: Cascade)
+  treinoExercicio   TreinoExercicio @relation(fields: [idTreinoExercicio], references: [idTreinoExercicio], onDelete: Cascade)
+
+  @@unique([idSessao, idTreinoExercicio, numeroSerie])
 }

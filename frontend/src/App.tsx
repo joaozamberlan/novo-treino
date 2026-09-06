@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { PublicTreino } from './pages/PublicTreino';
+import { ExerciseCardPrototype } from './pages/prototypes/ExerciseCardPrototype';
 import { Alunos } from './pages/Alunos';
 import { Home } from './pages/Home';
 import { Treinos } from './pages/Treinos';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/v/:token" element={<PublicTreino />} />
+          <Route path="/prototypes/exercise-card" element={<ExerciseCardPrototype />} />
 
           {/* Protected Routes */}
           <Route
