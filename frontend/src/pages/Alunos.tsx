@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
-import { Plus, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 
 interface Aluno {
@@ -364,20 +364,38 @@ export const Alunos: React.FC = () => {
                 key={aluno.idAluno}
                 className="student-item"
                 onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem' }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                  <span className="student-item-name" style={{ fontWeight: 600 }}>{aluno.nome}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-1)' }}>
-                    {aluno.email && <span>{aluno.email}</span>}
-                    {aluno.telefone && <span>• {aluno.telefone}</span>}
-                    <span className={`badge ${aluno.ativo ? 'badge-success' : 'badge-danger'}`} style={{ height: '18px', padding: '0 0.4rem', fontSize: '0.65rem' }}>
-                      {aluno.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
+                {/* Avatar + info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', minWidth: 0, flex: 1 }}>
+                  <div style={{
+                    width: '36px', height: '36px',
+                    borderRadius: '50%',
+                    background: 'var(--accent-soft)',
+                    border: '1px solid rgba(204,255,0,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--accent)',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    letterSpacing: '-0.01em',
+                  }}>
+                    {aluno.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="student-item-name" style={{ fontWeight: 600, marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{aluno.nome}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-1)' }}>
+                      {aluno.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{aluno.email}</span>}
+                      {aluno.telefone && <span>· {aluno.telefone}</span>}
+                      <span className={`badge ${aluno.ativo ? 'badge-success' : 'badge-danger'}`}>
+                        {aluno.ativo ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                {/* Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     className="exercise-action-btn accent"
@@ -408,8 +426,26 @@ export const Alunos: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-1)' }}>
-          Nenhum aluno encontrado.
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '4rem 2rem', gap: '0.75rem',
+          border: '1px dashed var(--border)', borderRadius: 'var(--radius-l)',
+          color: 'var(--text-2)',
+        }}>
+          <Users size={32} style={{ color: 'var(--text-2)', opacity: 0.5 }} />
+          <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-1)' }}>
+            {search ? `Nenhum aluno encontrado para "${search}"` : 'Nenhum aluno cadastrado ainda'}
+          </div>
+          {!search && (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => { setShowAddForm(true); cancelEdit(); }}
+              style={{ marginTop: '0.25rem' }}
+            >
+              <Plus size={14} />
+              Adicionar primeiro aluno
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -78,31 +78,22 @@ export const Layout: React.FC = () => {
         <div
           className="modal-backdrop"
           onClick={() => setShowIosHint(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', display: 'flex',
-            alignItems: 'flex-end', justifyContent: 'center', padding: '1rem',
-          }}
         >
           <div
             className="modal-content"
             onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--bg-2)', border: '1px solid var(--border)',
-              borderRadius: '1rem', padding: '1.5rem', maxWidth: '360px',
-              width: '100%', textAlign: 'center',
-            }}
+            style={{ textAlign: 'center' }}
           >
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📲</div>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📲</div>
             <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
-            <p style={{ color: 'var(--text-1)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
               Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
               <strong>"Adicionar à Tela de Início"</strong>
             </p>
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary"
               onClick={() => setShowIosHint(false)}
-              style={{ marginTop: '1rem', width: '100%' }}
+              style={{ width: '100%' }}
             >
               Entendido
             </button>

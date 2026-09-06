@@ -170,23 +170,39 @@ export const Dashboard: React.FC = () => {
 
       {/* Estatísticas Rápidas */}
       <div className="grid grid-cols-2">
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'rgba(204, 255, 0, 0.1)', color: 'var(--accent)' }}>
-            <Users size={32} />
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{
+            width: '52px', height: '52px',
+            borderRadius: '10px',
+            backgroundColor: 'var(--accent-soft)',
+            color: 'var(--accent)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            border: '1px solid rgba(204,255,0,0.15)',
+          }}>
+            <Users size={24} />
           </div>
           <div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)' }}>Alunos Cadastrados</div>
-            <div style={{ fontSize: '2rem', fontWeight: '800' }}>{alunosCount}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 500, marginBottom: '0.2rem' }}>Alunos Cadastrados</div>
+            <div style={{ fontSize: '2.25rem', fontWeight: '800', lineHeight: 1, letterSpacing: '-0.04em', color: 'var(--text-0)' }}>{alunosCount}</div>
           </div>
         </div>
 
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ padding: '1rem', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-0)' }}>
-            <Award size={32} />
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{
+            width: '52px', height: '52px',
+            borderRadius: '10px',
+            backgroundColor: 'var(--bg-3)',
+            color: 'var(--text-0)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            border: '1px solid var(--border)',
+          }}>
+            <Award size={24} />
           </div>
           <div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)' }}>Especialidade</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '700', marginTop: '0.25rem' }}>{user?.profissao}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 500, marginBottom: '0.2rem' }}>Especialidade</div>
+            <div style={{ fontSize: '1.125rem', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--text-0)' }}>{user?.profissao}</div>
           </div>
         </div>
       </div>

@@ -1,7 +1,45 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, Dumbbell, Settings, Shield } from 'lucide-react';
+import { Users, Dumbbell, Settings, Shield, ArrowRight } from 'lucide-react';
+
+interface NavCard {
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  route: string;
+  variant?: 'accent' | 'danger' | 'default';
+}
+
+const baseCards: NavCard[] = [
+  {
+    icon: Users,
+    label: 'Alunos',
+    description: 'Cadastro, histórico de treinos e novas prescrições.',
+    route: '/alunos',
+    variant: 'accent',
+  },
+  {
+    icon: Dumbbell,
+    label: 'Biblioteca',
+    description: 'Exercícios e técnicas organizados por grupo muscular.',
+    route: '/exercicios',
+  },
+  {
+    icon: Settings,
+    label: 'Configurações',
+    description: 'Perfil profissional, contato e logotipo nos PDFs.',
+    route: '/configuracoes',
+  },
+];
+
+const adminCard: NavCard = {
+  icon: Shield,
+  label: 'Administração',
+  description: 'Permissões e controle de acesso de profissionais.',
+  route: '/admin',
+  variant: 'danger',
+};
 
 export const Home: React.FC = () => {
   const { user } = useAuth();
@@ -11,75 +49,55 @@ export const Home: React.FC = () => {
     document.title = 'Início | TreinosApp';
   }, []);
 
+  const cards: NavCard[] =
+    user?.role === 'SUPERADMIN' ? [...baseCards, adminCard] : baseCards;
+
+  const firstName = user?.nome?.split(' ')[0] ?? user?.nome ?? '';
+
   return (
-    <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div>
-        <h1>Olá, {user?.nome}</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <div className="stagger-1">
+        <h1>Olá, {firstName}</h1>
         <p>Acompanhe seus alunos, prescreva fichas e consulte a biblioteca de exercícios.</p>
       </div>
 
-      <div className="grid grid-cols-2" style={{ gap: '1rem', marginTop: '0.5rem' }}>
-        {/* Alunos Card */}
-        <div 
-          className="card card-clickable" 
-          onClick={() => navigate('/alunos')}
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
-            <Users size={18} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Alunos</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Cadastro de alunos, histórico de treinos e novas prescrições.</p>
-          </div>
-        </div>
+      <div className="home-grid stagger-2">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          const iconClass =
+            card.variant === 'accent'
+              ? 'home-card-icon home-card-icon--accent'
+              : card.variant === 'danger'
+              ? 'home-card-icon home-card-icon--danger'
+              : 'home-card-icon';
 
-        {/* Biblioteca Card */}
-        <div 
-          className="card card-clickable" 
-          onClick={() => navigate('/exercicios')}
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-0)', border: '1px solid var(--border)' }}>
-            <Dumbbell size={18} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Biblioteca</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Exercícios e técnicas de treino organizados por grupos musculares.</p>
-          </div>
-        </div>
+          return (
+            <div
+              key={card.route}
+              className="home-card"
+              onClick={() => navigate(card.route)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(card.route);
+                }
+              }}
+            >
+              <div className={iconClass}>
+                <Icon size={18} />
+              </div>
 
-        {/* Configurações Card */}
-        <div 
-          className="card card-clickable" 
-          onClick={() => navigate('/configuracoes')}
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-0)', border: '1px solid var(--border)' }}>
-            <Settings size={18} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Configurações</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Perfil profissional, dados de contato e logotipo impresso nos PDFs.</p>
-          </div>
-        </div>
+              <div className="home-card-content">
+                <h3>{card.label}</h3>
+                <p>{card.description}</p>
+              </div>
 
-        {/* Admin Card */}
-        {user?.role === 'SUPERADMIN' && (
-          <div 
-            className="card card-clickable" 
-            onClick={() => navigate('/admin')}
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-          >
-            <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: 'rgba(240,68,56,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--danger)' }}>
-              <Shield size={18} />
+              <ArrowRight size={15} className="home-card-arrow" />
             </div>
-            <div>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.2rem' }}>Administração</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Permissões e controle de acesso para profissionais cadastrados.</p>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
     </div>
   );
