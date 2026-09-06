@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Dumbbell, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Sparkles } from 'lucide-react';
+import { Layers, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Sparkles } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const Layout: React.FC = () => {
@@ -14,7 +15,7 @@ export const Layout: React.FC = () => {
     return saved === 'true';
   });
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
+    return localStorage.getItem('theme') || 'light';
   });
 
   // Detecta iOS (Safari não suporta beforeinstallprompt)
@@ -114,8 +115,7 @@ export const Layout: React.FC = () => {
             <Menu size={18} aria-hidden="true" />
           </button>
           <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
-            <Dumbbell size={18} aria-hidden="true" />
-            <span>TreinosApp</span>
+            <BrandLogo size={22} text="Treinos" />
           </NavLink>
         </div>
 
@@ -214,7 +214,7 @@ export const Layout: React.FC = () => {
                 if (window.innerWidth <= 768) setIsExpanded(false);
               }}
             >
-              <Dumbbell size={16} />
+              <Layers size={16} />
               <span className="sidebar-label">Biblioteca</span>
             </NavLink>
 

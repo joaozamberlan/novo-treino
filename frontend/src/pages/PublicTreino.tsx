@@ -2,10 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
-  Dumbbell, Award, Phone, Video, 
+  Award, Phone, Video, 
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
   History, RotateCcw, TrendingUp, Trophy, Flag, Sparkles
 } from 'lucide-react';
+import { BrandLogo } from '../components/BrandLogo';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -349,7 +350,7 @@ export const PublicTreino: React.FC = () => {
   };
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
+    return localStorage.getItem('theme') || 'light';
   });
 
   // Toggle theme class on body
@@ -672,7 +673,7 @@ export const PublicTreino: React.FC = () => {
             </div>
           ) : (
             <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', flexShrink: 0, color: 'var(--accent)' }}>
-              <Dumbbell size={20} />
+              <BrandLogo size={24} showText={false} />
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>

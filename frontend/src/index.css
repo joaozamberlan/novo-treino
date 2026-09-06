@@ -3,29 +3,35 @@
    ======================================================================== */
 
 :root {
-  --bg-0: #09090c;
-  --bg-1: #111215;
-  --bg-2: #1a1b20;
-  --bg-3: #242529;
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.15);
-  --border-focus: rgba(204, 255, 0, 0.45);
-  --accent: #CCFF00;
-  --accent-soft: rgba(204, 255, 0, 0.1);
-  --accent-dim: rgba(204, 255, 0, 0.05);
-  --text-0: #f0f0f2;
-  --text-1: #9da0aa;
-  --text-2: #7a7d88;
+  --bg-0: #0c0d0f;
+  --bg-1: #14161a;
+  --bg-2: #1b1e24;
+  --bg-3: #242831;
+  --border: rgba(240, 239, 234, 0.08);
+  --border-strong: rgba(240, 239, 234, 0.16);
+  --border-focus: #b83226;
+  --accent: #b83226;
+  --accent-hover: #cb392c;
+  --accent-soft: rgba(184, 50, 38, 0.14);
+  --accent-dim: rgba(184, 50, 38, 0.06);
+  --accent-border: rgba(184, 50, 38, 0.35);
+  --text-0: #f0efea;
+  --text-1: #a2a6b0;
+  --text-2: #656975;
   --danger: #f04438;
-  --success: #12b76a;
+  --success: #2da868;
   --warning: #f59e0b;
+  --pr-gold: #e5a93c;
+  --pr-gold-soft: rgba(229, 169, 60, 0.14);
   --radius-s: 6px;
   --radius-m: 8px;
   --radius-l: 12px;
   --radius-xl: 16px;
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
   /* Apple & Motion Physics */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -47,20 +53,23 @@
 }
 
 body.light-theme {
-  --bg-0: #f4f5f6;
+  --bg-0: #f4f3ef;
   --bg-1: #ffffff;
-  --bg-2: #e9ebed;
-  --bg-3: #dcdfe2;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-focus: rgba(124, 168, 0, 0.4);
-  --accent: #7ca800;
-  --accent-soft: rgba(124, 168, 0, 0.12);
-  --accent-dim: rgba(124, 168, 0, 0.06);
-  --text-0: #18191b;
-  --text-1: #60646c;
-  --text-2: #9297a0;
+  --bg-2: #eae8e1;
+  --bg-3: #dedbd2;
+  --border: rgba(20, 22, 26, 0.10);
+  --border-strong: rgba(20, 22, 26, 0.20);
+  --border-focus: #9e251a;
+  --accent: #9e251a;
+  --accent-hover: #b83226;
+  --accent-soft: rgba(158, 37, 26, 0.10);
+  --accent-dim: rgba(158, 37, 26, 0.04);
+  --accent-border: rgba(158, 37, 26, 0.25);
+  --text-0: #121316;
+  --text-1: #565963;
+  --text-2: #868a95;
   --danger: #d92d20;
-  --success: #039855;
+  --success: #2da868;
   --warning: #dc6803;
 
   /* Fallback aliases */
@@ -153,7 +162,7 @@ body.light-theme .topbar {
 .topbar-brand {
   font-weight: 800;
   font-size: 1rem;
-  color: var(--accent);
+  color: var(--text-0);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -366,13 +375,15 @@ p {
 
 .btn-primary {
   background: var(--accent);
-  color: #000;
+  color: #ffffff;
   border-color: var(--accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover {
-    filter: brightness(1.08);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    filter: none;
   }
 }
 
@@ -617,7 +628,7 @@ select.form-input {
 .badge-accent {
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(204, 255, 0, 0.2);
+  border: 1px solid var(--accent-border);
 }
 
 /* ── Student List ──────────────────────────────────────────────────────── */
@@ -923,10 +934,11 @@ body.light-theme .exercise-tactile-card.completed {
   gap: 0.45rem;
   align-items: center;
   padding: 0 0.25rem 0.25rem 0.25rem;
-  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--text-2);
   text-align: center;
 }
@@ -945,8 +957,8 @@ body.light-theme .exercise-tactile-card.completed {
 }
 
 .set-row.completed {
-  background: rgba(18, 183, 106, 0.08);
-  border-color: rgba(18, 183, 106, 0.3);
+  background: rgba(45, 168, 104, 0.06);
+  border-color: rgba(45, 168, 104, 0.25);
 }
 
 .set-badge {
@@ -954,7 +966,8 @@ body.light-theme .exercise-tactile-card.completed {
   height: 32px;
   border-radius: var(--radius-s);
   background: var(--bg-3);
-  color: var(--text-1);
+  color: var(--text-0);
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 700;
   display: flex;
@@ -965,7 +978,7 @@ body.light-theme .exercise-tactile-card.completed {
 }
 
 .set-row.completed .set-badge {
-  background: rgba(18, 183, 106, 0.22);
+  background: rgba(45, 168, 104, 0.2);
   color: var(--success);
 }
 
@@ -983,13 +996,14 @@ body.light-theme .exercise-tactile-card.completed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-0);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   background: var(--bg-1);
-  padding: 0.22rem 0.35rem;
+  padding: 0.2rem 0.4rem;
   border-radius: var(--radius-s);
   border: 1px solid var(--border);
   white-space: nowrap;
@@ -1006,11 +1020,15 @@ body.light-theme .exercise-tactile-card.completed {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 800;
-  color: #f59e0b;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.08rem 0.35rem;
+  border-radius: var(--radius-s);
   letter-spacing: 0.02em;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .set-repeat-prev-btn {
@@ -1081,7 +1099,7 @@ body.light-theme .exercise-tactile-card.completed {
   border: 1px solid var(--border);
   border-radius: var(--radius-s);
   color: var(--text-0);
-  font-family: var(--font);
+  font-family: var(--font-mono);
   font-size: 16px !important; /* Prevents iOS auto-zoom */
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -1131,10 +1149,10 @@ body.light-theme .exercise-tactile-card.completed {
 }
 
 .set-check-btn.completed {
-  background: var(--success);
-  border-color: var(--success);
-  color: #000;
-  box-shadow: 0 0 12px rgba(18, 183, 106, 0.35);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--accent-soft);
 }
 
 .check-pop-icon {
@@ -1151,10 +1169,10 @@ body.light-theme .exercise-tactile-card.completed {
   min-height: 32px;
   min-width: 44px;
   border-radius: var(--radius-s);
-  border: 1px solid rgba(204, 255, 0, 0.25);
+  border: 1px solid var(--accent-border);
   background: var(--accent-dim);
   color: var(--accent);
-  font-family: var(--font);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -1185,10 +1203,10 @@ body.light-theme .exercise-tactile-card.completed {
   width: calc(100% - 2rem);
   max-width: 540px;
   height: 60px;
-  background: rgba(17, 18, 21, 0.88);
+  background: rgba(20, 22, 26, 0.90);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(204, 255, 0, 0.4);
+  border: 1px solid var(--accent-border);
   border-top: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-l);
   display: flex;
@@ -1201,9 +1219,9 @@ body.light-theme .exercise-tactile-card.completed {
 }
 
 body.light-theme .floating-rest-timer {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(124, 168, 0, 0.4);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--accent-border);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .exercise-block-handle {
