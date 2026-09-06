@@ -372,7 +372,7 @@ export const Alunos: React.FC = () => {
                     width: '36px', height: '36px',
                     borderRadius: '50%',
                     background: 'var(--accent-soft)',
-                    border: '1px solid rgba(204,255,0,0.15)',
+                    border: '1px solid var(--accent-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--accent)',
                     fontSize: '0.8125rem',

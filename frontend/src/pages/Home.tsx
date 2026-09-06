@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, Dumbbell, Settings, Shield, ArrowRight } from 'lucide-react';
+import { Users, Layers, Settings, Shield, ArrowRight } from 'lucide-react';
 
 interface NavCard {
   icon: React.ElementType;
@@ -20,7 +20,7 @@ const baseCards: NavCard[] = [
     variant: 'accent',
   },
   {
-    icon: Dumbbell,
+    icon: Layers,
     label: 'Biblioteca',
     description: 'Exercícios e técnicas organizados por grupo muscular.',
     route: '/exercicios',
@@ -57,6 +57,12 @@ export const Home: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div className="stagger-1">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
+          <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            PAINEL DE GESTÃO // TREINOS & PERIODIZAÇÃO
+          </span>
+        </div>
         <h1>Olá, {firstName}</h1>
         <p>Acompanhe seus alunos, prescreva fichas e consulte a biblioteca de exercícios.</p>
       </div>

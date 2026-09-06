@@ -226,7 +226,7 @@ export const Admin: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <span className="badge" style={{ backgroundColor: prof.role === 'SUPERADMIN' ? 'rgba(204,255,0,0.1)' : 'rgba(255,255,255,0.05)', color: prof.role === 'SUPERADMIN' ? 'var(--accent)' : 'var(--text-1)', border: '1px solid var(--border)' }}>
+                      <span className="badge" style={{ backgroundColor: prof.role === 'SUPERADMIN' ? 'var(--accent-soft)' : 'rgba(255,255,255,0.05)', color: prof.role === 'SUPERADMIN' ? 'var(--accent)' : 'var(--text-1)', border: '1px solid var(--border)' }}>
                         {prof.role}
                       </span>
                     </td>

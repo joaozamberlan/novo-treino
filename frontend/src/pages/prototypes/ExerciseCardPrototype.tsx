@@ -151,7 +151,7 @@ const VariantTactileIOS: React.FC = () => {
           padding: '0.5rem 0.75rem',
           borderRadius: 'var(--radius-s)',
           background: 'var(--accent-dim)',
-          border: '1px solid rgba(204, 255, 0, 0.2)',
+          border: '1px solid var(--accent-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

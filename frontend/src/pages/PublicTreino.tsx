@@ -665,7 +665,7 @@ export const PublicTreino: React.FC = () => {
     <div className="animate-in" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-0)', color: 'var(--text-0)', paddingBottom: '5rem' }}>
       
       {/* Personal Trainer Branding Header */}
-      <header style={{ backgroundColor: 'var(--bg-1)', borderBottom: '1px solid var(--border)', padding: '1rem' }}>
+      <header style={{ backgroundColor: 'var(--bg-1)', borderBottom: '1px solid var(--border)', borderTop: '2.5px solid var(--accent)', padding: '1rem' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {profissional.logoUrl ? (
             <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
@@ -729,18 +729,19 @@ export const PublicTreino: React.FC = () => {
       <main style={{ maxWidth: '600px', margin: '1.25rem auto 0 auto', padding: '0 1rem' }}>
         
         {/* Student welcome & Active protocol details */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-1)', fontWeight: 500 }}>
-            Olá, {aluno.nome.split(' ')[0]}
-          </span>
-          <h1 style={{ fontSize: '1.25rem', marginTop: '0.2rem', marginBottom: '0.25rem' }}>
+        <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
+            <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              {protocolo?.nome ? `PROTOCOLO // ${protocolo.nome.toUpperCase()}` : 'PRESCRIÇÃO TÉCNICA'}
+            </span>
+          </div>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.025em', margin: '0.15rem 0' }}>
             {protocolo?.nome || 'Ficha de Treinos'}
           </h1>
-          {protocolo?.objetivo && (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>
-              Foco: {protocolo.objetivo}
-            </p>
-          )}
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-1)', marginTop: '0.2rem' }}>
+            Aluno: <strong style={{ color: 'var(--text-0)' }}>{aluno.nome}</strong> • Treinador: {profissional.nome}
+          </div>
         </div>
 
         {protocolo ? (
@@ -803,7 +804,7 @@ export const PublicTreino: React.FC = () => {
             {/* Exercises List — Tactile iOS Pro with Manual Set Progression */}
             <div className="exercise-stack" style={{ gap: '1rem' }}>
               {sortedExercicios.length > 0 ? (
-                sortedExercicios.map((item) => {
+                sortedExercicios.map((item, index) => {
                   const sets = getExerciseSets(item);
                   const completedSetsCount = sets.filter(s => s.completed).length;
                   const isCompleted = sets.length > 0 && sets.every(s => s.completed);
@@ -820,6 +821,9 @@ export const PublicTreino: React.FC = () => {
                       {/* Exercise Header */}
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                            EXERCÍCIO {String(index + 1).padStart(2, '0')}
+                          </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
                             <span 
                               style={{ 
@@ -846,7 +850,7 @@ export const PublicTreino: React.FC = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                             <span className="exercise-block-tag">{item.exercicio.grupoMuscular.nome}</span>
                             {item.tecnica && (
-                              <span className="exercise-block-tag" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>
+                              <span className="badge badge-accent" style={{ fontSize: '0.6875rem', height: '20px', padding: '0 0.5rem', fontWeight: 700 }}>
                                 {item.tecnica.nome}
                               </span>
                             )}
@@ -1134,11 +1138,12 @@ export const PublicTreino: React.FC = () => {
                     disabled={endingWorkout}
                     className="btn btn-primary"
                     style={{
-                      padding: '0.75rem 1.35rem',
+                      padding: '0.75rem 1.5rem',
                       fontSize: '0.9rem',
-                      fontWeight: 700,
+                      fontWeight: 800,
+                      letterSpacing: '0.02em',
                       borderRadius: 'var(--radius-m)',
-                      boxShadow: '0 4px 18px rgba(204, 255, 0, 0.28)',
+                      boxShadow: '0 4px 18px var(--accent-soft)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
@@ -1201,7 +1206,7 @@ export const PublicTreino: React.FC = () => {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font)', fontVariantNumeric: 'tabular-nums', color: 'var(--accent)', letterSpacing: '-0.02em' }}>
+            <span style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--accent)', letterSpacing: '-0.02em' }}>
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </span>
             <button 

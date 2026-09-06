@@ -691,7 +691,7 @@ export const Catalog: React.FC = () => {
                     <tr key={ex.idExercicio}>
                       <td style={{ fontWeight: '600' }}>{ex.nome}</td>
                       <td>
-                        <span className="badge badge-success" style={{ backgroundColor: 'rgba(204, 255, 0, 0.08)', color: 'var(--accent)' }}>
+                        <span className="badge badge-accent">
                           {ex.grupoMuscular.nome}
                         </span>
                       </td>

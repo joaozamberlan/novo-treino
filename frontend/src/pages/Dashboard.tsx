@@ -178,7 +178,7 @@ export const Dashboard: React.FC = () => {
             color: 'var(--accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
-            border: '1px solid rgba(204,255,0,0.15)',
+            border: '1px solid var(--accent-border)',
           }}>
             <Users size={24} />
           </div>

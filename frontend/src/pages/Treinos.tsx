@@ -868,7 +868,7 @@ export const Treinos: React.FC = () => {
                     alignItems: 'center',
                     gap: '0.35rem',
                     border: proto.ativo ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    backgroundColor: proto.ativo ? 'rgba(204, 255, 0, 0.05)' : 'var(--bg-3)',
+                    backgroundColor: proto.ativo ? 'var(--accent-dim)' : 'var(--bg-3)',
                     borderRadius: 'var(--radius-m)',
                     padding: '0.2rem 0.5rem',
                   }}
