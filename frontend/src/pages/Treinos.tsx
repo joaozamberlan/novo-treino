@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   ArrowLeft, Plus, Calendar, 
   Trash2, Printer, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 
@@ -88,10 +88,13 @@ export const Treinos: React.FC = () => {
 
   // UI state
   const [loading, setLoading] = useState(true);
-  const [creatingProtocol, setCreatingProtocol] = useState(false);
-  const [creatingTreino, setCreatingTreino] = useState(false);
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
-  const [editingExercisePrescriptionId, setEditingExercisePrescriptionId] = useState<number | null>(null);
+
+  // --- MODAL STATES ---
+  const [showProtocolModal, setShowProtocolModal] = useState(false);
+  const [showTreinoModal, setShowTreinoModal] = useState(false);
+  const [showEditFichaModal, setShowEditFichaModal] = useState(false);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
 
   // Edit Ficha state
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
@@ -110,6 +113,7 @@ export const Treinos: React.FC = () => {
   const [treinoOrdem, setTreinoOrdem] = useState(1);
 
   // Prescribe Exercise inputs
+  const [editingExercisePrescriptionId, setEditingExercisePrescriptionId] = useState<number | null>(null);
   const [selectedGrupo, setSelectedGrupo] = useState<number>(0);
   const [selectedExercicio, setSelectedExercicio] = useState<number>(0);
   const [selectedTecnica, setSelectedTecnica] = useState<number | undefined>(undefined);
@@ -121,6 +125,53 @@ export const Treinos: React.FC = () => {
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+
+  const cancelEdit = () => {
+    setEditingExercisePrescriptionId(null);
+    setSelectedGrupo(0);
+    setSelectedExercicio(0);
+    setSelectedTecnica(undefined);
+    setExSeries(3);
+    setExReps('10');
+    setExDescanso(60);
+    setExObs('');
+  };
+
+  // Modal helpers
+  const closeProtocolModal = () => setShowProtocolModal(false);
+  const closeTreinoModal = () => {
+    setShowTreinoModal(false);
+    setTreinoNome('');
+    setTreinoObs('');
+  };
+  const closeEditFichaModal = () => {
+    setShowEditFichaModal(false);
+    setEditingFichaId(null);
+    setEditFichaNome('');
+    setEditFichaObs('');
+  };
+  const closeExerciseModal = () => {
+    setShowExerciseModal(false);
+    cancelEdit();
+  };
+  const openNewExerciseModal = () => {
+    cancelEdit();
+    setShowExerciseModal(true);
+  };
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowProtocolModal(false);
+        setShowTreinoModal(false);
+        setShowEditFichaModal(false);
+        setShowExerciseModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleShare = () => {
     if (aluno?.tokenAcesso) {
@@ -144,17 +195,6 @@ export const Treinos: React.FC = () => {
       setActiveTabId(null);
     }
   }, [activeProtocol, activeTabId]);
-
-  const cancelEdit = () => {
-    setEditingExercisePrescriptionId(null);
-    setSelectedGrupo(0);
-    setSelectedExercicio(0);
-    setSelectedTecnica(undefined);
-    setExSeries(3);
-    setExReps('10');
-    setExDescanso(60);
-    setExObs('');
-  };
 
   // Carrega catálogos (com cache instantâneo)
   const loadCatalogs = async () => {
@@ -329,10 +369,15 @@ export const Treinos: React.FC = () => {
   // Protocols operations
   const handleCreateProtocolo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!protoNome.trim()) {
+      toast.error('Informe o nome do protocolo.');
+      return;
+    }
+
     try {
       await api.post(`/treinos/protocolos/${idAluno}`, {
-        nome: protoNome,
-        objetivo: protoObjetivo || undefined,
+        nome: protoNome.trim(),
+        objetivo: protoObjetivo.trim() || undefined,
         dataInicio: protoInicio || undefined,
         dataFim: protoFim || undefined
       });
@@ -341,11 +386,11 @@ export const Treinos: React.FC = () => {
       setProtoObjetivo('');
       setProtoInicio('');
       setProtoFim('');
-      setCreatingProtocol(false);
+      toast.success('Protocolo criado com sucesso!');
       loadOverview(false);
     } catch (err) {
       console.error(err);
-      setError('Erro ao criar protocolo de treino.');
+      toast.error('Erro ao criar protocolo de treino.');
     }
   };
 
@@ -353,11 +398,15 @@ export const Treinos: React.FC = () => {
   const handleCreateTreino = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProtocol) return;
+    if (!treinoNome.trim()) {
+      toast.error('Informe o nome da ficha de treino.');
+      return;
+    }
 
     try {
       const res = await api.post(`/treinos/fichas/${activeProtocol.idProtocolo}`, {
-        nome: treinoNome,
-        observacao: treinoObs || undefined,
+        nome: treinoNome.trim(),
+        observacao: treinoObs.trim() || undefined,
         ordem: Number(treinoOrdem)
       });
 
@@ -378,13 +427,11 @@ export const Treinos: React.FC = () => {
       });
 
       setActiveTabId(newTreino.idTreino);
-      setTreinoNome('');
-      setTreinoObs('');
-      setTreinoOrdem(activeProtocol.treinos.length + 2);
-      setCreatingTreino(false);
+      closeTreinoModal();
+      toast.success('Ficha de treino criada com sucesso!');
     } catch (err) {
       console.error(err);
-      setError('Erro ao criar ficha de treino.');
+      toast.error('Erro ao criar ficha de treino.');
     }
   };
 
@@ -392,10 +439,14 @@ export const Treinos: React.FC = () => {
   const handleUpdateTreino = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFichaId || !activeProtocol) return;
+    if (!editFichaNome.trim()) {
+      toast.error('Informe o nome da ficha.');
+      return;
+    }
 
     const targetId = editingFichaId;
-    const newNome = editFichaNome;
-    const newObs = editFichaObs;
+    const newNome = editFichaNome.trim();
+    const newObs = editFichaObs.trim();
 
     // Optimistic UI
     setActiveProtocol(prev => {
@@ -408,7 +459,8 @@ export const Treinos: React.FC = () => {
       };
     });
 
-    setEditingFichaId(null);
+    closeEditFichaModal();
+    toast.success('Ficha atualizada com sucesso!');
 
     try {
       await api.patch(`/treinos/fichas/${targetId}`, {
@@ -417,7 +469,7 @@ export const Treinos: React.FC = () => {
       });
     } catch (err) {
       console.error(err);
-      setError('Erro ao salvar alterações da ficha.');
+      toast.error('Erro ao salvar alterações da ficha.');
       loadOverview(false);
     }
   };
@@ -442,12 +494,14 @@ export const Treinos: React.FC = () => {
       setActiveTabId(sorted.length > 0 ? sorted[0].idTreino : null);
     }
 
+    toast.success('Ficha excluída.');
+
     try {
       await api.delete(`/treinos/fichas/${idTreino}`);
       loadOverview(false);
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir ficha no servidor.');
+      toast.error('Erro ao excluir ficha no servidor.');
       loadOverview(false);
     }
   };
@@ -464,12 +518,14 @@ export const Treinos: React.FC = () => {
       setActiveTabId(null);
     }
 
+    toast.success('Protocolo excluído.');
+
     try {
       await api.delete(`/treinos/protocolos/${idProtocolo}`);
       loadOverview(false);
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir protocolo no servidor.');
+      toast.error('Erro ao excluir protocolo no servidor.');
       loadOverview(false);
     }
   };
@@ -481,7 +537,10 @@ export const Treinos: React.FC = () => {
 
     const exObj = catalogExercicios.find(e => e.idExercicio === Number(selectedExercicio));
     const tecObj = catalogTecnicas.find(t => t.idTecnica === Number(selectedTecnica));
-    if (!exObj) return;
+    if (!exObj) {
+      toast.error('Por favor, selecione um exercício.');
+      return;
+    }
 
     const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
 
@@ -526,7 +585,8 @@ export const Treinos: React.FC = () => {
         return next;
       });
 
-      cancelEdit();
+      closeExerciseModal();
+      toast.success('Exercício atualizado!');
 
       // Salva no backend em background
       try {
@@ -540,7 +600,7 @@ export const Treinos: React.FC = () => {
         });
       } catch (err) {
         console.error('Erro ao salvar edição:', err);
-        setError('Erro ao salvar no servidor.');
+        toast.error('Erro ao salvar no servidor.');
         loadOverview(false);
       }
     } else {
@@ -579,7 +639,8 @@ export const Treinos: React.FC = () => {
         [exObj.grupoMuscular.nome]: (prev[exObj.grupoMuscular.nome] || 0) + Number(exSeries),
       }));
 
-      cancelEdit();
+      closeExerciseModal();
+      toast.success('Exercício adicionado!');
 
       // Salva no backend em background e sincroniza o ID real
       try {
@@ -609,7 +670,7 @@ export const Treinos: React.FC = () => {
         });
       } catch (err) {
         console.error('Erro ao adicionar exercício:', err);
-        setError('Erro ao salvar no servidor.');
+        toast.error('Erro ao salvar no servidor.');
         loadOverview(false);
       }
     }
@@ -625,7 +686,7 @@ export const Treinos: React.FC = () => {
     setExDescanso(item.descansoSegundos || 60);
     setExObs(item.observacao || '');
     setActiveTabId(idTreino);
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    setShowExerciseModal(true);
   };
 
   // Reordenação otimista instantânea
@@ -794,9 +855,9 @@ export const Treinos: React.FC = () => {
               Imprimir
             </button>
           )}
-          <button className="btn btn-ghost btn-sm" onClick={() => setCreatingProtocol(!creatingProtocol)}>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowProtocolModal(true)}>
             <Calendar size={14} />
-            {creatingProtocol ? 'Cancelar' : 'Periodizações'}
+            Periodizações
           </button>
         </div>
       </div>
@@ -805,101 +866,6 @@ export const Treinos: React.FC = () => {
       {error && (
         <div className="badge" style={{ display: 'block', padding: '0.75rem', textAlign: 'center', backgroundColor: 'rgba(255,80,80,0.1)', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
           {error}
-        </div>
-      )}
-
-      {/* Protocol Management (collapsible) */}
-      {creatingProtocol && (
-        <div className="card animate-in">
-          <form onSubmit={handleCreateProtocolo} style={{ marginBottom: '1.25rem' }}>
-            <div className="form-row">
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Nome do Protocolo</label>
-                <input
-                  type="text"
-                  className="form-input form-input-sm"
-                  placeholder="Ex: Hipertrofia 12 sem."
-                  value={protoNome}
-                  onChange={(e) => setProtoNome(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Objetivo</label>
-                <input
-                  type="text"
-                  className="form-input form-input-sm"
-                  placeholder="Ex: Ganho de massa magra"
-                  value={protoObjetivo}
-                  onChange={(e) => setProtoObjetivo(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Início</label>
-                <input
-                  type="date"
-                  className="form-input form-input-sm"
-                  value={protoInicio}
-                  onChange={(e) => setProtoInicio(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Fim</label>
-                <input
-                  type="date"
-                  className="form-input form-input-sm"
-                  value={protoFim}
-                  onChange={(e) => setProtoFim(e.target.value)}
-                />
-              </div>
-              <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <button type="submit" className="btn btn-primary btn-sm">Criar</button>
-              </div>
-            </div>
-          </form>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {protocolos.length > 0 ? (
-              protocolos.map((proto) => (
-                <div
-                  key={proto.idProtocolo}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    border: proto.ativo ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    backgroundColor: proto.ativo ? 'var(--accent-dim)' : 'var(--bg-3)',
-                    borderRadius: 'var(--radius-m)',
-                    padding: '0.2rem 0.5rem',
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    style={{ border: 'none', background: 'transparent', padding: '0.25rem 0.4rem' }}
-                    onClick={async () => {
-                      const res = await api.get(`/treinos/protocolos/detalhes/${proto.idProtocolo}`);
-                      setActiveProtocol(res.data);
-                    }}
-                  >
-                    {proto.nome}
-                    {proto.ativo && <span className="badge badge-success" style={{ marginLeft: '0.4rem' }}>Ativo</span>}
-                  </button>
-                  <button
-                    type="button"
-                    className="exercise-action-btn danger"
-                    style={{ width: '22px', height: '22px' }}
-                    onClick={(e) => handleDeleteProtocolo(proto.idProtocolo, proto.nome, e)}
-                    title="Excluir protocolo"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              ))
-            ) : (
-              <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>Nenhum protocolo cadastrado.</span>
-            )}
-          </div>
         </div>
       )}
 
@@ -939,8 +905,10 @@ export const Treinos: React.FC = () => {
             <button
               className="ficha-tab ficha-tab-add"
               onClick={() => {
-                setCreatingTreino(!creatingTreino);
+                setTreinoNome('');
+                setTreinoObs('');
                 setTreinoOrdem(activeProtocol.treinos.length + 1);
+                setShowTreinoModal(true);
               }}
               title="Nova Ficha de Treino"
             >
@@ -948,96 +916,47 @@ export const Treinos: React.FC = () => {
             </button>
           </div>
 
-          {/* Create Ficha Form */}
-          {creatingTreino && (
-            <div className="card animate-in">
-              <form onSubmit={handleCreateTreino}>
-                <div className="form-row">
-                  <div className="form-group" style={{ flex: 2 }}>
-                    <label className="form-label">Nome da Ficha</label>
-                    <input
-                      type="text"
-                      className="form-input form-input-sm"
-                      placeholder="Ex: Treino A - Superior"
-                      value={treinoNome}
-                      onChange={(e) => setTreinoNome(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button type="submit" className="btn btn-primary btn-sm">Criar</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          )}
-
           {/* Active Ficha Content */}
           {activeFicha ? (
             <>
               {/* Active Ficha Toolbar (Renomear / Excluir Ficha) */}
               <div className="flex-between" style={{ alignItems: 'center', marginBottom: '0.75rem', padding: '0.25rem 0' }}>
-                {editingFichaId === activeFicha.idTreino ? (
-                  <form onSubmit={handleUpdateTreino} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="form-input form-input-sm"
-                      value={editFichaNome}
-                      onChange={(e) => setEditFichaNome(e.target.value)}
-                      placeholder="Nome da ficha (ex: Treino A)"
-                      required
-                      style={{ maxWidth: '240px' }}
-                    />
-                    <input
-                      type="text"
-                      className="form-input form-input-sm"
-                      value={editFichaObs}
-                      onChange={(e) => setEditFichaObs(e.target.value)}
-                      placeholder="Observações da ficha (opcional)"
-                      style={{ flex: 1, maxWidth: '350px' }}
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm">Salvar</button>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditingFichaId(null)}>Cancelar</button>
-                  </form>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                        {activeFicha.nome}
-                      </h3>
-                      {activeFicha.observacao && (
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>
-                          • {activeFicha.observacao}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setEditingFichaId(activeFicha.idTreino);
-                          setEditFichaNome(activeFicha.nome);
-                          setEditFichaObs(activeFicha.observacao || '');
-                        }}
-                        title="Renomear / Editar ficha"
-                      >
-                        <Edit2 size={13} />
-                        <span style={{ fontSize: '0.75rem' }}>Renomear</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--danger)' }}
-                        onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
-                        title="Excluir ficha de treino"
-                      >
-                        <Trash2 size={13} />
-                        <span style={{ fontSize: '0.75rem' }}>Excluir Ficha</span>
-                      </button>
-                    </div>
-                  </>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                    {activeFicha.nome}
+                  </h3>
+                  {activeFicha.observacao && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>
+                      • {activeFicha.observacao}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => {
+                      setEditingFichaId(activeFicha.idTreino);
+                      setEditFichaNome(activeFicha.nome);
+                      setEditFichaObs(activeFicha.observacao || '');
+                      setShowEditFichaModal(true);
+                    }}
+                    title="Renomear / Editar ficha"
+                  >
+                    <Edit2 size={13} />
+                    <span style={{ fontSize: '0.75rem' }}>Renomear</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: 'var(--danger)' }}
+                    onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
+                    title="Excluir ficha de treino"
+                  >
+                    <Trash2 size={13} />
+                    <span style={{ fontSize: '0.75rem' }}>Excluir Ficha</span>
+                  </button>
+                </div>
               </div>
 
               {/* Exercise Stack */}
@@ -1098,124 +1017,42 @@ export const Treinos: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-2)' }}>
-                    Nenhum exercício prescrito
+                  <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                    <p style={{ margin: 0 }}>Nenhum exercício prescrito nesta ficha ainda.</p>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={openNewExerciseModal}>
+                      <Plus size={14} />
+                      Prescrever Primeiro Exercício
+                    </button>
                   </div>
                 )}
               </div>
 
-              {/* Add Exercise Bar */}
-              {editingExercisePrescriptionId && (
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600 }}>
-                  Editando exercício
-                </span>
-              )}
-              <form className="add-exercise-bar" onSubmit={handlePrescribeExercise}>
-                <div className="form-group">
-                  <label className="form-label">Grupo</label>
-                  <select
-                    className="form-input form-input-sm"
-                    value={selectedGrupo}
-                    onChange={(e) => {
-                      setSelectedGrupo(Number(e.target.value));
-                      setSelectedExercicio(0);
-                    }}
-                    required
-                  >
-                    <option value={0}>Grupo...</option>
-                    {catalogGrupos.map(g => (
-                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>
-                        {g.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group" style={{ flex: 2 }}>
-                  <label className="form-label">Exercício</label>
-                  <select
-                    className="form-input form-input-sm"
-                    value={selectedExercicio}
-                    onChange={(e) => setSelectedExercicio(Number(e.target.value))}
-                    disabled={!selectedGrupo}
-                    required
-                  >
-                    <option value={0}>{!selectedGrupo ? '—' : 'Selecione...'}</option>
-                    {catalogExercicios
-                      .filter(ex => ex.idGrupoMuscular === selectedGrupo)
-                      .map(ex => (
-                        <option key={ex.idExercicio} value={ex.idExercicio}>
-                          {ex.nome}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Séries</label>
-                  <input
-                    type="number"
-                    className="form-input form-input-sm"
-                    value={exSeries}
-                    onChange={(e) => setExSeries(Number(e.target.value))}
-                    style={{ width: '60px' }}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Reps</label>
-                  <input
-                    type="text"
-                    className="form-input form-input-sm"
-                    value={exReps}
-                    onChange={(e) => setExReps(e.target.value)}
-                    placeholder="10"
-                    style={{ width: '70px' }}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Desc.</label>
-                  <input
-                    type="number"
-                    className="form-input form-input-sm"
-                    value={exDescanso}
-                    onChange={(e) => setExDescanso(Number(e.target.value))}
-                    placeholder="60"
-                    style={{ width: '60px' }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Técnica</label>
-                  <select
-                    className="form-input form-input-sm"
-                    value={selectedTecnica || ''}
-                    onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}
-                  >
-                    <option value="">—</option>
-                    {catalogTecnicas.map(t => (
-                      <option key={t.idTecnica} value={t.idTecnica}>{t.nome}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Notas</label>
-                  <input
-                    type="text"
-                    className="form-input form-input-sm"
-                    value={exObs}
-                    placeholder="Instruções (opcional)"
-                    onChange={(e) => setExObs(e.target.value)}
-                    style={{ width: '140px' }}
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary btn-sm">
-                  {editingExercisePrescriptionId ? 'Salvar' : 'Adicionar'}
-                </button>
-                {editingExercisePrescriptionId && (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={cancelEdit} title="Cancelar edição">
-                    <X size={14} />
-                  </button>
-                )}
-              </form>
+              {/* Add Exercise Action Button */}
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  border: '1px dashed var(--border-strong)',
+                  borderRadius: 'var(--radius-m)',
+                  background: 'var(--bg-1)',
+                  color: 'var(--text-0)',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 150ms var(--ease-out)',
+                  marginTop: '0.5rem'
+                }}
+                onClick={openNewExerciseModal}
+              >
+                <Plus size={16} style={{ color: 'var(--accent)' }} />
+                <span>Adicionar Exercício à Ficha</span>
+              </button>
 
               {/* Volume Footer */}
               {Object.keys(volume).length > 0 && (
@@ -1257,9 +1094,15 @@ export const Treinos: React.FC = () => {
       )}
 
       {/* No active protocol state */}
-      {!activeProtocol && !creatingProtocol && (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)' }}>
-          Nenhum protocolo ativo. Clique em "Periodizações" para criar ou selecionar um.
+      {!activeProtocol && (
+        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-1)' }}>
+            Nenhum protocolo ativo para este aluno.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => setShowProtocolModal(true)}>
+            <Calendar size={16} />
+            Gerenciar Periodizações / Novo Ciclo
+          </button>
         </div>
       )}
 
@@ -1465,6 +1308,514 @@ export const Treinos: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: PERIODIZAÇÕES & PROTOCOLOS */}
+      {/* ========================================================================= */}
+      {showProtocolModal && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeProtocolModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalProtocolTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '560px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    PLANEJAMENTO // PERIODIZAÇÕES & PROTOCOLOS
+                  </span>
+                </div>
+                <h3 id="modalProtocolTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Periodizações de {aluno?.nome}
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeProtocolModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Lista de Protocolos Existentes */}
+              <div>
+                <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontWeight: 600 }}>
+                  Ciclos Cadastrados
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                  {protocolos.length > 0 ? (
+                    protocolos.map((proto) => {
+                      const isActive = activeProtocol?.idProtocolo === proto.idProtocolo;
+                      return (
+                        <div
+                          key={proto.idProtocolo}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.6rem 0.85rem',
+                            borderRadius: 'var(--radius-m)',
+                            border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                            backgroundColor: isActive ? 'var(--accent-dim)' : 'var(--bg-1)',
+                            gap: '0.75rem'
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-0)' }}>
+                                {proto.nome}
+                              </span>
+                              {proto.ativo && (
+                                <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
+                                  Ativo
+                                </span>
+                              )}
+                              {isActive && !proto.ativo && (
+                                <span className="badge badge-accent" style={{ fontSize: '0.65rem' }}>
+                                  Em visualização
+                                </span>
+                              )}
+                            </div>
+                            {(proto.objetivo || proto.dataInicio) && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
+                                {proto.objetivo}
+                                {proto.dataInicio && ` • ${proto.dataInicio}`}
+                                {proto.dataFim && ` até ${proto.dataFim}`}
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            {!isActive && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', minHeight: 'unset' }}
+                                onClick={async () => {
+                                  const res = await api.get(`/treinos/protocolos/detalhes/${proto.idProtocolo}`);
+                                  setActiveProtocol(res.data);
+                                  toast.success(`Protocolo "${proto.nome}" selecionado.`);
+                                  closeProtocolModal();
+                                }}
+                              >
+                                Visualizar
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="exercise-action-btn danger"
+                              style={{ width: '26px', height: '26px' }}
+                              onClick={(e) => handleDeleteProtocolo(proto.idProtocolo, proto.nome, e)}
+                              title="Excluir protocolo"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>Nenhum protocolo cadastrado ainda.</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Formulário Novo Protocolo */}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block', fontWeight: 600 }}>
+                  Criar Novo Ciclo / Protocolo
+                </label>
+                <form onSubmit={handleCreateProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Nome do Protocolo *</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Ex: Hipertrofia 12 sem."
+                        value={protoNome}
+                        onChange={(e) => setProtoNome(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Objetivo</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Ex: Ganho de massa magra"
+                        value={protoObjetivo}
+                        onChange={(e) => setProtoObjetivo(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Data Início</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={protoInicio}
+                        onChange={(e) => setProtoInicio(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Data Fim</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={protoFim}
+                        onChange={(e) => setProtoFim(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <button type="submit" className="btn btn-primary btn-sm">
+                      <Plus size={14} />
+                      <span>Criar Protocolo</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: NOVA FICHA DE TREINO */}
+      {/* ========================================================================= */}
+      {showTreinoModal && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeTreinoModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalTreinoTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '440px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    ORGANIZAÇÃO // NOVA FICHA
+                  </span>
+                </div>
+                <h3 id="modalTreinoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Nova Ficha de Treino
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeTreinoModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="treinoNomeInput">Nome da Ficha *</label>
+                <input
+                  id="treinoNomeInput"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Treino A - Superior, PUSH, Peito e Tríceps"
+                  value={treinoNome}
+                  onChange={(e) => setTreinoNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="treinoObsInput">Observações da Ficha (opcional)</label>
+                <input
+                  id="treinoObsInput"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Foco em deltoide anterior e peitoral superior"
+                  value={treinoObs}
+                  onChange={(e) => setTreinoObs(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeTreinoModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Plus size={16} />
+                  <span>Criar Ficha</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: EDITAR / RENOMEAR FICHA */}
+      {/* ========================================================================= */}
+      {showEditFichaModal && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeEditFichaModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalEditFichaTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '440px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    CONFIGURAÇÃO // EDITAR FICHA
+                  </span>
+                </div>
+                <h3 id="modalEditFichaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Editar Ficha
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeEditFichaModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="editFichaNomeInput">Nome da Ficha *</label>
+                <input
+                  id="editFichaNomeInput"
+                  type="text"
+                  className="form-input"
+                  value={editFichaNome}
+                  onChange={(e) => setEditFichaNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="editFichaObsInput">Observações da Ficha</label>
+                <input
+                  id="editFichaObsInput"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Aquecimento articular prévio obrigatório"
+                  value={editFichaObs}
+                  onChange={(e) => setEditFichaObs(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeEditFichaModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>Salvar Alterações</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: PRESCREVER / EDITAR EXERCÍCIO */}
+      {/* ========================================================================= */}
+      {showExerciseModal && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeExerciseModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalExercisePrescriptionTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '520px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    {editingExercisePrescriptionId ? 'PRESCRIÇÃO // EDITAR EXERCÍCIO' : 'PRESCRIÇÃO // NOVO EXERCÍCIO'}
+                  </span>
+                </div>
+                <h3 id="modalExercisePrescriptionTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  {editingExercisePrescriptionId ? 'Editar Prescrição' : `Adicionar Exercício (${activeFicha?.nome || 'Ficha'})`}
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeExerciseModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Grupo Muscular *</label>
+                  <select
+                    className="form-input"
+                    value={selectedGrupo}
+                    onChange={(e) => {
+                      setSelectedGrupo(Number(e.target.value));
+                      setSelectedExercicio(0);
+                    }}
+                    required
+                  >
+                    <option value={0}>Selecione...</option>
+                    {catalogGrupos.map(g => (
+                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>
+                        {g.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Exercício *</label>
+                  <select
+                    className="form-input"
+                    value={selectedExercicio}
+                    onChange={(e) => setSelectedExercicio(Number(e.target.value))}
+                    disabled={!selectedGrupo}
+                    required
+                  >
+                    <option value={0}>{!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}</option>
+                    {catalogExercicios
+                      .filter(ex => ex.idGrupoMuscular === selectedGrupo)
+                      .map(ex => (
+                        <option key={ex.idExercicio} value={ex.idExercicio}>
+                          {ex.nome}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Séries *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    className="form-input"
+                    value={exSeries}
+                    onChange={(e) => setExSeries(Number(e.target.value))}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Repetições *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={exReps}
+                    onChange={(e) => setExReps(e.target.value)}
+                    placeholder="Ex: 8-12 ou 10"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Descanso (s)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={5}
+                    className="form-input"
+                    value={exDescanso}
+                    onChange={(e) => setExDescanso(Number(e.target.value))}
+                    placeholder="60"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Técnica Avançada (opcional)</label>
+                <select
+                  className="form-input"
+                  value={selectedTecnica || ''}
+                  onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}
+                >
+                  <option value="">Nenhuma (execução padrão)</option>
+                  {catalogTecnicas.map(t => (
+                    <option key={t.idTecnica} value={t.idTecnica}>{t.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Instruções / Anotações de Execução</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={exObs}
+                  placeholder="Ex: Cadência 3010, foco no pico de contração"
+                  onChange={(e) => setExObs(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeExerciseModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
