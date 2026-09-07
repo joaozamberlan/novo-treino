@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, Post, UseGuards, UseInterceptors, UploadedFile, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProfissionaisService } from './profissionais.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetProfissional } from '../auth/get-profissional.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -25,6 +26,19 @@ export class ProfissionaisController {
     @Body() updateDto: UpdateProfissionalDto,
   ) {
     return this.profissionaisService.updateProfile(profissional.idProfissional, updateDto);
+  }
+
+  @Patch('me/senha')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async changePassword(
+    @GetProfissional() profissional: Profissional,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.profissionaisService.changePassword(
+      profissional.idProfissional,
+      changePasswordDto.senhaAtual,
+      changePasswordDto.novaSenha,
+    );
   }
 
   /**

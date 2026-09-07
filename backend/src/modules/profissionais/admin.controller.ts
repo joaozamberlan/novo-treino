@@ -28,4 +28,12 @@ export class AdminController {
   ) {
     return this.profissionaisService.updateProfessionalRole(id, role);
   }
+
+  @Patch('profissionais/:id/reset-senha')
+  async resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('novaSenha') novaSenha: string,
+  ) {
+    return this.profissionaisService.resetPasswordByAdmin(id, novaSenha);
+  }
 }

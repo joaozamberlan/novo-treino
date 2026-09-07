@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
 
@@ -78,5 +79,56 @@ export class ProfissionaisService {
         role: true,
       },
     });
+  }
+
+  async changePassword(idProfissional: number, senhaAtual: string, novaSenha: string) {
+    if (!senhaAtual || !novaSenha) {
+      throw new BadRequestException('Informe a senha atual e a nova senha');
+    }
+    if (novaSenha.length < 6) {
+      throw new BadRequestException('A nova senha deve ter no mínimo 6 caracteres');
+    }
+
+    const prof = await this.prisma.profissional.findUnique({
+      where: { idProfissional },
+    });
+    if (!prof) {
+      throw new NotFoundException('Profissional não encontrado');
+    }
+
+    const isMatch = await bcrypt.compare(senhaAtual, prof.senhaHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('A senha atual está incorreta');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const senhaHash = await bcrypt.hash(novaSenha, salt);
+
+    await this.prisma.profissional.update({
+      where: { idProfissional },
+      data: { senhaHash },
+    });
+
+    return { message: 'Senha alterada com sucesso' };
+  }
+
+  async resetPasswordByAdmin(idProfissional: number, novaSenha: string) {
+    if (!novaSenha || novaSenha.length < 6) {
+      throw new BadRequestException('A nova senha deve ter no mínimo 6 caracteres');
+    }
+    const exists = await this.prisma.profissional.findUnique({ where: { idProfissional } });
+    if (!exists) {
+      throw new NotFoundException('Profissional não encontrado');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const senhaHash = await bcrypt.hash(novaSenha, salt);
+
+    await this.prisma.profissional.update({
+      where: { idProfissional },
+      data: { senhaHash },
+    });
+
+    return { message: 'Senha redefinida com sucesso' };
   }
 }

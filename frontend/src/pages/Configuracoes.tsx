@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Save, Upload, ExternalLink, Dumbbell } from 'lucide-react';
+import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff } from 'lucide-react';
 
 export const Configuracoes: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -14,6 +14,14 @@ export const Configuracoes: React.FC = () => {
   const [profissao, setProfissao] = useState('');
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
+
+  // Password form
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+  const [showNovaSenha, setShowNovaSenha] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   // Logo
   const [logoUrl, setLogoUrl] = useState('');
@@ -82,6 +90,36 @@ export const Configuracoes: React.FC = () => {
       toast.error(errText);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (novaSenha.length < 6) {
+      toast.error('A nova senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      toast.error('A nova senha e a confirmação não conferem.');
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await api.patch('/profissionais/me/senha', {
+        senhaAtual,
+        novaSenha,
+      });
+      toast.success('Senha atualizada com sucesso!');
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+    } catch (err: any) {
+      console.error(err);
+      const errText = err.response?.data?.message || 'Erro ao alterar senha. Verifique sua senha atual.';
+      toast.error(errText);
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -317,6 +355,92 @@ export const Configuracoes: React.FC = () => {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Group 4: Security & Password */}
+      <div className="settings-group">
+        <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <Lock size={15} color="var(--accent)" />
+          <span>Segurança e Senha de Acesso</span>
+        </div>
+        <p style={{ color: 'var(--text-1)', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
+          Altere sua senha de acesso à plataforma. Caso tenha recebido uma senha temporária da administração, cadastre sua senha definitiva pessoal abaixo.
+        </p>
+
+        <form onSubmit={handleChangePassword} style={{ maxWidth: '540px' }}>
+          <div className="form-group" style={{ marginBottom: '1rem' }}>
+            <label className="form-label" htmlFor="senhaAtual">Senha atual ou temporária</label>
+            <div className="login-input-wrap">
+              <input
+                id="senhaAtual"
+                type={showSenhaAtual ? 'text' : 'password'}
+                className="form-input"
+                value={senhaAtual}
+                onChange={(e) => setSenhaAtual(e.target.value)}
+                placeholder="Informe sua senha atual"
+                required
+              />
+              <button
+                type="button"
+                className="login-toggle-password"
+                onClick={() => setShowSenhaAtual(!showSenhaAtual)}
+                title={showSenhaAtual ? 'Ocultar senha' : 'Exibir senha'}
+              >
+                {showSenhaAtual ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="form-row" style={{ marginBottom: '0.5rem' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="novaSenha">Nova senha</label>
+              <div className="login-input-wrap">
+                <input
+                  id="novaSenha"
+                  type={showNovaSenha ? 'text' : 'password'}
+                  className="form-input"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+                <button
+                  type="button"
+                  className="login-toggle-password"
+                  onClick={() => setShowNovaSenha(!showNovaSenha)}
+                  title={showNovaSenha ? 'Ocultar senha' : 'Exibir senha'}
+                >
+                  {showNovaSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="confirmarSenha">Confirmar nova senha</label>
+              <div className="login-input-wrap">
+                <input
+                  id="confirmarSenha"
+                  type={showNovaSenha ? 'text' : 'password'}
+                  className="form-input"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  placeholder="Repita a nova senha"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-sm"
+            disabled={savingPassword}
+            style={{ marginTop: '0.75rem' }}
+          >
+            <Lock size={14} />
+            <span>{savingPassword ? 'Atualizando...' : 'Atualizar Senha'}</span>
+          </button>
+        </form>
       </div>
     </div>
   );

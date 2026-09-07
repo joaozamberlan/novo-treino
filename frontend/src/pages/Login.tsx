@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, Sparkles, X } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -147,7 +148,25 @@ export const Login: React.FC = () => {
 
             <div className="form-group" style={{ marginBottom: '1.25rem' }}>
               <div className="form-label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                <label className="form-label" htmlFor="senha">Senha de Acesso</label>
+                <label className="form-label" htmlFor="senha" style={{ marginBottom: 0 }}>Senha de Acesso</label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'var(--accent)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                >
+                  Esqueceu a senha?
+                </button>
               </div>
               <div className="login-input-wrap">
                 <input
@@ -188,6 +207,129 @@ export const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ─── Modal: Esqueceu a Senha ─── */}
+      {showForgotModal && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setShowForgotModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+        >
+          <div 
+            className="modal-card animate-in"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: 'var(--bg-1)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius-l)',
+              padding: '1.75rem',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+              position: 'relative',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: 'var(--accent-soft)',
+                  border: '1px solid var(--accent-border)',
+                  color: 'var(--accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <KeyRound size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Recuperação de Senha</h3>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>ACESSO // SUPORTE</span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowForgotModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-2)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p>
+                Para sua segurança, a redefinição de acesso é realizada mediante validação da equipe de administração.
+              </p>
+
+              <div style={{
+                backgroundColor: 'var(--bg-2)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-m)',
+                padding: '0.85rem 1rem',
+              }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-0)', marginBottom: '0.35rem' }}>
+                  Como recuperar seu acesso:
+                </div>
+                <ol style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.8125rem', color: 'var(--text-1)', lineHeight: '1.5' }}>
+                  <li>Solicite a redefinição ao <strong>Administrador</strong> do sistema.</li>
+                  <li>O administrador gerará uma <strong>senha temporária</strong> para sua conta.</li>
+                  <li>Após entrar na plataforma, você poderá cadastrar sua nova senha em <strong>Configurações &gt; Segurança</strong>.</li>
+                </ol>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.75rem',
+                color: 'var(--accent)',
+                backgroundColor: 'var(--accent-dim)',
+                padding: '0.65rem 0.85rem',
+                borderRadius: 'var(--radius-s)',
+                border: '1px solid var(--accent-border)',
+              }}>
+                <Sparkles size={16} style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Em breve:</strong> O envio automático de link de redefinição por e-mail será disponibilizado em atualizações futuras.
+                </span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowForgotModal(false)}
+                style={{ width: '100%', height: '42px', fontWeight: 700 }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

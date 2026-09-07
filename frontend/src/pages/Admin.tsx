@@ -3,8 +3,9 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { 
-  Search, Mail, Calendar, User, Phone, ShieldAlert
+  Search, Mail, Calendar, User, Phone, ShieldAlert, Key, Copy, Check, RefreshCw, X
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Professional {
   idProfissional: number;
@@ -86,6 +87,57 @@ export const Admin: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || 'Erro ao atualizar cargo do profissional.');
+    }
+  };
+
+  const [resetModalProf, setResetModalProf] = useState<Professional | null>(null);
+  const [newTempPassword, setNewTempPassword] = useState('');
+  const [copiedPassword, setCopiedPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+    let res = '';
+    for (let i = 0; i < 10; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewTempPassword(res);
+    setCopiedPassword(false);
+  };
+
+  const handleOpenResetModal = (prof: Professional) => {
+    setResetModalProf(prof);
+    generateRandomPassword();
+  };
+
+  const handleCopyPassword = () => {
+    if (newTempPassword) {
+      navigator.clipboard.writeText(newTempPassword);
+      setCopiedPassword(true);
+      toast.success('Senha copiada para a área de transferência!');
+      setTimeout(() => setCopiedPassword(false), 2500);
+    }
+  };
+
+  const handleSaveResetPassword = async () => {
+    if (!resetModalProf) return;
+    if (!newTempPassword || newTempPassword.length < 6) {
+      toast.error('A senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await api.patch(`/admin/profissionais/${resetModalProf.idProfissional}/reset-senha`, {
+        novaSenha: newTempPassword,
+      });
+      toast.success(`Senha de ${resetModalProf.nome} redefinida com sucesso!`);
+      setResetModalProf(null);
+      setNewTempPassword('');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao redefinir senha.');
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -242,6 +294,25 @@ export const Admin: React.FC = () => {
                       ) : (
                         <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                           <button
+                            onClick={() => handleOpenResetModal(prof)}
+                            className="btn btn-secondary"
+                            title="Redefinir Senha Temporária do Treinador"
+                            style={{ 
+                              minHeight: 'unset', 
+                              height: '30px',
+                              padding: '0 0.65rem', 
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                            }}
+                          >
+                            <Key size={12} />
+                            <span>Senha</span>
+                          </button>
+
+                          <button
                             onClick={() => handleToggleStatus(prof.idProfissional, prof.ativo)}
                             className="btn"
                             style={{ 
@@ -291,6 +362,159 @@ export const Admin: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* ─── Modal: Redefinir Senha do Treinador ─── */}
+      {resetModalProf && (
+        <div
+          className="modal-overlay"
+          onClick={() => setResetModalProf(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+        >
+          <div
+            className="modal-card animate-in"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: 'var(--bg-1)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius-l)',
+              padding: '1.75rem',
+              maxWidth: '460px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+              position: 'relative',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: 'var(--accent-soft)',
+                  border: '1px solid var(--accent-border)',
+                  color: 'var(--accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Redefinir Senha</h3>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>ADMIN // CONTROLE DE ACESSO</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetModalProf(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-2)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '1.25rem', fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5' }}>
+              Defina uma senha temporária para o treinador <strong>{resetModalProf.nome}</strong> ({resetModalProf.email}). Ele poderá alterá-la após o login em Configurações.
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Nova Senha Temporária</label>
+                <button
+                  type="button"
+                  onClick={generateRandomPassword}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--accent)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                  }}
+                >
+                  <RefreshCw size={12} />
+                  <span>Gerar aleatória</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={newTempPassword}
+                  onChange={(e) => setNewTempPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, letterSpacing: '0.05em' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyPassword}
+                  className="btn btn-secondary"
+                  title="Copiar senha"
+                  style={{ padding: '0 0.85rem' }}
+                >
+                  {copiedPassword ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div style={{
+              fontSize: '0.78rem',
+              color: 'var(--text-2)',
+              backgroundColor: 'var(--bg-2)',
+              padding: '0.75rem 0.85rem',
+              borderRadius: 'var(--radius-s)',
+              border: '1px solid var(--border)',
+              marginBottom: '1.5rem',
+              lineHeight: '1.45',
+            }}>
+              💡 <strong>Dica:</strong> Copie a senha e envie via WhatsApp ou e-mail para o treinador. Ele conseguirá fazer login imediatamente com essa credencial.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setResetModalProf(null)}
+                disabled={savingPassword}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSaveResetPassword}
+                disabled={savingPassword || !newTempPassword}
+              >
+                {savingPassword ? 'Salvando...' : 'Salvar Nova Senha'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
