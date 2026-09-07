@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apresentação do TreinosApp — Do Treinador ao Aluno</title>
+  
+  <!-- Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS — Technical Paper (Light Theme by Default)
+       ========================================================================== */
+    :root {
+      --bg-0: #f4f3ef;
+      --bg-1: #ffffff;
+      --bg-2: #eae8e1;
+      --bg-3: #dedbd2;
+      --border: rgba(20, 22, 26, 0.10);
+      --border-strong: rgba(20, 22, 26, 0.18);
+      --border-focus: #CF3427;
+      --text-0: #121316;
+      --text-1: #565963;
+      --text-2: #848792;
+      
+      --accent: #CF3427;
+      --accent-hover: #e03b2e;
+      --accent-soft: rgba(207, 52, 39, 0.10);
+      --accent-dim: rgba(207, 52, 39, 0.05);
+      --accent-border: rgba(207, 52, 39, 0.30);
+      
+      --success: #2da868;
+      --success-soft: rgba(45, 168, 104, 0.12);
+      --warning: #f59e0b;
+      --danger: #f04438;
+      
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-s: 4px;
+      --radius-m: 8px;
+      --radius-l: 12px;
+      --radius-xl: 18px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
+    }
+
+    body.theme-dark {
+      --bg-0: #0c0d0f;
+      --bg-1: #14161a;
+      --bg-2: #1b1e24;
+      --bg-3: #242831;
+      --border: rgba(240, 239, 234, 0.08);
+      --border-strong: rgba(240, 239, 234, 0.16);
+      --border-focus: #CF3427;
+      --text-0: #f0efea;
+      --text-1: #a2a6b0;
+      --text-2: #656975;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.6);
+      --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 4px;
+    }
+
+    body {
+      background-color: var(--bg-0);
+      color: var(--text-0);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 200ms var(--ease), color 200ms var(--ease);
+    }
+
+    /* ─── Top Presentation Navigation Bar ─── */
+    .pres-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border-strong);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pres-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .pres-logo-svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .pres-title-group h1 {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .pres-title-group span {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pres-stepper {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--bg-2);
+      padding: 0.25rem;
+      border-radius: var(--radius-m);
+      border: 1px solid var(--border);
+    }
+
+    .step-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-s);
+      border: none;
+      background: transparent;
+      color: var(--text-1);
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+      white-space: nowrap;
+    }
+
+    .step-btn:hover {
+      color: var(--text-0);
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    body.theme-dark .step-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .step-btn.active {
+      background: var(--bg-1);
+      color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--border-strong);
+    }
+
+    .step-btn .step-num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      opacity: 0.8;
+    }
+
+    .pres-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theme-toggle-btn, .nav-arrow-btn {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      height: 34px;
+      padding: 0 0.75rem;
+      border-radius: var(--radius-s);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+    }
+
+    .theme-toggle-btn:hover, .nav-arrow-btn:hover {
+      background: var(--bg-3);
+      border-color: var(--border-strong);
+    }
+
+    /* ─── Slide Container ─── */
+    .pres-main {
+      flex: 1;
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem 1.5rem;
+    }
+
+    .slide-section {
+      display: none;
+      animation: fadeIn 220ms var(--ease);
+    }
+
+    .slide-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Hero Overview Card ─── */
+    .slide-hero {
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .slide-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-s);
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-hero-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.35rem;
+    }
+
+    .slide-hero-desc {
+      color: var(--text-1);
+      font-size: 0.95rem;
+      max-width: 780px;
+    }
+
+    .slide-meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .meta-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-s);
+      color: var(--text-1);
+    }
+
+    /* ─── Interactive Mockup Stage ─── */
+    .mockup-stage {
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+    }
+
+    /* ─── Screen 1: Auth Grid ─── */
+    .auth-showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .auth-window {
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .window-header-bar {
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-2);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    /* ─── Screen 2: Hub Minimalista ─── */
+    .hub-container {
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hub-coach-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .hub-coach-info h2 {
+      font-size: 1.75rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .hub-coach-stats {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .hub-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .hub-stat-val {
+      font-size: 1.4rem;
+      font-weight: 900;
+      font-family: var(--font-mono);
+      color: var(--text-0);
+    }
+    .hub-stat-lbl {
+      font-size: 0.72rem;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .hub-card {
+      background: var(--bg-0);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 160ms var(--ease), border-color 160ms var(--ease);
+    }
+
+    .hub-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .hub-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .hub-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+    }
+
+    .hub-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: var(--bg-2);
+      padding: 0.15rem 0.4rem;
+      border-radius: var(--radius-s);
+      color: var(--text-2);
+    }
+
+    .hub-card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hub-card-desc {
+      font-size: 0.85rem;
+      color: var(--text-1);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .hub-btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      height: 38px;
+      padding: 0 1rem;
+      border-radius: var(--radius-s);
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+      transition: background 140ms var(--ease);
+    }
+
+    .hub-btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .hub-btn-ghost {
+      background: transparent;
+      color: var(--text-1);
+      border: 1px solid var(--border);
+      height: 36px;
+      padding: 0 1rem;
+      border-radius: var(--radius-s);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 0.4rem;
+    }
+    .hub-btn-ghost:hover {
+      color: var(--text-0);
+      background: var(--bg-2);
+    }
+
+    /* ─── Screen 3 & 4: Table & Prescription ─── */
+    .tech-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .tech-table th {
+      background: var(--bg-2);
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-strong);
+    }
+    .tech-table td {
+      padding: 0.8rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .tech-table tr:hover td {
+      background: var(--bg-2);
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+    }
+    .badge-success {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+    .badge-accent {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* ─── Screen 5: Digital PDF Sheet Simulation ─── */
+    .pdf-paper {
+      background: #ffffff;
+      color: #111111;
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2.5rem;
+      border-radius: var(--radius-s);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border: 1px solid #d4d4d4;
+      font-family: var(--font);
+    }
+
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #111;
+      padding-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .pdf-brand-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .pdf-brand-sub {
+      font-size: 0.75rem;
+      color: #666;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .pdf-meta-box {
+      background: #f7f7f7;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .pdf-table th {
+      background: #111111;
+      color: #ffffff;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: left;
+    }
+
+    .pdf-table td {
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pdf-carga-blank {
+      display: inline-block;
+      min-width: 60px;
+      border-bottom: 1.5px dashed #999;
+      color: #888;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .pdf-footer-guidelines {
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+      font-size: 0.72rem;
+      color: #555;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* ─── Screen 6: Mobile Student View ─── */
+    .phone-wrapper {
+      max-width: 400px;
+      margin: 0 auto;
+      background: var(--bg-1);
+      border: 12px solid #1c1d21;
+      border-radius: 44px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 22px;
+      background: #1c1d21;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 50;
+    }
+
+    .phone-content {
+      padding: 2.2rem 1.15rem 1.5rem 1.15rem;
+      min-height: 640px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-0);
+    }
+
+    .student-app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .student-workout-pill {
+      display: flex;
+      gap: 0.4rem;
+      background: var(--bg-2);
+      padding: 0.25rem;
+      border-radius: var(--radius-m);
+      margin-bottom: 1rem;
+    }
+
+    .workout-tab-btn {
+      flex: 1;
+      padding: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-s);
+      color: var(--text-1);
+      cursor: pointer;
+    }
+
+    .workout-tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .student-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-m);
+      padding: 1rem;
+      margin-bottom: 0.85rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .student-set-row {
+      display: grid;
+      grid-template-columns: 24px 1fr 1fr 1.2fr 32px;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      background: var(--bg-2);
+      padding: 0.35rem 0.5rem;
+      border-radius: var(--radius-s);
+      margin-bottom: 0.3rem;
+    }
+
+    .student-set-row.done {
+      background: rgba(45, 168, 104, 0.12);
+      border: 1px solid rgba(45, 168, 104, 0.3);
+    }
+
+    .student-check-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .student-check-btn.checked {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .student-rest-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      padding: 0.75rem;
+      border-radius: var(--radius-m);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* ─── Footer Controls ─── */
+    .pres-footer {
+      border-top: 1px solid var(--border);
+      background: var(--bg-1);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-2);
+    }
+
+    @media (max-width: 960px) {
+      .pres-stepper { display: none; }
+      .auth-showcase-grid { grid-template-columns: 1fr; }
+      .hub-grid { grid-template-columns: 1fr; }
+      .slide-hero { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── TOP PRESENTATION BAR ─── -->
+  <header class="pres-header">
+    <div class="pres-brand">
+      <svg class="pres-logo-svg" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="68" height="68" rx="16" fill="#0C0D0F"/>
+        <rect x="14" y="36" width="10" height="20" rx="2" fill="#F0EFEA"/>
+        <rect x="29" y="26" width="10" height="30" rx="2" fill="#F0EFEA"/>
+        <path d="M44 14L54 22V56H44V14Z" fill="#CF3427"/>
+      </svg>
+      <div class="pres-title-group">
+        <h1>TreinosApp</h1>
+        <span>Jornada Completa da Aplicação</span>
+      </div>
+    </div>
+
+    <!-- Stepper Navigation -->
+    <nav class="pres-stepper" aria-label="Slides da apresentação">
+      <button class="step-btn active" onclick="goToSlide(1)">
+        <span class="step-num">01</span>
+        <span>Login & Cadastro</span>
+      </button>
+      <button class="step-btn" onclick="goToSlide(2)">
+        <span class="step-num">02</span>
+        <span>Hub do Treinador</span>
+      </button>
+      <button class="step-btn" onclick="goToSlide(3)">
+        <span class="step-num">03</span>
+        <span>Gestão de Alunos</span>
+      </button>
+      <button class="step-btn" onclick="goToSlide(4)">
+        <span class="step-num">04</span>
+        <span>Prescrição Técnica</span>
+      </button>
+      <button class="step-btn" onclick="goToSlide(5)">
+        <span class="step-num">05</span>
+        <span>PDF Técnico</span>
+      </button>
+      <button class="step-btn" onclick="goToSlide(6)">
+        <span class="step-num">06</span>
+        <span>Web App do Aluno</span>
+      </button>
+    </nav>
+
+    <!-- Controls -->
+    <div class="pres-controls">
+      <button class="nav-arrow-btn" onclick="prevSlide()" title="Slide anterior (Seta esquerda)">←</button>
+      <button class="nav-arrow-btn" onclick="nextSlide()" title="Próximo slide (Seta direita)">→</button>
+      <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Alternar entre tema Claro e Escuro">
+        <span>☀️ Claro</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── SLIDE STAGE ─── -->
+  <main class="pres-main">
+
+    <!-- =====================================================================
+         SLIDE 1: LOGIN & CADASTRO
+         ===================================================================== -->
+    <section class="slide-section active" id="slide-1">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 01 // AUTENTICAÇÃO DE PRECISÃO</span>
+          <h2 class="slide-hero-title">Acesso Restrito & Onboarding do Treinador</h2>
+          <p class="slide-hero-desc">
+            Design técnico inspirado em ciência esportiva e estética streetwear. Apresenta o valor do app imediatamente através de um mockup interativo de séries, cargas e RIR, sem jargões inflados de IA.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">TEMA CLARO PAPER</span>
+            <span class="meta-pill">VALORIZAÇÃO DO CREF</span>
+            <span class="meta-pill">TOGGLE DE SENHA</span>
+            <span class="meta-pill">ZERO EMOJIS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage">
+        <div class="auth-showcase-grid">
+          
+          <!-- Login View -->
+          <div class="auth-window">
+            <div class="window-header-bar">
+              <div class="window-dots">
+                <div class="window-dot" style="background: #ff5f56;"></div>
+                <div class="window-dot" style="background: #ffbd2e;"></div>
+                <div class="window-dot" style="background: #27c93f;"></div>
+              </div>
+              <span>login.treinosapp.com</span>
+              <span>ETAPA A</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; padding: 2rem;">
+              <div style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                ACESSO RESTRITO // TREINADOR
+              </div>
+              <h3 style="font-size: 1.45rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.35rem;">
+                Entrar na plataforma
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-1); margin-bottom: 1.5rem;">
+                Informe suas credenciais para gerenciar prescrições.
+              </p>
+
+              <!-- Inputs -->
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                  <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.35rem;">E-mail profissional</label>
+                  <input type="text" value="carlos.trainer@exemplo.com" readonly style="width: 100%; height: 42px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.85rem; color: var(--text-0);" />
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.35rem;">Senha</label>
+                  <div style="position: relative;">
+                    <input type="password" value="••••••••••••" readonly style="width: 100%; height: 42px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.85rem; color: var(--text-0);" />
+                    <span style="position: absolute; right: 10px; top: 12px; font-size: 0.75rem; color: var(--text-2); cursor: pointer;">👁️</span>
+                  </div>
+                </div>
+                <button class="hub-btn-primary" style="margin-top: 0.5rem;">
+                  <span>Entrar na Plataforma</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <!-- Tech Highlights Footer -->
+              <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-2); display: flex; flex-direction: column; gap: 0.4rem;">
+                <div>⚡ Sincronização em Nuvem Automática</div>
+                <div>💾 Armazenamento Offline Nativo</div>
+                <div>📊 Cálculo Dinâmico de Cargas e Séries</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Register View -->
+          <div class="auth-window">
+            <div class="window-header-bar">
+              <div class="window-dots">
+                <div class="window-dot" style="background: #ff5f56;"></div>
+                <div class="window-dot" style="background: #ffbd2e;"></div>
+                <div class="window-dot" style="background: #27c93f;"></div>
+              </div>
+              <span>cadastrar.treinosapp.com</span>
+              <span>ETAPA B</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; padding: 2rem;">
+              <div style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                NOVO TREINADOR // CADASTRO
+              </div>
+              <h3 style="font-size: 1.45rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.35rem;">
+                Criar conta de treinador
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-1); margin-bottom: 1.25rem;">
+                Preencha seus dados para começar a prescrever treinos.
+              </p>
+
+              <!-- 2-column fields -->
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div>
+                  <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Nome completo</label>
+                  <input type="text" value="Prof. Carlos Eduardo Santos" readonly style="width: 100%; height: 38px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.82rem; color: var(--text-0);" />
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div>
+                    <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">CREF</label>
+                    <input type="text" value="084921-G/SP" readonly style="width: 100%; height: 38px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.82rem; color: var(--text-0);" />
+                  </div>
+                  <div>
+                    <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Profissão</label>
+                    <input type="text" value="Personal Trainer" readonly style="width: 100%; height: 38px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.82rem; color: var(--text-0);" />
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div>
+                    <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">WhatsApp</label>
+                    <input type="text" value="(11) 98765-4321" readonly style="width: 100%; height: 38px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.82rem; color: var(--text-0);" />
+                  </div>
+                  <div>
+                    <label style="font-size: 0.78rem; font-weight: 600; display: block; margin-bottom: 0.3rem;">Instagram</label>
+                    <input type="text" value="@carlos.personaltrainer" readonly style="width: 100%; height: 38px; border: 1px solid var(--border-strong); background: var(--bg-2); border-radius: var(--radius-m); padding: 0 0.85rem; font-size: 0.82rem; color: var(--text-0);" />
+                  </div>
+                </div>
+                <button class="hub-btn-primary" style="margin-top: 0.4rem;">
+                  <span>Criar Minha Conta</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SLIDE 2: HUB DO TREINADOR (HOME MINIMALISTA)
+         ===================================================================== -->
+    <section class="slide-section" id="slide-2">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 02 // HUB CENTRAL DO PROFISSIONAL</span>
+          <h2 class="slide-hero-title">Método Hub Minimalista — Navegação Sem Ruído</h2>
+          <p class="slide-hero-desc">
+            Reduz a carga cognitiva do treinador com 3 cartões principais de comando: Gestão de Alunos, Biblioteca de Exercícios & Técnicas, e Configurações de Identidade Visual.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">MENU LATERAL COM DROPDOWN</span>
+            <span class="meta-pill">AÇÕES DIRETAS</span>
+            <span class="meta-pill">STATUS DE CATÁLOGO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage">
+        <div class="hub-container">
+          
+          <!-- Trainer Header -->
+          <div class="hub-coach-header">
+            <div class="hub-coach-info">
+              <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); font-weight: 700; margin-bottom: 0.25rem;">
+                TREINADOR ATIVO // PAINEL OPERACIONAL
+              </div>
+              <h2>Olá, Prof. Carlos Eduardo</h2>
+              <p style="color: var(--text-1); font-size: 0.9rem;">CREF: 084921-G/SP • Prescrições atualizadas em tempo real</p>
+            </div>
+            <div class="hub-coach-stats">
+              <div class="hub-stat-item">
+                <span class="hub-stat-val">34</span>
+                <span class="hub-stat-lbl">Alunos Ativos</span>
+              </div>
+              <div class="hub-stat-item">
+                <span class="hub-stat-val">142</span>
+                <span class="hub-stat-lbl">Exercícios</span>
+              </div>
+              <div class="hub-stat-item">
+                <span class="hub-stat-val" style="color: var(--success);">94%</span>
+                <span class="hub-stat-lbl">Adesão Semanal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Hub Cards -->
+          <div class="hub-grid">
+            
+            <!-- Card 01: Alunos -->
+            <div class="hub-card">
+              <div>
+                <div class="hub-card-header">
+                  <span class="hub-tag">01 // GESTÃO DE ALUNOS</span>
+                  <span class="hub-badge">34 ATIVOS</span>
+                </div>
+                <h3 class="hub-card-title">Alunos & Atletas</h3>
+                <p class="hub-card-desc">
+                  Acesse perfis, prescreva protocolos de treino periódicos e acompanhe o registro de cargas em tempo real.
+                </p>
+              </div>
+              <div>
+                <button class="hub-btn-primary" onclick="goToSlide(3)">
+                  <span>Acessar Lista de Alunos</span>
+                  <span>→</span>
+                </button>
+                <button class="hub-btn-ghost">
+                  <span>+ Cadastrar Novo Aluno</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 02: Biblioteca -->
+            <div class="hub-card">
+              <div>
+                <div class="hub-card-header">
+                  <span class="hub-tag">02 // BIBLIOTECA DE EXERCÍCIOS</span>
+                  <span class="hub-badge">142 ITENS</span>
+                </div>
+                <h3 class="hub-card-title">Exercícios & Técnicas</h3>
+                <p class="hub-card-desc">
+                  Catálogo completo dividido por grupos musculares, vídeos de biomecânica e técnicas avançadas (Rest-Pause, Drop-set).
+                </p>
+              </div>
+              <div>
+                <button class="hub-btn-primary" onclick="goToSlide(4)">
+                  <span>Explorar Catálogo</span>
+                  <span>→</span>
+                </button>
+                <button class="hub-btn-ghost">
+                  <span>+ Novo Movimento / Técnica</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 03: Configurações -->
+            <div class="hub-card">
+              <div>
+                <div class="hub-card-header">
+                  <span class="hub-tag">03 // SISTEMA & CONTA</span>
+                  <span class="hub-badge">DIGITAL</span>
+                </div>
+                <h3 class="hub-card-title">Identidade Visual & PDF</h3>
+                <p class="hub-card-desc">
+                  Personalize sua logomarca, informações de contato e parâmetros de geração de links e fichas em PDF.
+                </p>
+              </div>
+              <div>
+                <button class="hub-btn-primary" onclick="goToSlide(5)">
+                  <span>Ver Configurações de PDF</span>
+                  <span>→</span>
+                </button>
+                <button class="hub-btn-ghost">
+                  <span>Atualizar Logomarca</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SLIDE 3: GESTÃO DE ALUNOS
+         ===================================================================== -->
+    <section class="slide-section" id="slide-3">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 03 // CONTROLE DE ALUNOS</span>
+          <h2 class="slide-hero-title">Relação de Atletas & Links Dinâmicos</h2>
+          <p class="slide-hero-desc">
+            Cada aluno possui um link interativo único com token seguro. Sem necessidade de login pelo aluno — acesso instantâneo direto no navegador do celular ou atalho PWA.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">LINK DIRETO VIA WHATSAPP</span>
+            <span class="meta-pill">QR CODE GERADO</span>
+            <span class="meta-pill">SEM LOGIN PARA O ALUNO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage">
+        <div class="auth-window">
+          <div class="window-header-bar">
+            <span>GESTÃO DE ATLETAS ATIVOS</span>
+            <span>FILTRAR POR STATUS // TODOS (34)</span>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="tech-table">
+              <thead>
+                <tr>
+                  <th>Aluno / Atleta</th>
+                  <th>Objetivo & Protocolo</th>
+                  <th>Divisão</th>
+                  <th>Última Sessão</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Ações de Acesso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                      <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                        RM
+                      </div>
+                      <div>
+                        <strong style="display: block; font-size: 0.9rem;">Rodrigo Medeiros</strong>
+                        <span style="font-size: 0.75rem; color: var(--text-2); font-family: var(--font-mono);">ID: #1042 • rodrigo@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <strong style="font-size: 0.85rem; display: block;">Hipertrofia // Fase 02</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-2);">Foco em Peitoral Superior & Dorsal</span>
+                  </td>
+                  <td>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;">A / B / C / D</span>
+                  </td>
+                  <td>
+                    <span style="font-size: 0.8rem; color: var(--text-1);">Hoje às 08:35</span>
+                  </td>
+                  <td>
+                    <span class="badge-pill badge-success">● Ativo</span>
+                  </td>
+                  <td style="text-align: right; white-space: nowrap;">
+                    <button class="step-btn" style="display: inline-flex; border: 1px solid var(--border-strong);" onclick="goToSlide(4)">
+                      <span>Montar Treino</span>
+                    </button>
+                    <button class="step-btn" style="display: inline-flex; background: var(--accent); color: #fff; margin-left: 0.35rem;" onclick="goToSlide(6)">
+                      <span>Abrir Como Aluno ↗</span>
+                    </button>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                      <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                        BA
+                      </div>
+                      <div>
+                        <strong style="display: block; font-size: 0.9rem;">Beatriz Alencar</strong>
+                        <span style="font-size: 0.75rem; color: var(--text-2); font-family: var(--font-mono);">ID: #1045 • beatriz@outlook.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <strong style="font-size: 0.85rem; display: block;">Condicionamento & Força</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-2);">Membros Inferiores & Glúteo</span>
+                  </td>
+                  <td>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;">A / B / C</span>
+                  </td>
+                  <td>
+                    <span style="font-size: 0.8rem; color: var(--text-1);">Ontem às 18:20</span>
+                  </td>
+                  <td>
+                    <span class="badge-pill badge-success">● Ativo</span>
+                  </td>
+                  <td style="text-align: right; white-space: nowrap;">
+                    <button class="step-btn" style="display: inline-flex; border: 1px solid var(--border-strong);">
+                      <span>Montar Treino</span>
+                    </button>
+                    <button class="step-btn" style="display: inline-flex; background: var(--accent); color: #fff; margin-left: 0.35rem;" onclick="goToSlide(6)">
+                      <span>Abrir Como Aluno ↗</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SLIDE 4: PRESCRIÇÃO TÉCNICA
+         ===================================================================== -->
+    <section class="slide-section" id="slide-4">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 04 // PRESCRIÇÃO TÉCNICA</span>
+          <h2 class="slide-hero-title">Estruturação de Séries, Cadência & Métodos</h2>
+          <p class="slide-hero-desc">
+            Organização precisa de sessões. O treinador define cadência, repetições alvo, pausas em segundos e técnicas como Rest-Pause e Drop-Set sem formulários engessados.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">REST-PAUSE NATIVO</span>
+            <span class="meta-pill">TIMER CUSTOMIZADO POR EXERCÍCIO</span>
+            <span class="meta-pill">CONTROLE DE VOLUME POR GRUPO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage">
+        <div class="auth-window">
+          <div class="window-header-bar">
+            <span>FICHA ATIVA: TREINO A // PEITORAL & OMBRO</span>
+            <span style="color: var(--accent);">VOLUME TOTAL: 18 SÉRIES</span>
+          </div>
+
+          <div style="padding: 1.5rem;">
+            <!-- Exercise 1 -->
+            <div style="background: var(--bg-0); border: 1px solid var(--border-strong); border-radius: var(--radius-m); padding: 1.25rem; margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                  <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); font-weight: 800;">EXERCÍCIO 01 // PEITORAL SUPERIOR</span>
+                  <h4 style="font-size: 1.15rem; font-weight: 900;">Supino Inclinado com Halteres (30°)</h4>
+                </div>
+                <span class="badge-pill badge-accent">REST-PAUSE NA ÚLTIMA SÉRIE</span>
+              </div>
+
+              <!-- Sets Config Table -->
+              <table class="tech-table">
+                <thead>
+                  <tr>
+                    <th>Série</th>
+                    <th>Meta de Reps</th>
+                    <th>Carga Sugerida</th>
+                    <th>Cadência</th>
+                    <th>Descanso</th>
+                    <th>Observações Técnicas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>1</strong></td>
+                    <td>10 a 12 reps</td>
+                    <td>30 kg / halter</td>
+                    <td>3-0-1-0</td>
+                    <td>90 seg</td>
+                    <td>Aquecimento específico com 50% antes</td>
+                  </tr>
+                  <tr>
+                    <td><strong>2</strong></td>
+                    <td>8 a 10 reps</td>
+                    <td>32 kg / halter</td>
+                    <td>3-0-1-0</td>
+                    <td>90 seg</td>
+                    <td>RIR 1 (uma repetição na reserva)</td>
+                  </tr>
+                  <tr style="background: var(--accent-soft);">
+                    <td><strong style="color: var(--accent);">3</strong></td>
+                    <td><strong>Falha + 3 + 2 reps</strong></td>
+                    <td>34 kg / halter</td>
+                    <td>3-0-1-0</td>
+                    <td><strong>120 seg</strong></td>
+                    <td><strong>Executar Rest-Pause com 15s de micro-pausa</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+              <button class="step-btn" style="border: 1px solid var(--border-strong);">+ Adicionar Exercício</button>
+              <button class="hub-btn-primary" style="width: auto; padding: 0 1.5rem;" onclick="goToSlide(5)">
+                <span>Visualizar Impressão / PDF Técnico</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SLIDE 5: PDF TÉCNICO
+         ===================================================================== -->
+    <section class="slide-section" id="slide-5">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 05 // FICHA DIGITAL OFFLINE</span>
+          <h2 class="slide-hero-title">PDF Técnico Limpo & Funcional</h2>
+          <p class="slide-hero-desc">
+            Caso o aluno treine em local sem sinal ou prefira um arquivo estático, o PDF gerado é minimalista, moderno, sem assinaturas inúteis e com QR Code de redirecionamento direto.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">SEM CAMPOS DE ASSINATURA</span>
+            <span class="meta-pill">QR CODE EMBUTIDO</span>
+            <span class="meta-pill">CAMPOS CLAROS DE ANOTAÇÃO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage" style="background: #e2e1db;">
+        <div class="pdf-paper">
+          
+          <!-- Header -->
+          <div class="pdf-header">
+            <div>
+              <div class="pdf-brand-title">TREINOS // APP</div>
+              <div class="pdf-brand-sub">PRESCRIÇÃO TÉCNICA DIGITAL • USO EXCLUSIVO DO ALUNO</div>
+            </div>
+            <div style="text-align: right; font-size: 0.75rem;">
+              <strong>Prof. Carlos Eduardo Santos</strong><br />
+              <span style="color: #666;">CREF: 084921-G/SP • (11) 98765-4321</span>
+            </div>
+          </div>
+
+          <!-- Metadata Box -->
+          <div class="pdf-meta-box">
+            <div>
+              <span style="color: #777; display: block; font-size: 0.68rem; text-transform: uppercase;">Aluno</span>
+              <strong>Rodrigo Medeiros</strong>
+            </div>
+            <div>
+              <span style="color: #777; display: block; font-size: 0.68rem; text-transform: uppercase;">Programa / Fase</span>
+              <strong>Fase 02 — Hipertrofia & Sobrecarga</strong>
+            </div>
+            <div>
+              <span style="color: #777; display: block; font-size: 0.68rem; text-transform: uppercase;">Divisão Selecionada</span>
+              <strong>Treino A (Peito & Deltoide)</strong>
+            </div>
+          </div>
+
+          <!-- Table with blank carga for manual notes -->
+          <table class="pdf-table">
+            <thead>
+              <tr>
+                <th style="width: 35px;">#</th>
+                <th>Exercício & Detalhes</th>
+                <th style="width: 80px;">Séries x Reps</th>
+                <th style="width: 75px;">Cadência</th>
+                <th style="width: 70px;">Pausa</th>
+                <th style="width: 110px;">Carga / Anotação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>01</strong></td>
+                <td>
+                  <strong>Supino Inclinado com Halteres</strong>
+                  <div style="font-size: 0.7rem; color: #555;">Banco 30°. Amplitude completa. Rest-pause na última série.</div>
+                </td>
+                <td>3 × 8-10</td>
+                <td>3-0-1-0</td>
+                <td>90s</td>
+                <td><span class="pdf-carga-blank">[ &nbsp; 32 kg &nbsp; ]</span></td>
+              </tr>
+              <tr>
+                <td><strong>02</strong></td>
+                <td>
+                  <strong>Crucifixo Inclinado na Polia</strong>
+                  <div style="font-size: 0.7rem; color: #555;">Pico de contração de 1s no ponto de maior tensão.</div>
+                </td>
+                <td>3 × 10-12</td>
+                <td>2-1-1-0</td>
+                <td>60s</td>
+                <td><span class="pdf-carga-blank">____ kg</span></td>
+              </tr>
+              <tr>
+                <td><strong>03</strong></td>
+                <td>
+                  <strong>Desenvolvimento com Halteres</strong>
+                  <div style="font-size: 0.7rem; color: #555;">Pegada pronada com cotovelos a 45° do tronco.</div>
+                </td>
+                <td>3 × 8-10</td>
+                <td>3-0-1-0</td>
+                <td>90s</td>
+                <td><span class="pdf-carga-blank">____ kg</span></td>
+              </tr>
+              <tr>
+                <td><strong>04</strong></td>
+                <td>
+                  <strong>Elevação Lateral na Polia</strong>
+                  <div style="font-size: 0.7rem; color: #555;">Conduza pelo cotovelo. Drop-set na 3ª série.</div>
+                </td>
+                <td>4 × 12-15</td>
+                <td>2-0-1-0</td>
+                <td>45s</td>
+                <td><span class="pdf-carga-blank">____ kg</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Guidelines without hype -->
+          <div class="pdf-footer-guidelines">
+            <div>
+              <strong>01. AQUECIMENTO ESPECÍFICO</strong>
+              <p>Realize 1 a 2 séries com 50% da carga antes do primeiro exercício do agrupamento.</p>
+            </div>
+            <div>
+              <strong>02. CONTROLE DA CADÊNCIA</strong>
+              <p>Priorize a fase excêntrica controlada (2-3s). Mantenha a postura e a amplitude completa.</p>
+            </div>
+            <div>
+              <strong>03. INTERVALOS E CARGAS</strong>
+              <p>Respeite a pausa estipulada. Progrida as cargas mantendo uma boa execução técnica.</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 0.75rem; font-size: 0.7rem; color: #888;">
+            <span>Acesse a versão interativa no smartphone através do link seguro enviado pelo seu treinador.</span>
+            <span style="font-family: var(--font-mono); font-weight: 700; color: #111;">TREINOS // DIGITAL</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SLIDE 6: WEB APP DO ALUNO (MOBILE EXPERIENCE)
+         ===================================================================== -->
+    <section class="slide-section" id="slide-6">
+      <div class="slide-hero">
+        <div>
+          <span class="slide-badge">ETAPA 06 // EXPERIÊNCIA DO ATLETA NO CELULAR</span>
+          <h2 class="slide-hero-title">Web App do Aluno — Execução Tátil Sem Atrito</h2>
+          <p class="slide-hero-desc">
+            A interface aberta pelo aluno no treino: marcação de séries concluídas, visualização da carga da semana anterior para sobrecarga progressiva, cronômetro automático de descanso e encerramento limpo.
+          </p>
+          <div class="slide-meta-pills">
+            <span class="meta-pill">REFERÊNCIA DA SEMANA ANTERIOR</span>
+            <span class="meta-pill">TIMER AUTOMÁTICO</span>
+            <span class="meta-pill">FEEDBACK LIMPO E PROFISSIONAL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-stage">
+        <!-- Phone Mockup Container -->
+        <div class="phone-wrapper">
+          <div class="phone-notch"></div>
+
+          <div class="phone-content">
+            
+            <!-- Mobile App Header -->
+            <div class="student-app-header">
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); font-weight: 800;">ALUNO // RODRIGO M.</span>
+                <h3 style="font-size: 1.15rem; font-weight: 900; letter-spacing: -0.02em;">Treino de Hoje</h3>
+              </div>
+              <div style="text-align: right; font-size: 0.72rem; color: var(--text-2);">
+                <span>Prof. Carlos E.</span>
+              </div>
+            </div>
+
+            <!-- Workout Pills -->
+            <div class="student-workout-pill">
+              <button class="workout-tab-btn active">Treino A (Peito)</button>
+              <button class="workout-tab-btn">Treino B</button>
+              <button class="workout-tab-btn">Treino C</button>
+            </div>
+
+            <!-- Interactive Exercise Card 1 -->
+            <div class="student-card">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem;">
+                <div>
+                  <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent); font-weight: 700;">EXERCÍCIO 01</span>
+                  <div style="font-size: 0.95rem; font-weight: 800;">Supino Inclinado Halteres</div>
+                </div>
+                <span style="font-size: 0.65rem; background: var(--bg-2); padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600;">Peitoral</span>
+              </div>
+
+              <!-- Set Row 1 (Done) -->
+              <div class="student-set-row done">
+                <div style="font-weight: 800; color: var(--success);">1</div>
+                <div><strong>12 reps</strong></div>
+                <div>30 kg</div>
+                <div style="color: var(--text-2); font-size: 0.68rem;">Ant: 28kg</div>
+                <div style="color: var(--success); font-weight: 900;">✓</div>
+              </div>
+
+              <!-- Set Row 2 (Done with PR) -->
+              <div class="student-set-row done">
+                <div style="font-weight: 800; color: var(--success);">2</div>
+                <div><strong>10 reps</strong></div>
+                <div>32 kg</div>
+                <div style="color: var(--accent); font-weight: 800; font-size: 0.65rem;">+2kg PR</div>
+                <div style="color: var(--success); font-weight: 900;">✓</div>
+              </div>
+
+              <!-- Set Row 3 (Active / Current) -->
+              <div class="student-set-row" style="background: var(--accent-dim); border: 1px solid var(--accent-border);">
+                <div style="font-weight: 800; color: var(--accent);">3</div>
+                <div><strong>8 reps</strong></div>
+                <div>34 kg</div>
+                <div style="color: var(--accent); font-weight: 700; font-size: 0.65rem;">REST-PAUSE</div>
+                <button class="student-check-btn checked" style="background: var(--accent); border-color: var(--accent); width: 22px; height: 22px;">✓</button>
+              </div>
+            </div>
+
+            <!-- Interactive Exercise Card 2 -->
+            <div class="student-card">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem;">
+                <div>
+                  <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent); font-weight: 700;">EXERCÍCIO 02</span>
+                  <div style="font-size: 0.95rem; font-weight: 800;">Crucifixo na Polia</div>
+                </div>
+                <span style="font-size: 0.65rem; background: var(--bg-2); padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600;">Isolamento</span>
+              </div>
+
+              <div class="student-set-row">
+                <div>1</div>
+                <div>12 reps</div>
+                <div>15 kg/lado</div>
+                <div style="color: var(--text-2); font-size: 0.68rem;">Ant: 15kg</div>
+                <button class="student-check-btn" onclick="this.classList.toggle('checked'); this.innerHTML = this.classList.contains('checked') ? '✓' : '';"></button>
+              </div>
+              <div class="student-set-row">
+                <div>2</div>
+                <div>12 reps</div>
+                <div>15 kg/lado</div>
+                <div style="color: var(--text-2); font-size: 0.68rem;">Ant: 15kg</div>
+                <button class="student-check-btn" onclick="this.classList.toggle('checked'); this.innerHTML = this.classList.contains('checked') ? '✓' : '';"></button>
+              </div>
+            </div>
+
+            <!-- Rest Timer Floating Bar -->
+            <div class="student-rest-bar">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;">
+                  ⏱️
+                </div>
+                <div>
+                  <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-2); text-transform: uppercase;">Descanso Ativo</div>
+                  <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: 900; color: var(--accent);" id="demoTimer">01:14</div>
+                </div>
+              </div>
+              <button class="step-btn" style="background: var(--bg-2); border: 1px solid var(--border-strong); font-size: 0.75rem;" onclick="addTimerSeconds(15)">
+                +15s
+              </button>
+            </div>
+
+            <!-- Finish Workout CTA -->
+            <button class="hub-btn-primary" style="margin-top: 0.75rem; height: 42px; border-radius: var(--radius-m);" onclick="showFinishedModal()">
+              <span>Encerrar Treino de Hoje</span>
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── FOOTER BAR ─── -->
+  <footer class="pres-footer">
+    <div>
+      <strong>TreinosApp</strong> — Apresentação Técnica Interativa do Sistema
+    </div>
+    <div>
+      Dica: Use as teclas <strong>←</strong> e <strong>→</strong> do teclado para avançar ou voltar slides.
+    </div>
+  </footer>
+
+  <!-- ─── INTERACTIVE JAVASCRIPT ─── -->
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 6;
+
+    function goToSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+      currentSlide = n;
+
+      // Update sections
+      document.querySelectorAll('.slide-section').forEach((s, idx) => {
+        if (idx + 1 === n) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      // Update step buttons
+      document.querySelectorAll('.step-btn').forEach((b, idx) => {
+        if (idx + 1 === n) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      // Scroll top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        goToSlide(currentSlide + 1);
+      } else {
+        goToSlide(1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        goToSlide(currentSlide - 1);
+      } else {
+        goToSlide(totalSlides);
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key >= '1' && e.key <= '6') {
+        goToSlide(parseInt(e.key));
+      }
+    });
+
+    // Theme toggle
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('theme-dark');
+      const btn = document.getElementById('themeToggle');
+      if (isDark) {
+        btn.innerHTML = '<span>🌙 Escuro</span>';
+      } else {
+        btn.innerHTML = '<span>☀️ Claro</span>';
+      }
+    }
+
+    // Demo Timer countdown
+    let timerSec = 74;
+    setInterval(() => {
+      if (timerSec > 0) {
+        timerSec--;
+        const mins = String(Math.floor(timerSec / 60)).padStart(2, '0');
+        const secs = String(timerSec % 60).padStart(2, '0');
+        const el = document.getElementById('demoTimer');
+        if (el) el.innerText = `${mins}:${secs}`;
+      }
+    }, 1000);
+
+    function addTimerSeconds(s) {
+      timerSec += s;
+      const mins = String(Math.floor(timerSec / 60)).padStart(2, '0');
+      const secs = String(timerSec % 60).padStart(2, '0');
+      const el = document.getElementById('demoTimer');
+      if (el) el.innerText = `${mins}:${secs}`;
+    }
+
+    function showFinishedModal() {
+      alert('Treino concluído com sucesso!\n\nCargas e repetições salvas no histórico do aluno. Na próxima sessão, elas aparecerão como referência na coluna Anterior.');
+    }
+  </script>
+
+</body>
+</html>
