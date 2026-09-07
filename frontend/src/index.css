@@ -2090,14 +2090,6 @@ body.light-theme .floating-rest-timer {
     color: #111827 !important;
   }
 
-  .print-carga-blank {
-    display: inline-block;
-    border-bottom: 1px dotted #9ca3af;
-    min-width: 44px;
-    color: #9ca3af;
-    font-size: 8.5px;
-    font-weight: normal;
-  }
 
   .print-td-descanso {
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
@@ -2173,46 +2165,62 @@ body.light-theme .floating-rest-timer {
     margin: 0;
   }
 
-  /* Document Footer */
+  /* Digital Document Footer (Optimized for offline viewing on phone/tablet) */
   .print-footer {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    border-top: 1px solid #d1d5db;
+    align-items: center;
+    border-top: 1.5px solid #14171e;
     padding-top: 8px;
     margin-top: 12px;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
+  .print-footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .print-footer-brand {
+    font-size: 9px;
+    font-weight: 700;
+    color: #111827 !important;
+  }
+
   .print-footer-legal {
     font-size: 8px;
     color: #6b7280;
-    max-width: 60%;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
-  .print-signature-wrap {
-    text-align: center;
-    min-width: 180px;
+  .print-footer-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
   }
 
-  .print-signature-line {
-    width: 100%;
-    border-bottom: 1px solid #111827;
-    margin-bottom: 3px;
+  .print-footer-badge {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #ba281a !important;
+    background: rgba(186, 40, 26, 0.08) !important;
+    border: 1px solid rgba(186, 40, 26, 0.25);
+    padding: 1px 6px;
+    border-radius: 3px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .print-signature-name {
-    font-size: 9px;
-    font-weight: 700;
-    color: #111827;
-  }
-
-  .print-signature-cref {
+  .print-footer-url {
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     font-size: 7.5px;
-    color: #6b7280;
+    color: #4b5563;
   }
 }
 

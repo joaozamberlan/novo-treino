@@ -5,8 +5,8 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   ArrowLeft, Plus, Calendar, 
-  Trash2, Printer, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save
+  Trash2, AlertCircle,
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 
@@ -96,13 +96,11 @@ export const Treinos: React.FC = () => {
   const [showEditFichaModal, setShowEditFichaModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
 
-  // --- PRINT MODAL & CUSTOMIZATION STATES ---
+  // --- PRINT / PDF EXPORT STATES ---
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printScope, setPrintScope] = useState<'all' | 'current'>('all');
   const [printPagePerFicha, setPrintPagePerFicha] = useState(true);
-  const [printNotesLine, setPrintNotesLine] = useState(true);
   const [printGuidelines, setPrintGuidelines] = useState(true);
-  const [printSignature, setPrintSignature] = useState(true);
 
   // Edit Ficha state
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
@@ -898,8 +896,8 @@ export const Treinos: React.FC = () => {
             )}
             {activeProtocol && (
               <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
-                <Printer size={14} />
-                Imprimir / PDF
+                <FileText size={14} />
+                Gerar PDF
               </button>
             )}
             <button className="btn btn-secondary btn-sm" onClick={() => setShowProtocolModal(true)}>
@@ -1204,19 +1202,21 @@ export const Treinos: React.FC = () => {
               </div>
 
               <div className="print-header-stamp">
-                <div className="print-stamp-title">PRESCRIÇÃO OFICIAL</div>
+                <div className="print-stamp-title">BACKUP DIGITAL OFFLINE</div>
                 <div className="print-stamp-item">
-                  <span className="print-stamp-label">EMISSÃO:</span>
+                  <span className="print-stamp-label">GERADO EM:</span>
                   <span className="print-stamp-value">{dataHoje}</span>
                 </div>
                 <div className="print-stamp-item">
                   <span className="print-stamp-label">PROTOCOLO:</span>
                   <span className="print-stamp-value">#{String(activeProtocol.idProtocolo).padStart(4, '0')}</span>
                 </div>
-                <div className="print-stamp-item">
-                  <span className="print-stamp-label">STATUS:</span>
-                  <span className="print-stamp-value print-stamp-active">ATIVO</span>
-                </div>
+                {aluno.tokenAcesso && (
+                  <div className="print-stamp-item">
+                    <span className="print-stamp-label">ACESSO WEB:</span>
+                    <span className="print-stamp-value print-stamp-active">/v/{aluno.tokenAcesso}</span>
+                  </div>
+                )}
               </div>
             </header>
 
@@ -1314,10 +1314,8 @@ export const Treinos: React.FC = () => {
                             <td className="print-td-carga">
                               {item.carga ? (
                                 <span>{item.carga}</span>
-                              ) : printNotesLine ? (
-                                <span className="print-carga-blank">____ kg</span>
                               ) : (
-                                <span style={{ color: '#9ca3af' }}>—</span>
+                                <span style={{ color: '#9ca3af' }}>Livre</span>
                               )}
                             </td>
                             <td className="print-td-descanso">
@@ -1365,20 +1363,25 @@ export const Treinos: React.FC = () => {
               </div>
             )}
 
-            {/* Document Footer */}
+            {/* Digital Offline Footer */}
             <footer className="print-footer">
-              <div className="print-footer-legal">
-                <p>Prescrição técnica individualizada gerada via <strong>TreinosApp</strong> para uso exclusivo de <strong>{aluno.nome}</strong>.</p>
-                <p>A execução dos exercícios deve seguir rigorosamente as orientações do profissional habilitado.</p>
+              <div className="print-footer-left">
+                <div className="print-footer-brand">
+                  <strong>TreinosApp</strong> • Prescrição Técnica Digital
+                </div>
+                <div className="print-footer-legal">
+                  Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {user?.nome || 'Personal Trainer'}</strong> (CREF: {user?.cref || '—'})
+                </div>
               </div>
 
-              {printSignature && (
-                <div className="print-signature-wrap">
-                  <div className="print-signature-line" />
-                  <div className="print-signature-name">Prof. {user?.nome || 'Personal Trainer'}</div>
-                  <div className="print-signature-cref">CREF: {user?.cref || '—'} • Responsável Técnico</div>
-                </div>
-              )}
+              <div className="print-footer-right">
+                <span className="print-footer-badge">VERSÃO OFFLINE // BACKUP</span>
+                {aluno.tokenAcesso && (
+                  <span className="print-footer-url">
+                    {window.location.origin}/v/{aluno.tokenAcesso}
+                  </span>
+                )}
+              </div>
             </footer>
           </div>
         </div>
@@ -1910,13 +1913,13 @@ export const Treinos: React.FC = () => {
             <div className="modal-header">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span className="section-label" style={{ margin: 0 }}>PDF // PRESCRIÇÃO</span>
+                  <span className="section-label" style={{ margin: 0 }}>BACKUP OFFLINE // PDF</span>
                 </div>
                 <h2 id="modalPrintTitle" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
-                  Imprimir / Exportar PDF
+                  Exportar PDF da Prescrição
                 </h2>
                 <p style={{ color: 'var(--text-1)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
-                  Personalize o escopo e o conteúdo do documento para impressão em alta definição ou salvamento como PDF.
+                  Gere um PDF leve para o aluno consultar a rotina de treinos na academia caso fique sem internet.
                 </p>
               </div>
               <button 
@@ -1933,7 +1936,7 @@ export const Treinos: React.FC = () => {
               {/* Escopo da Impressão */}
               <div>
                 <label className="section-label" style={{ marginBottom: '0.5rem' }}>
-                  Escopo da Impressão
+                  Fichas a Incluir
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label 
@@ -1961,7 +1964,7 @@ export const Treinos: React.FC = () => {
                         Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                        Gera o encarte completo com todas as divisões ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
+                        Inclui todas as divisões do ciclo ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
                       </div>
                     </div>
                   </label>
@@ -1991,7 +1994,7 @@ export const Treinos: React.FC = () => {
                         Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                        Gera folha única avulsa da divisão atualmente selecionada.
+                        Gera arquivo avulso apenas da divisão aberta no momento.
                       </div>
                     </div>
                   </label>
@@ -2001,7 +2004,7 @@ export const Treinos: React.FC = () => {
               {/* Opções de Conteúdo */}
               <div>
                 <label className="section-label" style={{ marginBottom: '0.5rem' }}>
-                  Opções de Conteúdo & Diagramação
+                  Opções de Diagramação
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--bg-1)', padding: '0.75rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border)' }}>
                   {printScope === 'all' && (
@@ -2012,18 +2015,9 @@ export const Treinos: React.FC = () => {
                         onChange={e => setPrintPagePerFicha(e.target.checked)} 
                         style={{ accentColor: 'var(--accent)' }}
                       />
-                      <span><strong>Quebrar página por ficha</strong> (Recomendado para impressão física)</span>
+                      <span><strong>Uma página por ficha</strong> (Ideal para visualização rápida no celular)</span>
                     </label>
                   )}
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={printNotesLine} 
-                      onChange={e => setPrintNotesLine(e.target.checked)} 
-                      style={{ accentColor: 'var(--accent)' }}
-                    />
-                    <span><strong>Linhas para anotação de cargas</strong> (Para o aluno preencher os pesos com caneta)</span>
-                  </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
                     <input 
                       type="checkbox" 
@@ -2031,16 +2025,7 @@ export const Treinos: React.FC = () => {
                       onChange={e => setPrintGuidelines(e.target.checked)} 
                       style={{ accentColor: 'var(--accent)' }}
                     />
-                    <span><strong>Diretrizes técnicas & aquecimento</strong> (Recomendações de segurança no rodapé)</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={printSignature} 
-                      onChange={e => setPrintSignature(e.target.checked)} 
-                      style={{ accentColor: 'var(--accent)' }}
-                    />
-                    <span><strong>Campo de assinatura do profissional</strong> (Carimbo e validação CREF)</span>
+                    <span><strong>Diretrizes técnicas & segurança</strong> (Recomendações de aquecimento e cadência)</span>
                   </label>
                 </div>
               </div>
@@ -2058,8 +2043,8 @@ export const Treinos: React.FC = () => {
                   className="btn btn-primary" 
                   onClick={handleTriggerPrint}
                 >
-                  <Printer size={16} />
-                  <span>Imprimir / Gerar PDF</span>
+                  <FileText size={16} />
+                  <span>Gerar PDF Offline</span>
                 </button>
               </div>
             </div>
