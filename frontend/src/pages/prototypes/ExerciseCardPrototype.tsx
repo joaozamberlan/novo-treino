@@ -430,7 +430,10 @@ const VariantMediaForward: React.FC = () => {
           lineHeight: 1.5,
           animation: 'fadeIn 180ms var(--ease-out)'
         }}>
-          💡 <strong>Dica de execução:</strong> Mantenha ligeira inclinação do tronco à frente e cotovelos semiflexionados. Conduza o movimento pelo cotovelo, sem encolher os ombros.
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+            <Info size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
+            <span><strong>Dica de execução:</strong> Mantenha ligeira inclinação do tronco à frente e cotovelos semiflexionados. Conduza o movimento pelo cotovelo, sem encolher os ombros.</span>
+          </div>
         </div>
       )}
 

@@ -4,7 +4,7 @@ import api from '../services/api';
 import { 
   Award, Phone, Video, 
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
-  History, RotateCcw, TrendingUp, Trophy, Flag, Sparkles
+  History, RotateCcw, TrendingUp, Flag, CheckCircle2
 } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
 
@@ -767,13 +767,13 @@ export const PublicTreino: React.FC = () => {
             {sessaoConcluida && (
               <div className="workout-completed-banner" style={{ marginBottom: '1.25rem', marginTop: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <Trophy size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
+                  <CheckCircle2 size={20} style={{ color: 'var(--success)', flexShrink: 0 }} aria-hidden="true" />
                   <div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-0)', display: 'block' }}>
-                      Treino Concluído! 🎉
+                      Treino concluído
                     </span>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-1)' }}>
-                      {finalizadoEm ? `Finalizado em ${new Date(finalizadoEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.` : 'Histórico gravado no banco.'}
+                      {finalizadoEm ? `Sessão finalizada às ${new Date(finalizadoEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.` : 'Histórico registrado com sucesso.'}
                     </span>
                   </div>
                 </div>
@@ -783,8 +783,8 @@ export const PublicTreino: React.FC = () => {
                   className="btn btn-primary btn-sm"
                   style={{ gap: '0.35rem', fontSize: '0.78rem', height: '34px', padding: '0 0.8rem' }}
                 >
-                  <Sparkles size={13} aria-hidden="true" />
-                  <span>Iniciar Nova Semana</span>
+                  <RotateCcw size={13} aria-hidden="true" />
+                  <span>Iniciar Próxima Sessão</span>
                 </button>
               </div>
             )}
@@ -1096,13 +1096,13 @@ export const PublicTreino: React.FC = () => {
               sessaoConcluida ? (
                 <div className="workout-completed-banner">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Trophy size={24} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
+                    <CheckCircle2 size={24} style={{ color: 'var(--success)', flexShrink: 0 }} aria-hidden="true" />
                     <div>
                       <strong style={{ fontSize: '0.95rem', color: 'var(--text-0)', display: 'block' }}>
-                        Treino Finalizado com Sucesso! 🏆
+                        Treino finalizado
                       </strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-1)' }}>
-                        Seus dados foram arquivados e servirão de meta para a próxima semana.
+                        Cargas e repetições salvas como referência para sua próxima sessão.
                       </span>
                     </div>
                   </div>
@@ -1112,8 +1112,8 @@ export const PublicTreino: React.FC = () => {
                     className="btn btn-primary"
                     style={{ gap: '0.45rem', padding: '0.65rem 1.1rem', fontWeight: 700, fontSize: '0.85rem' }}
                   >
-                    <Sparkles size={16} aria-hidden="true" />
-                    <span>Iniciar Próximo Treino (Nova Semana)</span>
+                    <RotateCcw size={16} aria-hidden="true" />
+                    <span>Iniciar Próxima Sessão</span>
                   </button>
                 </div>
               ) : (
@@ -1282,20 +1282,20 @@ export const PublicTreino: React.FC = () => {
               width: '64px', 
               height: '64px', 
               borderRadius: '50%', 
-              backgroundColor: 'var(--accent-dim)', 
-              color: 'var(--accent)',
+              backgroundColor: 'rgba(45, 168, 104, 0.12)', 
+              color: 'var(--success)',
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
               margin: '0 auto 1rem auto'
             }}>
-              <Trophy size={34} aria-hidden="true" />
+              <CheckCircle2 size={34} strokeWidth={2.2} aria-hidden="true" />
             </div>
             <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-0)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
-              Treino Finalizado! 🎉
+              Treino finalizado
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', marginBottom: '1.5rem', lineHeight: 1.45 }}>
-              Excelente trabalho! Suas cargas e repetições foram gravadas no seu histórico. Na próxima semana, elas aparecerão automaticamente na coluna <strong>Anterior</strong> para você buscar sobrecarga progressiva.
+              Excelente treino! Suas cargas e repetições foram salvas no histórico. Na próxima sessão, elas aparecerão como referência na coluna <strong>Anterior</strong> para guiar sua progressão.
             </p>
 
             <div style={{ 
@@ -1325,8 +1325,8 @@ export const PublicTreino: React.FC = () => {
                 className="btn btn-primary"
                 style={{ width: '100%', height: '46px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               >
-                <Sparkles size={16} aria-hidden="true" />
-                <span>Iniciar Próximo Treino (Nova Semana)</span>
+                <RotateCcw size={16} aria-hidden="true" />
+                <span>Iniciar Próxima Sessão</span>
               </button>
               <button
                 type="button"

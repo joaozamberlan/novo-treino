@@ -1357,7 +1357,7 @@ export const Treinos: React.FC = () => {
                   </div>
                   <div className="print-guideline-item">
                     <strong>03. INTERVALOS E CARGAS</strong>
-                    <p>Respeite rigorosamente a pausa estipulada. Progrida as cargas mantendo a técnica impecável.</p>
+                    <p>Respeite a pausa estipulada. Progrida as cargas mantendo uma boa execução técnica.</p>
                   </div>
                 </div>
               </div>

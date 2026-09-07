@@ -128,12 +128,12 @@ export const Configuracoes: React.FC = () => {
 
     try {
       await api.post('/exercicios/seed');
-      setMessage({ type: 'success', text: 'Biblioteca de exercícios semeada com sucesso!' });
-      toast.success('Biblioteca de exercícios semeada com sucesso!');
+      setMessage({ type: 'success', text: 'Exercícios padrão carregados com sucesso!' });
+      toast.success('Exercícios padrão carregados com sucesso!');
       await fetchStats();
     } catch (err: any) {
       console.error(err);
-      const errText = err.response?.data?.message || 'Erro ao semear biblioteca.';
+      const errText = err.response?.data?.message || 'Erro ao carregar exercícios padrão.';
       setMessage({ type: 'danger', text: errText });
       toast.error(errText);
     } finally {
@@ -245,9 +245,9 @@ export const Configuracoes: React.FC = () => {
 
       {/* Group 2: Visual Identity */}
       <div className="settings-group">
-        <div className="settings-group-title">Identidade visual (PDF)</div>
+        <div className="settings-group-title">Identidade visual (PDF e Compartilhamento)</div>
         <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-          Estas informações aparecerão no cabeçalho das fichas impressas.
+          Estas informações aparecem no cabeçalho do PDF e nos links compartilhados com os alunos.
         </p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -313,7 +313,7 @@ export const Configuracoes: React.FC = () => {
               disabled={seeding}
             >
               <Dumbbell size={14} />
-              <span>{seeding ? 'Gerando...' : 'Gerar Catálogo Padrão'}</span>
+              <span>{seeding ? 'Carregando...' : 'Carregar Exercícios Padrão'}</span>
             </button>
           )}
         </div>

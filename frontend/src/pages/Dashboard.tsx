@@ -116,13 +116,13 @@ export const Dashboard: React.FC = () => {
 
     try {
       await api.post('/exercicios/seed');
-      setMessage({ type: 'success', text: 'Biblioteca de exercícios semeada com sucesso!' });
+      setMessage({ type: 'success', text: 'Exercícios padrão carregados com sucesso!' });
       await fetchStats();
     } catch (err: any) {
       console.error(err);
       setMessage({ 
         type: 'danger', 
-        text: err.response?.data?.message || 'Erro ao semear biblioteca.' 
+        text: err.response?.data?.message || 'Erro ao carregar exercícios padrão.' 
       });
     } finally {
       setSeeding(false);
@@ -381,7 +381,7 @@ export const Dashboard: React.FC = () => {
             style={{ minWidth: '220px' }}
           >
             <Dumbbell size={16} />
-            {seeding ? 'Carregando...' : (exerciciosCount > 0 ? 'Recarregar Catálogo Padrão' : 'Gerar Catálogo Padrão')}
+            {seeding ? 'Carregando...' : (exerciciosCount > 0 ? 'Recarregar Catálogo Padrão' : 'Carregar Catálogo Padrão')}
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Layers, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Sparkles } from 'lucide-react';
+import { Layers, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Smartphone, FlaskConical } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
@@ -85,7 +85,19 @@ export const Layout: React.FC = () => {
             onClick={e => e.stopPropagation()}
             style={{ textAlign: 'center' }}
           >
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📲</div>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '12px', 
+              backgroundColor: 'var(--accent-dim)', 
+              color: 'var(--accent)',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              margin: '0 auto 1rem auto'
+            }}>
+              <Smartphone size={24} />
+            </div>
             <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
             <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
               Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
@@ -253,7 +265,7 @@ export const Layout: React.FC = () => {
               }}
               style={{ color: 'var(--accent)' }}
             >
-              <Sparkles size={16} />
+              <FlaskConical size={16} />
               <span className="sidebar-label">Protótipos UI</span>
             </NavLink>
           </nav>

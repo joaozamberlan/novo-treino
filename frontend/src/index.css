@@ -3049,6 +3049,10 @@ body.light-theme .floating-rest-timer {
   max-width: 400px;
 }
 
+.login-form-container.register-form-container {
+  max-width: 460px;
+}
+
 .login-form-eyebrow {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
