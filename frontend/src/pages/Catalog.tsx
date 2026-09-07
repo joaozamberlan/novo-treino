@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { 
-  Plus, Dumbbell, Sparkles, Edit, Trash2, 
-  Video, Save, FolderPlus 
+  Plus, Layers, Sparkles, Edit, Trash2, 
+  Video, Save, FolderPlus, X
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
+import { toast } from 'sonner';
 
 interface GrupoMuscular {
   idGrupoMuscular: number;
@@ -36,11 +37,9 @@ export const Catalog: React.FC = () => {
   const [selectedGrupoFilter, setSelectedGrupoFilter] = useState<number>(0);
   
   const [loading, setLoading] = useState(!cached);
-  const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
-  // --- FORM STATES ---
-  // Exercise form
+  // --- MODAL / FORM STATES ---
+  // Exercise modal
   const [showExForm, setShowExForm] = useState(false);
   const [editingExId, setEditingExId] = useState<number | null>(null);
   const [exNome, setExNome] = useState('');
@@ -48,25 +47,61 @@ export const Catalog: React.FC = () => {
   const [exDesc, setExDesc] = useState('');
   const [exVideo, setExVideo] = useState('');
 
-  // Muscle group quick add form
+  // Muscle group quick add form (inside exercise modal)
   const [showGrupoForm, setShowGrupoForm] = useState(false);
   const [newGrupoNome, setNewGrupoNome] = useState('');
 
-  // Technique form
+  // Technique modal
   const [showTecForm, setShowTecForm] = useState(false);
   const [editingTecId, setEditingTecId] = useState<number | null>(null);
   const [tecNome, setTecNome] = useState('');
   const [tecDesc, setTecDesc] = useState('');
 
-  // Muscle group tab form
+  // Muscle group tab modal
   const [showGrupoTabForm, setShowGrupoTabForm] = useState(false);
   const [editingGrupoId, setEditingGrupoId] = useState<number | null>(null);
   const [grupoTabNome, setGrupoTabNome] = useState('');
 
+  const closeExModal = () => {
+    setShowExForm(false);
+    setEditingExId(null);
+    setExNome('');
+    setExGrupoId(0);
+    setExDesc('');
+    setExVideo('');
+    setShowGrupoForm(false);
+    setNewGrupoNome('');
+  };
+
+  const closeTecModal = () => {
+    setShowTecForm(false);
+    setEditingTecId(null);
+    setTecNome('');
+    setTecDesc('');
+  };
+
+  const closeGrupoTabModal = () => {
+    setShowGrupoTabForm(false);
+    setEditingGrupoId(null);
+    setGrupoTabNome('');
+  };
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showExForm) closeExModal();
+        if (showTecForm) closeTecModal();
+        if (showGrupoTabForm) closeGrupoTabModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showExForm, showTecForm, showGrupoTabForm]);
+
   const loadData = async () => {
     try {
       if (!cached) setLoading(true);
-      setError('');
       
       const [exRes, tecRes, grpRes] = await Promise.all([
         api.get('/exercicios'),
@@ -83,7 +118,7 @@ export const Catalog: React.FC = () => {
       });
     } catch (err) {
       console.error(err);
-      if (!cached) setError('Erro ao carregar dados do catálogo.');
+      if (!cached) toast.error('Erro ao carregar dados do catálogo.');
     } finally {
       setLoading(false);
     }
@@ -94,53 +129,44 @@ export const Catalog: React.FC = () => {
     loadData();
   }, []);
 
-  const clearMessages = () => {
-    setError('');
-    setSuccessMsg('');
-  };
-
   // --- EXERCISE CRUD ---
   const handleSaveExercicio = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearMessages();
+
+    if (!exNome.trim()) {
+      toast.error('Informe o nome do exercício.');
+      return;
+    }
 
     if (!exGrupoId) {
-      setError('Por favor, selecione um grupo muscular.');
+      toast.error('Por favor, selecione um grupo muscular.');
       return;
     }
 
     try {
       if (editingExId) {
-        // Update
         await api.patch(`/exercicios/${editingExId}`, {
-          nome: exNome,
+          nome: exNome.trim(),
           idGrupoMuscular: Number(exGrupoId),
-          descricao: exDesc || null,
-          videoUrl: exVideo || null,
+          descricao: exDesc.trim() || null,
+          videoUrl: exVideo.trim() || null,
         });
-        setSuccessMsg('Exercício atualizado com sucesso!');
+        toast.success('Exercício atualizado com sucesso!');
       } else {
-        // Create
         await api.post('/exercicios', {
-          nome: exNome,
+          nome: exNome.trim(),
           idGrupoMuscular: Number(exGrupoId),
-          descricao: exDesc || null,
-          videoUrl: exVideo || null,
+          descricao: exDesc.trim() || null,
+          videoUrl: exVideo.trim() || null,
         });
-        setSuccessMsg('Exercício criado com sucesso!');
+        toast.success('Exercício cadastrado com sucesso!');
       }
 
-      // Reset form
-      setExNome('');
-      setExGrupoId(0);
-      setExDesc('');
-      setExVideo('');
-      setEditingExId(null);
-      setShowExForm(false);
+      closeExModal();
       loadData();
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Erro ao salvar exercício.');
+      toast.error(err.response?.data?.message || 'Erro ao salvar exercício.');
     }
   };
 
@@ -151,73 +177,73 @@ export const Catalog: React.FC = () => {
     setExDesc(ex.descricao || '');
     setExVideo(ex.videoUrl || '');
     setShowExForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteExercicio = async (id: number) => {
     if (!confirm('Deseja realmente remover este exercício da biblioteca?')) return;
-    clearMessages();
 
     try {
       await api.delete(`/exercicios/${id}`);
-      setSuccessMsg('Exercício removido.');
+      toast.success('Exercício removido.');
       loadData();
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir exercício.');
+      toast.error('Erro ao excluir exercício.');
     }
   };
 
   // --- MUSCLE GROUP QUICK ADD ---
   const handleAddGrupo = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearMessages();
-
     if (!newGrupoNome.trim()) return;
 
     try {
-      const res = await api.post('/exercicios/grupos', { nome: newGrupoNome });
-      setGrupos([...grupos, res.data]);
+      const res = await api.post('/exercicios/grupos', { nome: newGrupoNome.trim() });
+      const updatedGrupos = [...grupos, res.data];
+      setGrupos(updatedGrupos);
       setExGrupoId(res.data.idGrupoMuscular);
       setNewGrupoNome('');
       setShowGrupoForm(false);
-      setSuccessMsg('Grupo muscular cadastrado!');
+      const curCache = memoryCache.get<any>('catalogo');
+      if (curCache) {
+        memoryCache.set('catalogo', { ...curCache, grupos: updatedGrupos });
+      }
+      toast.success('Grupo muscular cadastrado!');
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Erro ao cadastrar grupo muscular.');
+      toast.error(err.response?.data?.message || 'Erro ao cadastrar grupo muscular.');
     }
   };
 
   // --- TECHNIQUE CRUD ---
   const handleSaveTecnica = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearMessages();
+
+    if (!tecNome.trim()) {
+      toast.error('Informe o nome da técnica de treino.');
+      return;
+    }
 
     try {
       if (editingTecId) {
-        // Update
         await api.patch(`/exercicios/tecnicas/${editingTecId}`, {
-          nome: tecNome,
-          descricao: tecDesc || null,
+          nome: tecNome.trim(),
+          descricao: tecDesc.trim() || null,
         });
-        setSuccessMsg('Técnica de treino atualizada!');
+        toast.success('Técnica de treino atualizada!');
       } else {
-        // Create
         await api.post('/exercicios/tecnicas', {
-          nome: tecNome,
-          descricao: tecDesc || null,
+          nome: tecNome.trim(),
+          descricao: tecDesc.trim() || null,
         });
-        setSuccessMsg('Técnica de treino cadastrada!');
+        toast.success('Técnica de treino cadastrada com sucesso!');
       }
 
-      setTecNome('');
-      setTecDesc('');
-      setEditingTecId(null);
-      setShowTecForm(false);
+      closeTecModal();
       loadData();
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Erro ao salvar técnica.');
+      toast.error(err.response?.data?.message || 'Erro ao salvar técnica.');
     }
   };
 
@@ -226,20 +252,63 @@ export const Catalog: React.FC = () => {
     setTecNome(tec.nome);
     setTecDesc(tec.descricao || '');
     setShowTecForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteTecnica = async (id: number) => {
     if (!confirm('Deseja realmente remover esta técnica de treino?')) return;
-    clearMessages();
 
     try {
       await api.delete(`/exercicios/tecnicas/${id}`);
-      setSuccessMsg('Técnica de treino removida.');
+      toast.success('Técnica de treino removida.');
       loadData();
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir técnica de treino.');
+      toast.error('Erro ao excluir técnica de treino.');
+    }
+  };
+
+  // --- MUSCLE GROUP TAB CRUD ---
+  const handleSaveGrupoTab = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!grupoTabNome.trim()) {
+      toast.error('Informe o nome do grupo muscular.');
+      return;
+    }
+
+    try {
+      if (editingGrupoId) {
+        await api.patch(`/exercicios/grupos/${editingGrupoId}`, { nome: grupoTabNome.trim() });
+        toast.success('Grupo muscular atualizado com sucesso!');
+      } else {
+        await api.post('/exercicios/grupos', { nome: grupoTabNome.trim() });
+        toast.success('Grupo muscular cadastrado com sucesso!');
+      }
+
+      closeGrupoTabModal();
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Erro ao salvar grupo muscular.');
+    }
+  };
+
+  const handleEditGrupoTab = (g: GrupoMuscular) => {
+    setEditingGrupoId(g.idGrupoMuscular);
+    setGrupoTabNome(g.nome);
+    setShowGrupoTabForm(true);
+  };
+
+  const handleDeleteGrupoTab = async (id: number) => {
+    if (!confirm('Deseja realmente remover este grupo muscular? Exercícios associados perderão esse grupo.')) return;
+
+    try {
+      await api.delete(`/exercicios/grupos/${id}`);
+      toast.success('Grupo muscular removido.');
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao excluir grupo muscular.');
     }
   };
 
@@ -256,55 +325,6 @@ export const Catalog: React.FC = () => {
   const filteredGrupos = grupos.filter((g) =>
     g.nome.toLowerCase().includes(search.toLowerCase())
   );
-
-  // --- MUSCLE GROUP TAB CRUD ---
-  const handleSaveGrupoTab = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearMessages();
-
-    if (!grupoTabNome.trim()) return;
-
-    try {
-      if (editingGrupoId) {
-        // Update
-        await api.patch(`/exercicios/grupos/${editingGrupoId}`, { nome: grupoTabNome });
-        setSuccessMsg('Grupo muscular atualizado!');
-      } else {
-        // Create
-        await api.post('/exercicios/grupos', { nome: grupoTabNome });
-        setSuccessMsg('Grupo muscular cadastrado com sucesso!');
-      }
-
-      setGrupoTabNome('');
-      setEditingGrupoId(null);
-      setShowGrupoTabForm(false);
-      loadData();
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || 'Erro ao salvar grupo muscular.');
-    }
-  };
-
-  const handleEditGrupoTab = (g: GrupoMuscular) => {
-    setEditingGrupoId(g.idGrupoMuscular);
-    setGrupoTabNome(g.nome);
-    setShowGrupoTabForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteGrupoTab = async (id: number) => {
-    if (!confirm('Deseja realmente remover este grupo muscular? Exercícios associados perderão esse grupo.')) return;
-    clearMessages();
-
-    try {
-      await api.delete(`/exercicios/grupos/${id}`);
-      setSuccessMsg('Grupo muscular removido.');
-      loadData();
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao excluir grupo muscular.');
-    }
-  };
 
   if (loading && exercicios.length === 0 && tecnicas.length === 0 && grupos.length === 0) {
     return (
@@ -344,233 +364,37 @@ export const Catalog: React.FC = () => {
           <button 
             className="btn btn-primary" 
             onClick={() => {
-              setEditingExId(null);
-              setExNome('');
-              setExGrupoId(0);
-              setExDesc('');
-              setExVideo('');
-              setShowExForm(!showExForm);
+              closeExModal();
+              setShowExForm(true);
             }}
           >
             <Plus size={18} />
-            <span>{showExForm ? 'Cancelar' : 'Novo exercício'}</span>
+            <span>Novo exercício</span>
           </button>
         ) : activeTab === 'tecnicas' ? (
           <button 
             className="btn btn-primary" 
             onClick={() => {
-              setEditingTecId(null);
-              setTecNome('');
-              setTecDesc('');
-              setShowTecForm(!showTecForm);
+              closeTecModal();
+              setShowTecForm(true);
             }}
           >
             <Plus size={18} />
-            <span>{showTecForm ? 'Cancelar' : 'Nova técnica'}</span>
+            <span>Nova técnica</span>
           </button>
         ) : (
           <button 
             className="btn btn-primary" 
             onClick={() => {
-              setEditingGrupoId(null);
-              setGrupoTabNome('');
-              setShowGrupoTabForm(!showGrupoTabForm);
+              closeGrupoTabModal();
+              setShowGrupoTabForm(true);
             }}
           >
             <Plus size={18} />
-            <span>{showGrupoTabForm ? 'Cancelar' : 'Novo grupo'}</span>
+            <span>Novo grupo</span>
           </button>
         )}
       </div>
-
-      {/* Alertas */}
-      {error && (
-        <div className="badge badge-danger" style={{ display: 'block', padding: '0.75rem', textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
-      {successMsg && (
-        <div className="badge badge-success" style={{ display: 'block', padding: '0.75rem', textAlign: 'center' }}>
-          {successMsg}
-        </div>
-      )}
-
-      {/* --- FORMULÁRIO DE GRUPO MUSCULAR (TAB) --- */}
-      {showGrupoTabForm && activeTab === 'grupos' && (
-        <div className="card animate-fade-in" style={{ borderColor: 'var(--accent)' }}>
-          <h2>{editingGrupoId ? 'Editar grupo muscular' : 'Novo grupo muscular'}</h2>
-          
-          <form onSubmit={handleSaveGrupoTab} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="grupoTabNome">Nome do grupo muscular</label>
-              <input
-                id="grupoTabNome"
-                type="text"
-                className="form-control"
-                placeholder="Ex: Quadríceps, Isquiotibiais, Peitoral"
-                value={grupoTabNome}
-                onChange={(e) => setGrupoTabNome(e.target.value)}
-                required
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', alignSelf: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowGrupoTabForm(false)}>Cancelar</button>
-              <button type="submit" className="btn btn-primary">
-                <Save size={16} />
-                <span>Salvar grupo</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* --- FORMULÁRIO DE EXERCÍCIO --- */}
-      {showExForm && activeTab === 'exercicios' && (
-        <div className="card animate-fade-in" style={{ borderColor: 'var(--accent)' }}>
-          <h2>{editingExId ? 'Editar Exercício' : 'Cadastrar Novo Exercício'}</h2>
-          
-          <form onSubmit={handleSaveExercicio} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
-            <div className="grid grid-cols-2">
-              <div className="form-group">
-                <label className="form-label" htmlFor="exNome">Nome do Exercício</label>
-                <input
-                  id="exNome"
-                  type="text"
-                  className="form-control"
-                  placeholder="Ex: Supino Reto"
-                  value={exNome}
-                  onChange={(e) => setExNome(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className="form-label" htmlFor="exGrupo">Grupo Muscular</label>
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    style={{ minHeight: 'unset', padding: '0.1rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                    onClick={() => setShowGrupoForm(!showGrupoForm)}
-                  >
-                    <FolderPlus size={12} />
-                    Novo Grupo
-                  </button>
-                </div>
-                
-                {showGrupoForm ? (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Ex: Antebraço"
-                      value={newGrupoNome}
-                      onChange={(e) => setNewGrupoNome(e.target.value)}
-                      style={{ flex: 1 }}
-                    />
-                    <button type="button" className="btn btn-primary" onClick={handleAddGrupo} style={{ minHeight: 'unset', padding: '0.5rem' }}>
-                      Salvar
-                    </button>
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowGrupoForm(false)} style={{ minHeight: 'unset', padding: '0.5rem' }}>
-                      X
-                    </button>
-                  </div>
-                ) : (
-                  <select
-                    id="exGrupo"
-                    className="form-control"
-                    value={exGrupoId}
-                    onChange={(e) => setExGrupoId(Number(e.target.value))}
-                    required
-                  >
-                    <option value={0}>Selecione...</option>
-                    {grupos.map((g) => (
-                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>{g.nome}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2">
-              <div className="form-group">
-                <label className="form-label" htmlFor="exDesc">Descrição / Execução</label>
-                <input
-                  id="exDesc"
-                  type="text"
-                  className="form-control"
-                  placeholder="Ex:"
-                  value={exDesc}
-                  onChange={(e) => setExDesc(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="exVideo">URL de Vídeo Demonstrativo (YouTube)</label>
-                <input
-                  id="exVideo"
-                  type="text"
-                  className="form-control"
-                  placeholder="https://youtube.com/..."
-                  value={exVideo}
-                  onChange={(e) => setExVideo(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', alignSelf: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowExForm(false)}>Cancelar</button>
-              <button type="submit" className="btn btn-primary">
-                <Save size={16} />
-                <span>Salvar Exercício</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* --- FORMULÁRIO DE TÉCNICA --- */}
-      {showTecForm && activeTab === 'tecnicas' && (
-        <div className="card animate-fade-in" style={{ borderColor: 'var(--accent)' }}>
-          <h2>{editingTecId ? 'Editar Técnica' : 'Cadastrar Nova Técnica de Treino'}</h2>
-          
-          <form onSubmit={handleSaveTecnica} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="tecNome">Nome da Técnica</label>
-              <input
-                id="tecNome"
-                type="text"
-                className="form-control"
-                placeholder="Ex: Rest-Pause"
-                value={tecNome}
-                onChange={(e) => setTecNome(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="tecDesc">Descrição Detalhada</label>
-              <input
-                id="tecDesc"
-                type="text"
-                className="form-control"
-                placeholder="Ex: Descansar de 10 a 15 segundos e continuar até nova falha."
-                value={tecDesc}
-                onChange={(e) => setTecDesc(e.target.value)}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', alignSelf: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setShowTecForm(false)}>Cancelar</button>
-              <button type="submit" className="btn btn-primary">
-                <Save size={16} />
-                <span>Salvar Técnica</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* Tabs Navigation & Search */}
       <div className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -591,10 +415,9 @@ export const Catalog: React.FC = () => {
               setActiveTab('exercicios');
               setSearch('');
               setSelectedGrupoFilter(0);
-              clearMessages();
             }}
           >
-            <Dumbbell size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            <Layers size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Exercícios
           </button>
           <button 
@@ -611,7 +434,6 @@ export const Catalog: React.FC = () => {
               setActiveTab('grupos');
               setSearch('');
               setSelectedGrupoFilter(0);
-              clearMessages();
             }}
           >
             <FolderPlus size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
@@ -631,7 +453,6 @@ export const Catalog: React.FC = () => {
               setActiveTab('tecnicas');
               setSearch('');
               setSelectedGrupoFilter(0);
-              clearMessages();
             }}
           >
             <Sparkles size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
@@ -824,6 +645,311 @@ export const Catalog: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: EXERCÍCIO (NOVO / EDITAR) */}
+      {/* ========================================================================= */}
+      {showExForm && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeExModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalExercicioTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '520px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    {editingExId ? 'ATUALIZAÇÃO // EXERCÍCIO' : 'CADASTRO // EXERCÍCIO'}
+                  </span>
+                </div>
+                <h3 id="modalExercicioTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  {editingExId ? 'Editar Exercício' : 'Novo Exercício'}
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeExModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExercicio} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="exNome">Nome do Exercício *</label>
+                <input
+                  id="exNome"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Supino Reto com Barra"
+                  value={exNome}
+                  onChange={(e) => setExNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label className="form-label" htmlFor="exGrupo" style={{ margin: 0 }}>Grupo Muscular *</label>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    style={{ minHeight: 'unset', padding: '0.15rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                    onClick={() => setShowGrupoForm(!showGrupoForm)}
+                  >
+                    <FolderPlus size={12} />
+                    {showGrupoForm ? 'Fechar' : 'Novo Grupo'}
+                  </button>
+                </div>
+
+                {showGrupoForm && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.65rem', animation: 'fadeIn 150ms var(--ease-out)' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Nome do novo grupo..."
+                      value={newGrupoNome}
+                      onChange={(e) => setNewGrupoNome(e.target.value)}
+                      style={{ flex: 1 }}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddGrupo(e);
+                        }
+                      }}
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-primary" 
+                      onClick={handleAddGrupo} 
+                      style={{ minHeight: 'unset', padding: '0.4rem 0.8rem', fontSize: '0.8125rem' }}
+                    >
+                      Salvar
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      onClick={() => setShowGrupoForm(false)} 
+                      style={{ minHeight: 'unset', padding: '0.4rem 0.6rem', fontSize: '0.8125rem' }}
+                      title="Cancelar"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                <select
+                  id="exGrupo"
+                  className="form-input"
+                  value={exGrupoId}
+                  onChange={(e) => setExGrupoId(Number(e.target.value))}
+                  required
+                >
+                  <option value={0}>Selecione um grupo muscular...</option>
+                  {grupos.map((g) => (
+                    <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>{g.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="exDesc">Descrição / Observações de Execução</label>
+                <input
+                  id="exDesc"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Escápulas aduzidas, descer até a linha do peito"
+                  value={exDesc}
+                  onChange={(e) => setExDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="exVideo">Vídeo Demonstrativo (URL YouTube)</label>
+                <input
+                  id="exVideo"
+                  type="url"
+                  className="form-input"
+                  placeholder="https://youtube.com/watch?v=..."
+                  value={exVideo}
+                  onChange={(e) => setExVideo(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeExModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>{editingExId ? 'Atualizar Exercício' : 'Salvar Exercício'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: TÉCNICA (NOVA / EDITAR) */}
+      {/* ========================================================================= */}
+      {showTecForm && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeTecModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalTecnicaTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    {editingTecId ? 'ATUALIZAÇÃO // TÉCNICA' : 'CADASTRO // TÉCNICA'}
+                  </span>
+                </div>
+                <h3 id="modalTecnicaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  {editingTecId ? 'Editar Técnica de Treino' : 'Nova Técnica de Treino'}
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeTecModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTecnica} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="tecNome">Nome da Técnica *</label>
+                <input
+                  id="tecNome"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Rest-Pause, Drop-set, Ponto Zero"
+                  value={tecNome}
+                  onChange={(e) => setTecNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="tecDesc">Descrição Detalhada</label>
+                <textarea
+                  id="tecDesc"
+                  className="form-input"
+                  rows={3}
+                  placeholder="Ex: Descansar de 10 a 15 segundos e continuar até nova falha concêntrica."
+                  value={tecDesc}
+                  onChange={(e) => setTecDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeTecModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: GRUPO MUSCULAR (NOVO / EDITAR) */}
+      {/* ========================================================================= */}
+      {showGrupoTabForm && (
+        <div 
+          className="modal-backdrop" 
+          onClick={closeGrupoTabModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalGrupoTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '420px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    {editingGrupoId ? 'ATUALIZAÇÃO // GRUPO' : 'CADASTRO // GRUPO'}
+                  </span>
+                </div>
+                <h3 id="modalGrupoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  {editingGrupoId ? 'Editar Grupo Muscular' : 'Novo Grupo Muscular'}
+                </h3>
+              </div>
+              <button 
+                type="button" 
+                className="modal-close" 
+                onClick={closeGrupoTabModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveGrupoTab} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="grupoTabNome">Nome do Grupo Muscular *</label>
+                <input
+                  id="grupoTabNome"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Quadríceps, Peitoral, Dorsal"
+                  value={grupoTabNome}
+                  onChange={(e) => setGrupoTabNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeGrupoTabModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>{editingGrupoId ? 'Atualizar Grupo' : 'Salvar Grupo'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
