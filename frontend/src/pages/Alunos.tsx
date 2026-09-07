@@ -58,6 +58,18 @@ export const Alunos: React.FC = () => {
     fetchAlunos();
   }, []);
 
+  // Fecha modais com tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showAddForm) setShowAddForm(false);
+        if (editingAlunoId) cancelEdit();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddForm, editingAlunoId]);
+
   const handleAddAluno = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
@@ -191,17 +203,26 @@ export const Alunos: React.FC = () => {
   return (
     <div className="animate-in">
       {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-        <h1>Alunos</h1>
+      <div className="flex-between" style={{ marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+            <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              GESTÃO DE ALUNOS // BASE ATIVA
+            </span>
+          </div>
+          <h1 style={{ margin: 0 }}>Alunos</h1>
+        </div>
         <button
           className="btn btn-primary btn-sm"
           onClick={() => {
-            setShowAddForm(!showAddForm);
+            setShowAddForm(true);
             cancelEdit();
           }}
+          style={{ gap: '0.35rem', minHeight: '36px', padding: '0 0.85rem' }}
         >
           <Plus size={16} />
-          <span>{showAddForm ? 'Cancelar' : 'Novo aluno'}</span>
+          <span>Novo aluno</span>
         </button>
       </div>
 
@@ -212,144 +233,12 @@ export const Alunos: React.FC = () => {
         </div>
       )}
 
-      {/* Inline Add Form */}
-      {showAddForm && (
-        <div className="card animate-in" style={{ marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Novo aluno</h3>
-          <form onSubmit={handleAddAluno}>
-            <div className="form-row">
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label" htmlFor="nomeAluno">Nome completo</label>
-                <input
-                  id="nomeAluno"
-                  type="text"
-                  className="form-input form-input-sm"
-                  placeholder="Nome do aluno"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label" htmlFor="emailAluno">Email</label>
-                <input
-                  id="emailAluno"
-                  type="email"
-                  className="form-input form-input-sm"
-                  placeholder="email@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="telAluno">Telefone ou WhatsApp</label>
-                <input
-                  id="telAluno"
-                  type="text"
-                  className="form-input form-input-sm"
-                  placeholder="(00) 90000-0000"
-                  value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setShowAddForm(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary btn-sm"
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Salvando...' : 'Cadastrar Aluno'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Modal / Card de Edição de Aluno */}
-      {editingAlunoId && (
-        <div className="card animate-in" style={{ marginBottom: '1rem', border: '1px solid var(--accent)' }}>
-          <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent)' }}>Editar dados do aluno</h3>
-            <button className="btn btn-ghost btn-icon" onClick={cancelEdit} title="Fechar">
-              <X size={16} />
-            </button>
-          </div>
-          <form onSubmit={handleSaveEdit}>
-            <div className="form-row">
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Nome</label>
-                <input
-                  type="text"
-                  className="form-input form-input-sm"
-                  value={editNome}
-                  onChange={(e) => setEditNome(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  className="form-input form-input-sm"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">WhatsApp</label>
-                <input
-                  type="text"
-                  className="form-input form-input-sm"
-                  value={editTelefone}
-                  onChange={(e) => setEditTelefone(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Status</label>
-                <select
-                  className="form-input form-input-sm"
-                  value={editAtivo ? 'true' : 'false'}
-                  onChange={(e) => setEditAtivo(e.target.value === 'true')}
-                >
-                  <option value="true">Ativo</option>
-                  <option value="false">Inativo</option>
-                </select>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={cancelEdit}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary btn-sm"
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Salvando...' : 'Salvar Alterações'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* Search */}
       <div style={{ marginBottom: '0.75rem' }}>
         <input
           type="text"
           className="topbar-search"
-          placeholder="Buscar por nome..."
+          placeholder="Buscar aluno por nome..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -446,6 +335,206 @@ export const Alunos: React.FC = () => {
               Adicionar primeiro aluno
             </button>
           )}
+        </div>
+      )}
+
+      {/* Modal de Cadastro de Aluno */}
+      {showAddForm && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setShowAddForm(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalNovoAlunoTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    CADASTRO // NOVO ALUNO
+                  </span>
+                </div>
+                <h3 id="modalNovoAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Novo Aluno
+                </h3>
+              </div>
+              <button 
+                type="button"
+                className="btn btn-ghost btn-icon" 
+                onClick={() => setShowAddForm(false)} 
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddAluno} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="nomeAluno">Nome completo *</label>
+                <input
+                  id="nomeAluno"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Lucas Silva"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="emailAluno">E-mail</label>
+                <input
+                  id="emailAluno"
+                  type="email"
+                  className="form-input"
+                  placeholder="lucas@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
+                <input
+                  id="telAluno"
+                  type="tel"
+                  className="form-input"
+                  placeholder="(00) 90000-0000"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Cadastrando...' : 'Cadastrar Aluno'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edição de Aluno */}
+      {editingAlunoId && (
+        <div 
+          className="modal-backdrop" 
+          onClick={cancelEdit}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalEditAlunoTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    CONFIGURAÇÃO // ATUALIZAR DADOS
+                  </span>
+                </div>
+                <h3 id="modalEditAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Editar Aluno
+                </h3>
+              </div>
+              <button 
+                type="button"
+                className="btn btn-ghost btn-icon" 
+                onClick={cancelEdit} 
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              <div className="form-group">
+                <label className="form-label">Nome completo *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editNome}
+                  onChange={(e) => setEditNome(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">E-mail</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Telefone / WhatsApp</label>
+                <input
+                  type="tel"
+                  className="form-input"
+                  value={editTelefone}
+                  onChange={(e) => setEditTelefone(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Status do Aluno</label>
+                <select
+                  className="form-input"
+                  value={editAtivo ? 'true' : 'false'}
+                  onChange={(e) => setEditAtivo(e.target.value === 'true')}
+                >
+                  <option value="true">Ativo</option>
+                  <option value="false">Inativo</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={cancelEdit}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
