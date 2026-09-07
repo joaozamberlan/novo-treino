@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Layers, Settings, LogOut, User, Shield, Users, Menu, Home, Sun, Moon, Download, Smartphone, FlaskConical } from 'lucide-react';
+import { 
+  Layers, Settings, LogOut, User, Shield, Users, Menu, Home, 
+  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell, Folder, Sliders 
+} from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab');
+  const isExerciciosRoute = location.pathname.startsWith('/exercicios');
+
   const { canInstall, install } = usePWAInstall();
   const [showIosHint, setShowIosHint] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(() => isExerciciosRoute);
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = localStorage.getItem('sidebar-expanded');
     return saved === 'true';
@@ -39,6 +48,13 @@ export const Layout: React.FC = () => {
       return next;
     });
   };
+
+  // Auto-expand library submenu when on exercicios route
+  useEffect(() => {
+    if (isExerciciosRoute) {
+      setIsLibraryOpen(true);
+    }
+  }, [isExerciciosRoute]);
 
   // Track screen size to auto-collapse on small screens
   useEffect(() => {
@@ -218,17 +234,75 @@ export const Layout: React.FC = () => {
               <span className="sidebar-label">Alunos</span>
             </NavLink>
 
-            <NavLink 
-              to="/exercicios" 
-              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              title="Biblioteca"
-              onClick={() => {
-                if (window.innerWidth <= 768) setIsExpanded(false);
-              }}
-            >
-              <Layers size={16} />
-              <span className="sidebar-label">Biblioteca</span>
-            </NavLink>
+            {/* Biblioteca com Dropdown */}
+            <div className="sidebar-group">
+              <button 
+                type="button"
+                className={`sidebar-item sidebar-item-header ${isExerciciosRoute ? 'active' : ''}`}
+                title="Biblioteca"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isExpanded) {
+                    setIsExpanded(true);
+                    localStorage.setItem('sidebar-expanded', 'true');
+                    setIsLibraryOpen(true);
+                  } else {
+                    setIsLibraryOpen(prev => !prev);
+                  }
+                }}
+              >
+                <Layers size={16} />
+                <span className="sidebar-label">Biblioteca</span>
+                <ChevronDown 
+                  size={14} 
+                  className="sidebar-chevron"
+                  style={{ 
+                    transform: isLibraryOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 180ms var(--ease)' 
+                  }} 
+                />
+              </button>
+
+              {isLibraryOpen && (
+                <div className="sidebar-submenu">
+                  <NavLink 
+                    to="/exercicios?tab=exercicios" 
+                    className={`sidebar-subitem ${isExerciciosRoute && (!currentTab || currentTab === 'exercicios') ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.innerWidth <= 768) setIsExpanded(false);
+                    }}
+                  >
+                    <Dumbbell size={13} />
+                    <span>Exercícios</span>
+                  </NavLink>
+
+                  <NavLink 
+                    to="/exercicios?tab=grupos" 
+                    className={`sidebar-subitem ${isExerciciosRoute && currentTab === 'grupos' ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.innerWidth <= 768) setIsExpanded(false);
+                    }}
+                  >
+                    <Folder size={13} />
+                    <span>Grupos Musculares</span>
+                  </NavLink>
+
+                  <NavLink 
+                    to="/exercicios?tab=tecnicas" 
+                    className={`sidebar-subitem ${isExerciciosRoute && currentTab === 'tecnicas' ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.innerWidth <= 768) setIsExpanded(false);
+                    }}
+                  >
+                    <Sliders size={13} />
+                    <span>Técnicas de Treino</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
 
             {user?.role === 'SUPERADMIN' && (
               <NavLink 
@@ -254,19 +328,6 @@ export const Layout: React.FC = () => {
             >
               <Settings size={16} />
               <span className="sidebar-label">Configurações</span>
-            </NavLink>
-
-            <NavLink 
-              to="/prototypes/exercise-card" 
-              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              title="Protótipos UI"
-              onClick={() => {
-                if (window.innerWidth <= 768) setIsExpanded(false);
-              }}
-              style={{ color: 'var(--accent)' }}
-            >
-              <FlaskConical size={16} />
-              <span className="sidebar-label">Protótipos UI</span>
             </NavLink>
           </nav>
 

@@ -162,13 +162,11 @@ export const Admin: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Profissional</th>
+                <th>Treinador</th>
                 <th>Contato</th>
-                <th>CREF / Cargo</th>
                 <th>Cadastro</th>
-                <th>Tipo</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'right' }}>Ação de Acesso</th>
+                <th>Status & Nível</th>
+                <th style={{ textAlign: 'right' }}>Ações de Acesso</th>
               </tr>
             </thead>
             <tbody>
@@ -178,14 +176,15 @@ export const Admin: React.FC = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{ 
-                          width: '36px', 
-                          height: '36px', 
+                          width: '38px', 
+                          height: '38px', 
                           borderRadius: '50%', 
                           backgroundColor: 'var(--bg-tertiary)', 
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          border: '1px solid var(--border)'
+                          border: '1px solid var(--border)',
+                          flexShrink: 0
                         }}>
                           {prof.logoUrl ? (
                             <img src={prof.logoUrl} alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -194,19 +193,21 @@ export const Admin: React.FC = () => {
                           )}
                         </div>
                         <div>
-                          <div style={{ fontWeight: '600' }}>{prof.nome}</div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>ID: {prof.idProfissional}</div>
+                          <div style={{ fontWeight: '700', color: 'var(--text-0)', fontSize: '0.9rem' }}>{prof.nome}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-2)', marginTop: '2px' }}>
+                            CREF: {prof.cref} • {prof.profissao}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', fontSize: '0.9rem' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.8rem' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-1)' }}>
                           <Mail size={12} style={{ color: 'var(--text-muted)' }} />
                           {prof.email}
                         </span>
                         {prof.telefone && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-2)' }}>
                             <Phone size={12} style={{ color: 'var(--text-muted)' }} />
                             {prof.telefone}
                           </span>
@@ -214,41 +215,43 @@ export const Admin: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <div>
-                        <div style={{ fontWeight: '500' }}>CREF: {prof.cref}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>{prof.profissao}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9rem' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--text-1)' }}>
                         <Calendar size={12} style={{ color: 'var(--text-muted)' }} />
                         {new Date(prof.dataCadastro).toLocaleDateString()}
                       </div>
                     </td>
                     <td>
-                      <span className="badge" style={{ backgroundColor: prof.role === 'SUPERADMIN' ? 'var(--accent-soft)' : 'rgba(255,255,255,0.05)', color: prof.role === 'SUPERADMIN' ? 'var(--accent)' : 'var(--text-1)', border: '1px solid var(--border)' }}>
-                        {prof.role}
-                      </span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                        <span className={`badge ${prof.ativo ? 'badge-success' : 'badge-danger'}`}>
+                          {prof.ativo ? 'Ativo' : 'Pendente'}
+                        </span>
+                        {prof.role === 'SUPERADMIN' ? (
+                          <span className="badge" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>
+                            SuperAdmin
+                          </span>
+                        ) : (
+                          <span className="badge" style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
+                            Treinador
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td>
-                      <span className={`badge ${prof.ativo ? 'badge-success' : 'badge-danger'}`}>
-                        {prof.ativo ? 'Ativo (Aprovado)' : 'Pendente (Bloqueado)'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {prof.role === 'SUPERADMIN' && prof.email === 'admin@treinosapp.com' ? (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Sistema (Fixo)</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Sistema (Fixo)</span>
                       ) : (
-                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => handleToggleStatus(prof.idProfissional, prof.ativo)}
                             className="btn"
                             style={{ 
                               minHeight: 'unset', 
-                              padding: '0.4rem 0.8rem', 
-                              fontSize: '0.85rem',
+                              height: '30px',
+                              padding: '0 0.65rem', 
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
                               display: 'inline-flex',
-                              gap: '0.25rem',
+                              alignItems: 'center',
                               backgroundColor: prof.ativo ? 'rgba(239, 68, 68, 0.1)' : 'var(--accent)',
                               color: prof.ativo ? 'var(--danger)' : '#000',
                               border: prof.ativo ? '1px solid rgba(239, 68, 68, 0.2)' : 'none'
@@ -262,13 +265,15 @@ export const Admin: React.FC = () => {
                             className="btn btn-secondary"
                             style={{ 
                               minHeight: 'unset', 
-                              padding: '0.4rem 0.8rem', 
-                              fontSize: '0.85rem',
+                              height: '30px',
+                              padding: '0 0.65rem', 
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
                               display: 'inline-flex',
-                              gap: '0.25rem'
+                              alignItems: 'center'
                             }}
                           >
-                            {prof.role === 'SUPERADMIN' ? 'Remover Super' : 'Tornar Super'}
+                            {prof.role === 'SUPERADMIN' ? 'Tirar Super' : 'Promover'}
                           </button>
                         </div>
                       )}
@@ -277,7 +282,7 @@ export const Admin: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-1)' }}>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-1)' }}>
                     Nenhum profissional encontrado.
                   </td>
                 </tr>

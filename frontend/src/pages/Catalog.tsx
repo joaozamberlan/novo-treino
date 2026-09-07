@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
   Plus, Layers, Sparkles, Edit, Trash2, 
@@ -30,8 +30,14 @@ interface TecnicaTreino {
 
 export const Catalog: React.FC = () => {
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab') as 'exercicios' | 'tecnicas' | 'grupos' | null;
+
   const cached = memoryCache.get<any>('catalogo');
-  const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos'>('exercicios');
+  const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos'>(() => {
+    if (urlTab === 'grupos' || urlTab === 'tecnicas') return urlTab;
+    return 'exercicios';
+  });
   const [exercicios, setExercicios] = useState<Exercicio[]>(cached?.exercicios || []);
   const [tecnicas, setTecnicas] = useState<TecnicaTreino[]>(cached?.tecnicas || []);
   const [grupos, setGrupos] = useState<GrupoMuscular[]>(cached?.grupos || []);
@@ -101,12 +107,28 @@ export const Catalog: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showExForm, showTecForm, showGrupoTabForm]);
 
+  // Sync tab with URL search param
+  useEffect(() => {
+    if (urlTab === 'grupos' || urlTab === 'tecnicas' || urlTab === 'exercicios') {
+      setActiveTab(urlTab);
+      setSearch('');
+      setSelectedGrupoFilter(0);
+    }
+  }, [urlTab]);
+
   useEffect(() => {
     if (location.state?.openAdd) {
       setActiveTab('exercicios');
       setShowExForm(true);
     }
   }, [location.state]);
+
+  const handleTabChange = (tab: 'exercicios' | 'tecnicas' | 'grupos') => {
+    setActiveTab(tab);
+    setSearch('');
+    setSelectedGrupoFilter(0);
+    setSearchParams({ tab });
+  };
 
   const loadData = async () => {
     try {
@@ -420,11 +442,7 @@ export const Catalog: React.FC = () => {
               backgroundColor: activeTab === 'exercicios' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'exercicios' ? 'var(--accent)' : 'var(--text-1)'
             }}
-            onClick={() => {
-              setActiveTab('exercicios');
-              setSearch('');
-              setSelectedGrupoFilter(0);
-            }}
+            onClick={() => handleTabChange('exercicios')}
           >
             <Layers size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Exercícios
@@ -439,11 +457,7 @@ export const Catalog: React.FC = () => {
               backgroundColor: activeTab === 'grupos' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'grupos' ? 'var(--accent)' : 'var(--text-1)'
             }}
-            onClick={() => {
-              setActiveTab('grupos');
-              setSearch('');
-              setSelectedGrupoFilter(0);
-            }}
+            onClick={() => handleTabChange('grupos')}
           >
             <FolderPlus size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Grupos Musculares
@@ -458,11 +472,7 @@ export const Catalog: React.FC = () => {
               backgroundColor: activeTab === 'tecnicas' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'tecnicas' ? 'var(--accent)' : 'var(--text-1)'
             }}
-            onClick={() => {
-              setActiveTab('tecnicas');
-              setSearch('');
-              setSelectedGrupoFilter(0);
-            }}
+            onClick={() => handleTabChange('tecnicas')}
           >
             <Sparkles size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Técnicas de Treino

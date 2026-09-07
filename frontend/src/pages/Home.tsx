@@ -197,7 +197,7 @@ export const Home: React.FC = () => {
         <div className="hub-card">
           <div>
             <div className="hub-card-header">
-              <span className="hub-card-tag">02 // BANCO DE MOVIMENTOS</span>
+              <span className="hub-card-tag">02 // BIBLIOTECA DE EXERCÍCIOS</span>
               <span className="hub-card-stat">
                 {exerciciosCount > 0 ? `${exerciciosCount} CADASTRADOS` : 'CATÁLOGO'}
               </span>
