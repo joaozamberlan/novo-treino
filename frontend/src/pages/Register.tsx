@@ -263,7 +263,7 @@ export const Register: React.FC = () => {
 
             <button
               type="submit"
-              className="login-submit-btn"
+              className="btn-login-submit"
               disabled={loading}
             >
               {loading ? (
@@ -271,16 +271,15 @@ export const Register: React.FC = () => {
               ) : (
                 <>
                   <span>Criar Conta</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} strokeWidth={2.5} />
                 </>
               )}
             </button>
           </form>
 
-          <p className="auth-footer-text" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-            Já possui uma conta?{' '}
-            <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>Entrar na plataforma</Link>
-          </p>
+          <div className="login-footer-support">
+            Já possui uma conta? <Link to="/login">Entrar na plataforma</Link>
+          </div>
         </div>
       </div>
     </div>
