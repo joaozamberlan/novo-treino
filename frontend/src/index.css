@@ -1623,119 +1623,596 @@ body.light-theme .floating-rest-timer {
 
 
 
+/* ── Print / PDF Generation Styles (Technical Paper Identity) ─────────── */
+
 .print-only {
-  display: none;
+  display: none !important;
 }
 
 @media print {
-  body * {
-    visibility: hidden;
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 12mm 12mm;
   }
 
-  #print-section,
-  #print-section * {
-    visibility: visible;
+  /* Reset body and container geometry for seamless multi-page pagination */
+  html, body, #root, .app-shell, .main-layout, .content-area {
+    background: #ffffff !important;
+    color: #121316 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide screen-only interactive chrome */
+  .app-sidebar,
+  .app-topbar,
+  .sidebar-backdrop-mobile,
+  .no-print,
+  .modal-backdrop,
+  [data-sonner-toaster],
+  button,
+  .btn,
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
+
+  /* Force display print container */
+  .print-only {
+    display: block !important;
   }
 
   #print-section {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    color: #000;
-    background: #fff;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #121316 !important;
+    font-family: var(--font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* Accent Stripe */
+  .print-accent-bar {
+    height: 4px;
+    background: #ba281a !important;
+    margin-bottom: 12px;
+    width: 100%;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Header */
   .print-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    border-bottom: 2px solid #000;
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
+    border-bottom: 1.5px solid #14171e;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    gap: 16px;
+  }
+
+  .print-header-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex: 1;
   }
 
   .print-logo {
-    max-height: 80px;
-    max-width: 150px;
+    max-height: 52px;
+    max-width: 140px;
     object-fit: contain;
   }
 
-  .print-trainer-info {
-    text-align: right;
+  .print-brand-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f7f7f6 !important;
+    border: 1px solid #dcdad5;
+    padding: 6px 10px;
+    border-radius: 4px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-brand-icon {
+    width: 32px;
+    height: 32px;
+    background: #ba281a !important;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    font-weight: 900;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-brand-title {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #ba281a !important;
+    line-height: 1.1;
+  }
+
+  .print-brand-sub {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-weight: 600;
+    font-size: 7.5px;
+    letter-spacing: 0.04em;
+    color: #555866;
+    margin-top: 2px;
+  }
+
+  .print-trainer-details {
+    margin-top: 1px;
   }
 
   .print-trainer-name {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0d0e12 !important;
+    margin: 0 0 2px 0;
+    line-height: 1.15;
   }
 
-  .print-trainer-info p {
-    margin: 0.25rem 0 0;
-    font-size: 0.9rem;
-    color: #444;
+  .print-trainer-cref {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
   }
 
-  .print-trainer-info span {
-    font-size: 0.8rem;
-    color: #666;
-    margin-left: 1rem;
+  .print-tag-pill {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #ba281a !important;
+    background: rgba(186, 40, 26, 0.08) !important;
+    border: 1px solid rgba(186, 40, 26, 0.25);
+    padding: 1px 5px;
+    border-radius: 3px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .print-student-meta {
+  .print-trainer-role {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #4b505c;
+  }
+
+  .print-trainer-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 9px;
+    color: #555866;
+  }
+
+  .print-contact-item strong {
+    color: #111827;
+  }
+
+  .print-header-stamp {
+    border: 1.5px solid #14171e;
+    background: #fbfbfa !important;
+    padding: 6px 10px;
+    border-radius: 4px;
+    min-width: 175px;
+    text-align: right;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-stamp-title {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #14171e;
+    border-bottom: 1px dashed #d1d5db;
+    padding-bottom: 3px;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .print-stamp-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 8.5px;
+    margin-bottom: 2px;
+  }
+
+  .print-stamp-label {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  .print-stamp-value {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .print-stamp-active {
+    color: #15803d !important;
+    font-weight: 800;
+  }
+
+  /* Student & Protocol Metadata Card */
+  .print-meta-card {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    background: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    font-size: 0.9rem;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid #d1d5db;
+    background: #fcfcfb !important;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  .print-meta-cell {
+    padding: 7px 9px;
+    border-right: 1px solid #e5e7eb;
+  }
+
+  .print-meta-cell:last-child {
+    border-right: none;
+  }
+
+  .print-meta-label {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #ba281a !important;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  .print-meta-val-primary {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #111827 !important;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .print-meta-val-secondary {
+    font-size: 8.5px;
+    color: #6b7280;
+    display: block;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Ficha Block */
   .print-treino-block {
-    margin-bottom: 2.5rem;
+    margin-bottom: 18px;
     page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .print-treino-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #14171e !important;
+    color: #ffffff !important;
+    padding: 6px 10px;
+    border-radius: 3px 3px 0 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-treino-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .print-treino-badge {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8.5px;
+    font-weight: 800;
+    color: #ffffff !important;
+    background: #ba281a !important;
+    padding: 2px 5px;
+    border-radius: 2px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-treino-title {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 0.25rem;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: #ffffff !important;
   }
 
-  .print-treino-obs {
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
-    color: #555;
+  .print-treino-meta {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #d1d5db !important;
+    display: flex;
+    gap: 5px;
   }
 
+  .print-treino-callout {
+    background: #fafaf9 !important;
+    border-left: 3px solid #ba281a;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 5px 9px;
+    font-size: 9px;
+    color: #374151;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-treino-callout strong {
+    color: #ba281a;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8px;
+    margin-right: 4px;
+  }
+
+  /* Table */
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    border: 1px solid #14171e;
+    margin-bottom: 10px;
+    font-size: 9.5px;
   }
 
-  .print-table th,
-  .print-table td {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    text-align: left;
+  .print-table thead {
+    display: table-header-group;
+  }
+
+  .print-table thead tr {
+    background: #f3f4f6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-table th {
-    background: #f0f0f0;
-    font-weight: 600;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #111827 !important;
+    padding: 5px 6px;
+    border: 1px solid #d1d5db;
+    border-bottom: 1.5px solid #14171e;
+    text-align: left;
   }
 
-  .print-table tr:nth-child(even) {
-    background: #fafafa;
+  .print-table tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-table tbody tr:nth-child(even) {
+    background: #fafaf9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-table td {
+    padding: 5px 6px;
+    border: 1px solid #e5e7eb;
+    vertical-align: middle;
+  }
+
+  .print-td-num {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #ba281a !important;
+    text-align: center;
+  }
+
+  .print-exercise-name {
+    font-weight: 700;
+    font-size: 10px;
+    color: #0f1115 !important;
+    line-height: 1.2;
+  }
+
+  .print-exercise-group {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 7.5px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 1px;
+  }
+
+  .print-td-series {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-align: center;
+    color: #111827 !important;
+  }
+
+  .print-td-reps {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    font-weight: 700;
+    text-align: center;
+    color: #111827 !important;
+  }
+
+  .print-td-carga {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    font-weight: 700;
+    text-align: center;
+    color: #111827 !important;
+  }
+
+  .print-carga-blank {
+    display: inline-block;
+    border-bottom: 1px dotted #9ca3af;
+    min-width: 44px;
+    color: #9ca3af;
+    font-size: 8.5px;
+    font-weight: normal;
+  }
+
+  .print-td-descanso {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9px;
+    text-align: center;
+    color: #4b5563;
+  }
+
+  .print-tecnica-tag {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #ba281a !important;
+    background: rgba(186, 40, 26, 0.08) !important;
+    border: 1px solid rgba(186, 40, 26, 0.25);
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-right: 4px;
+    display: inline-block;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-obs-text {
+    font-size: 8.5px;
+    color: #374151;
+  }
+
+  /* Guidelines Box */
+  .print-guidelines-box {
+    border: 1px solid #d1d5db;
+    background: #fbfbfa !important;
+    padding: 7px 9px;
+    border-radius: 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-guidelines-title {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 7.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #ba281a !important;
+    margin-bottom: 5px;
+  }
+
+  .print-guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .print-guideline-item {
+    font-size: 8px;
+    line-height: 1.3;
+  }
+
+  .print-guideline-item strong {
+    display: block;
+    font-size: 8px;
+    color: #111827;
+    margin-bottom: 1px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  }
+
+  .print-guideline-item p {
+    color: #4b5563;
+    margin: 0;
+  }
+
+  /* Document Footer */
+  .print-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #d1d5db;
+    padding-top: 8px;
+    margin-top: 12px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-footer-legal {
+    font-size: 8px;
+    color: #6b7280;
+    max-width: 60%;
+    line-height: 1.35;
+  }
+
+  .print-signature-wrap {
+    text-align: center;
+    min-width: 180px;
+  }
+
+  .print-signature-line {
+    width: 100%;
+    border-bottom: 1px solid #111827;
+    margin-bottom: 3px;
+  }
+
+  .print-signature-name {
+    font-size: 9px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .print-signature-cref {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 7.5px;
+    color: #6b7280;
   }
 }
 

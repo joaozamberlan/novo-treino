@@ -96,6 +96,14 @@ export const Treinos: React.FC = () => {
   const [showEditFichaModal, setShowEditFichaModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
 
+  // --- PRINT MODAL & CUSTOMIZATION STATES ---
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [printScope, setPrintScope] = useState<'all' | 'current'>('all');
+  const [printPagePerFicha, setPrintPagePerFicha] = useState(true);
+  const [printNotesLine, setPrintNotesLine] = useState(true);
+  const [printGuidelines, setPrintGuidelines] = useState(true);
+  const [printSignature, setPrintSignature] = useState(true);
+
   // Edit Ficha state
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
   const [editFichaNome, setEditFichaNome] = useState('');
@@ -159,6 +167,13 @@ export const Treinos: React.FC = () => {
     setShowExerciseModal(true);
   };
 
+  const handleTriggerPrint = () => {
+    setShowPrintModal(false);
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
   // Close modals on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -167,6 +182,7 @@ export const Treinos: React.FC = () => {
         setShowTreinoModal(false);
         setShowEditFichaModal(false);
         setShowExerciseModal(false);
+        setShowPrintModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -823,40 +839,71 @@ export const Treinos: React.FC = () => {
   const activeFicha = activeProtocol?.treinos.find(t => t.idTreino === activeTabId);
   const sortedExercicios = activeFicha ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
 
+  // Print calculations & formatting
+  const currentFicha = activeFicha || sortedTreinos[0];
+  const treinosToPrint = (printScope === 'current' && currentFicha) 
+    ? [currentFicha] 
+    : sortedTreinos;
+
+  const totalSeriesProtocolo = activeProtocol?.treinos.reduce((acc, t) => 
+    acc + (t.exercicios?.reduce((sAcc, e) => sAcc + (Number(e.series) || 0), 0) || 0)
+  , 0) || 0;
+
+  const totalExerciciosProtocolo = activeProtocol?.treinos.reduce((acc, t) => 
+    acc + (t.exercicios?.length || 0)
+  , 0) || 0;
+
+  const formatPrintDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const parts = dateStr.split('T')[0].split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return new Date(dateStr).toLocaleDateString('pt-BR');
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Header Section */}
-      <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link to="/" className="btn btn-ghost btn-icon">
-            <ArrowLeft size={18} />
-          </Link>
-          <div>
-            <h1>{aluno?.nome}</h1>
-            <p>
-              {activeProtocol?.nome || 'Sem protocolo ativo'}
-              {activeProtocol?.objetivo && (
-                <span style={{ color: 'var(--text-2)', margin: '0 0.35rem' }}>|</span>
-              )}{activeProtocol?.objetivo}
-              {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
-            </p>
+      {/* Screen Interactive UI Wrapper (Hidden during print) */}
+      <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Header Section */}
+        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Link to="/" className="btn btn-ghost btn-icon">
+              <ArrowLeft size={18} />
+            </Link>
+            <div>
+              <h1>{aluno?.nome}</h1>
+              <p>
+                {activeProtocol?.nome || 'Sem protocolo ativo'}
+                {activeProtocol?.objetivo && (
+                  <span style={{ color: 'var(--text-2)', margin: '0 0.35rem' }}>|</span>
+                )}{activeProtocol?.objetivo}
+                {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
+              </p>
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {aluno?.tokenAcesso && (
-            <button className="btn btn-secondary btn-sm" onClick={handleShare}>
-              <Share2 size={14} />
-              {shareCopied ? 'Copiado!' : 'Compartilhar'}
-            </button>
-          )}
-          {activeProtocol && (
-            <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
-              <Printer size={14} />
-              Imprimir
-            </button>
-          )}
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowProtocolModal(true)}>
-            <Calendar size={14} />
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {aluno?.tokenAcesso && (
+              <button className="btn btn-secondary btn-sm" onClick={handleShare}>
+                <Share2 size={14} />
+                {shareCopied ? 'Copiado!' : 'Compartilhar'}
+              </button>
+            )}
+            {activeProtocol && (
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
+                <Printer size={14} />
+                Imprimir / PDF
+              </button>
+            )}
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowProtocolModal(true)}>
+              <Calendar size={14} />
             Periodizações
           </button>
         </div>
@@ -1106,208 +1153,236 @@ export const Treinos: React.FC = () => {
         </div>
       )}
 
-      {/* --- PRINT VIEW FOR WINDOW.PRINT() --- */}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* PRINT VIEW FOR WINDOW.PRINT() / SALVAR COMO PDF */}
+      {/* ========================================================================= */}
       {activeProtocol && aluno && (
         <div id="print-section" className="print-only">
-          <div className="print-header">
-            {/* Branding Logo */}
-            {user?.logoUrl && (
-              <img src={user.logoUrl} alt="Logo" className="print-logo" />
-            )}
-            
-            <div className="print-trainer-info">
-              <h1 className="print-trainer-name">{user?.nome || 'Personal Trainer'}</h1>
-              <p>{user?.profissao || 'Profissional de Educação Física'} | CREF: {user?.cref}</p>
-              {user?.telefone && <span>WhatsApp: {user.telefone} </span>}
-              {user?.instagram && <span>Instagram: {user.instagram}</span>}
-            </div>
-          </div>
+          <div className="print-document">
+            {/* Red accent bar */}
+            <div className="print-accent-bar" />
 
-          <div className="print-student-meta">
-            <div>
-              <strong>Aluno:</strong> {aluno.nome}
+            {/* Document Header */}
+            <header className="print-header">
+              <div className="print-header-brand">
+                {user?.logoUrl ? (
+                  <img src={user.logoUrl} alt="Logo Profissional" className="print-logo" />
+                ) : (
+                  <div className="print-brand-badge">
+                    <div className="print-brand-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="print-brand-title">TREINOS // APP</div>
+                      <div className="print-brand-sub">PRESCRIÇÃO & CIÊNCIA DO TREINAMENTO</div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="print-trainer-details">
+                  <h1 className="print-trainer-name">{user?.nome || 'Personal Trainer'}</h1>
+                  <div className="print-trainer-cref">
+                    <span className="print-tag-pill">CREF: {user?.cref || 'REGISTRADO'}</span>
+                    <span className="print-trainer-role">{user?.profissao || 'Profissional de Educação Física'}</span>
+                  </div>
+                  <div className="print-trainer-contacts">
+                    {user?.telefone && (
+                      <span className="print-contact-item"><strong>WhatsApp:</strong> {user.telefone}</span>
+                    )}
+                    {user?.instagram && (
+                      <span className="print-contact-item"><strong>Instagram:</strong> @{user.instagram.replace('@', '')}</span>
+                    )}
+                    {user?.email && (
+                      <span className="print-contact-item"><strong>Email:</strong> {user.email}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="print-header-stamp">
+                <div className="print-stamp-title">PRESCRIÇÃO OFICIAL</div>
+                <div className="print-stamp-item">
+                  <span className="print-stamp-label">EMISSÃO:</span>
+                  <span className="print-stamp-value">{dataHoje}</span>
+                </div>
+                <div className="print-stamp-item">
+                  <span className="print-stamp-label">PROTOCOLO:</span>
+                  <span className="print-stamp-value">#{String(activeProtocol.idProtocolo).padStart(4, '0')}</span>
+                </div>
+                <div className="print-stamp-item">
+                  <span className="print-stamp-label">STATUS:</span>
+                  <span className="print-stamp-value print-stamp-active">ATIVO</span>
+                </div>
+              </div>
+            </header>
+
+            {/* Protocol & Student Metadata Card */}
+            <div className="print-meta-card">
+              <div className="print-meta-cell">
+                <span className="print-meta-label">ALUNO // PRONTUÁRIO</span>
+                <span className="print-meta-val-primary">{aluno.nome}</span>
+                <span className="print-meta-val-secondary">
+                  ID #{aluno.idAluno} {aluno.email ? `• ${aluno.email}` : ''}
+                </span>
+              </div>
+
+              <div className="print-meta-cell">
+                <span className="print-meta-label">PROGRAMA // CICLO</span>
+                <span className="print-meta-val-primary">{activeProtocol.nome}</span>
+                <span className="print-meta-val-secondary">
+                  {activeProtocol.objetivo || 'Prescrição Técnica Geral'}
+                </span>
+              </div>
+
+              <div className="print-meta-cell">
+                <span className="print-meta-label">PERIODIZAÇÃO</span>
+                <span className="print-meta-val-primary">
+                  {formatPrintDate(activeProtocol.dataInicio) || 'Início Imediato'}
+                  {activeProtocol.dataFim ? ` → ${formatPrintDate(activeProtocol.dataFim)}` : ' (Contínuo)'}
+                </span>
+                <span className="print-meta-val-secondary">
+                  {activeProtocol.treinos.length} divisões cadastradas
+                </span>
+              </div>
+
+              <div className="print-meta-cell">
+                <span className="print-meta-label">VOLUME TOTAL</span>
+                <span className="print-meta-val-primary">{totalSeriesProtocolo} Séries Totais</span>
+                <span className="print-meta-val-secondary">
+                  {totalExerciciosProtocolo} Exercícios no Ciclo
+                </span>
+              </div>
             </div>
-            <div>
-              <strong>Programa:</strong> {activeProtocol.nome}
-            </div>
-            {activeProtocol.objetivo && (
-              <div>
-                <strong>Objetivo:</strong> {activeProtocol.objetivo}
+
+            {/* Workout Fichas */}
+            {treinosToPrint.map((treino, idx) => {
+              const isLast = idx === treinosToPrint.length - 1;
+              const shouldBreakPage = printPagePerFicha && !isLast;
+              const totalFichaSeries = treino.exercicios?.reduce((acc, e) => acc + (Number(e.series) || 0), 0) || 0;
+              const fichaLetra = String.fromCharCode(65 + (treino.ordem ? treino.ordem - 1 : idx));
+
+              return (
+                <div 
+                  key={treino.idTreino} 
+                  className={`print-treino-block ${shouldBreakPage ? 'print-page-break' : ''}`}
+                >
+                  <div className="print-treino-header">
+                    <div className="print-treino-title-wrap">
+                      <span className="print-treino-badge">FICHA {fichaLetra}</span>
+                      <h2 className="print-treino-title">{treino.nome}</h2>
+                    </div>
+                    <div className="print-treino-meta">
+                      <span>{treino.exercicios?.length || 0} EXERCÍCIOS</span>
+                      <span>•</span>
+                      <span>{totalFichaSeries} SÉRIES TOTAIS</span>
+                    </div>
+                  </div>
+
+                  {treino.observacao && (
+                    <div className="print-treino-callout">
+                      <strong>ORIENTAÇÃO DA FICHA:</strong> {treino.observacao}
+                    </div>
+                  )}
+
+                  <table className="print-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '32px', textAlign: 'center' }}>#</th>
+                        <th style={{ width: '34%' }}>EXERCÍCIO & GRUPO</th>
+                        <th style={{ width: '48px', textAlign: 'center' }}>SÉRIES</th>
+                        <th style={{ width: '68px', textAlign: 'center' }}>REPS</th>
+                        <th style={{ width: '74px', textAlign: 'center' }}>CARGA</th>
+                        <th style={{ width: '64px', textAlign: 'center' }}>PAUSA</th>
+                        <th>TÉCNICA & ORIENTAÇÕES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {treino.exercicios && treino.exercicios.length > 0 ? (
+                        treino.exercicios.map((item, exIdx) => (
+                          <tr key={item.idTreinoExercicio}>
+                            <td className="print-td-num">{String(exIdx + 1).padStart(2, '0')}</td>
+                            <td>
+                              <div className="print-exercise-name">{item.exercicio.nome}</div>
+                              <div className="print-exercise-group">{item.exercicio.grupoMuscular?.nome?.toUpperCase()}</div>
+                            </td>
+                            <td className="print-td-series">{item.series}</td>
+                            <td className="print-td-reps">{item.repeticoes}</td>
+                            <td className="print-td-carga">
+                              {item.carga ? (
+                                <span>{item.carga}</span>
+                              ) : printNotesLine ? (
+                                <span className="print-carga-blank">____ kg</span>
+                              ) : (
+                                <span style={{ color: '#9ca3af' }}>—</span>
+                              )}
+                            </td>
+                            <td className="print-td-descanso">
+                              {item.descansoSegundos ? `${item.descansoSegundos}s` : '60s'}
+                            </td>
+                            <td>
+                              {item.tecnica && (
+                                <span className="print-tecnica-tag">[{item.tecnica.nome.toUpperCase()}]</span>
+                              )}
+                              <span className="print-obs-text">{item.observacao || '—'}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} style={{ textAlign: 'center', padding: '1.2rem', color: '#6b7280' }}>
+                            Nenhum exercício prescrito nesta divisão.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })}
+
+            {/* General safety & performance guidelines */}
+            {printGuidelines && (
+              <div className="print-guidelines-box">
+                <div className="print-guidelines-title">DIRETRIZES TÉCNICAS DE SEGURANÇA E PERFORMANCE</div>
+                <div className="print-guidelines-grid">
+                  <div className="print-guideline-item">
+                    <strong>01. AQUECIMENTO ESPECÍFICO</strong>
+                    <p>Realize 1 a 2 séries de aquecimento com 50% da carga antes do primeiro exercício do grupamento.</p>
+                  </div>
+                  <div className="print-guideline-item">
+                    <strong>02. CONTROLE DA CADÊNCIA</strong>
+                    <p>Priorize a fase excêntrica controlada (2-3s). Mantenha a postura e a amplitude completa do movimento.</p>
+                  </div>
+                  <div className="print-guideline-item">
+                    <strong>03. INTERVALOS E CARGAS</strong>
+                    <p>Respeite rigorosamente a pausa estipulada. Progrida as cargas mantendo a técnica impecável.</p>
+                  </div>
+                </div>
               </div>
             )}
-            <div>
-              <strong>Gerado em:</strong> {new Date().toLocaleDateString()}
-            </div>
-          </div>
 
-          {activeProtocol.treinos.map((treino) => (
-            <div key={treino.idTreino} className="print-treino-block" style={{ pageBreakInside: 'avoid' }}>
-              <h2 className="print-treino-title">{treino.nome}</h2>
-              {treino.observacao && (
-                <p className="print-treino-obs"><em>Obs: {treino.observacao}</em></p>
+            {/* Document Footer */}
+            <footer className="print-footer">
+              <div className="print-footer-legal">
+                <p>Prescrição técnica individualizada gerada via <strong>TreinosApp</strong> para uso exclusivo de <strong>{aluno.nome}</strong>.</p>
+                <p>A execução dos exercícios deve seguir rigorosamente as orientações do profissional habilitado.</p>
+              </div>
+
+              {printSignature && (
+                <div className="print-signature-wrap">
+                  <div className="print-signature-line" />
+                  <div className="print-signature-name">Prof. {user?.nome || 'Personal Trainer'}</div>
+                  <div className="print-signature-cref">CREF: {user?.cref || '—'} • Responsável Técnico</div>
+                </div>
               )}
-              
-              <table className="print-table">
-                <thead>
-                  <tr>
-                    <th>Exercício</th>
-                    <th>Músculo</th>
-                    <th>Séries</th>
-                    <th>Repetições</th>
-                    <th>Descanso</th>
-                    <th>Técnica / Anotações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {treino.exercicios && treino.exercicios.length > 0 ? (
-                    treino.exercicios.map((item) => (
-                      <tr key={item.idTreinoExercicio}>
-                        <td style={{ fontWeight: 'bold' }}>{item.exercicio.nome}</td>
-                        <td>{item.exercicio.grupoMuscular.nome}</td>
-                        <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{item.series}</td>
-                        <td>{item.repeticoes}</td>
-                        <td>{item.descansoSegundos ? `${item.descansoSegundos}s` : '-'}</td>
-                        <td>
-                          {item.tecnica && <strong>[{item.tecnica.nome}] </strong>}
-                          {item.observacao || ''}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} style={{ textAlign: 'center' }}>Nenhum exercício prescrito.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          ))}
+            </footer>
+          </div>
         </div>
       )}
-
-      {/* Print-specific styles */}
-      <style>{`
-        .print-only {
-          display: none;
-        }
-        
-        @media print {
-          /* Hide all UI */
-          body * {
-            visibility: hidden;
-          }
-          
-          /* Show only print container */
-          #print-section, #print-section * {
-            visibility: visible;
-          }
-          
-          #print-section {
-            display: block !important;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            color: #000;
-            background-color: #fff;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          }
-          
-          .print-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid #000;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-          }
-          
-          .print-logo {
-            max-height: 80px;
-            max-width: 150px;
-            object-fit: contain;
-          }
-          
-          .print-trainer-info {
-            text-align: right;
-          }
-          
-          .print-trainer-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 0;
-            color: #000 !important;
-            background: none !important;
-            -webkit-text-fill-color: initial !important;
-          }
-          
-          .print-trainer-info p {
-            margin: 0.25rem 0 0;
-            font-size: 0.9rem;
-            color: #444 !important;
-          }
-          
-          .print-trainer-info span {
-            font-size: 0.8rem;
-            color: #666;
-            margin-left: 1rem;
-          }
-          
-          .print-student-meta {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background-color: #f8f9fa;
-            padding: 0.75rem;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 0.9rem;
-          }
-          
-          .print-treino-block {
-            margin-bottom: 2.5rem;
-          }
-          
-          .print-treino-title {
-            font-size: 1.25rem;
-            border-bottom: 1px solid #000;
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.5rem;
-            color: #000 !important;
-          }
-          
-          .print-treino-obs {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 0.75rem;
-          }
-          
-          .print-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-          }
-          
-          .print-table th, .print-table td {
-            border: 1px solid #ddd;
-            padding: 6px 10px;
-            text-align: left;
-          }
-          
-          .print-table th {
-            background-color: #f2f2f2 !important;
-            color: #000 !important;
-            font-weight: bold;
-          }
-          
-          .print-table tr:nth-child(even) {
-            background-color: #fafafa;
-          }
-        }
-      `}</style>
 
       {/* ========================================================================= */}
       {/* MODAL 1: PERIODIZAÇÕES & PROTOCOLOS */}
@@ -1812,6 +1887,182 @@ export const Treinos: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: CONFIGURAR IMPRESSÃO & GERAR PDF */}
+      {/* ========================================================================= */}
+      {showPrintModal && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setShowPrintModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalPrintTitle"
+        >
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '520px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                  <span className="section-label" style={{ margin: 0 }}>PDF // PRESCRIÇÃO</span>
+                </div>
+                <h2 id="modalPrintTitle" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
+                  Imprimir / Exportar PDF
+                </h2>
+                <p style={{ color: 'var(--text-1)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
+                  Personalize o escopo e o conteúdo do documento para impressão em alta definição ou salvamento como PDF.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                className="exercise-action-btn"
+                onClick={() => setShowPrintModal(false)}
+                aria-label="Fechar"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Escopo da Impressão */}
+              <div>
+                <label className="section-label" style={{ marginBottom: '0.5rem' }}>
+                  Escopo da Impressão
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      gap: '0.65rem', 
+                      padding: '0.75rem', 
+                      borderRadius: 'var(--radius-m)',
+                      border: printScope === 'all' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      backgroundColor: printScope === 'all' ? 'var(--accent-dim)' : 'var(--bg-1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="printScope" 
+                      checked={printScope === 'all'} 
+                      onChange={() => setPrintScope('all')} 
+                      style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
+                        Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
+                        Gera o encarte completo com todas as divisões ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
+                      </div>
+                    </div>
+                  </label>
+
+                  <label 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      gap: '0.65rem', 
+                      padding: '0.75rem', 
+                      borderRadius: 'var(--radius-m)',
+                      border: printScope === 'current' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      backgroundColor: printScope === 'current' ? 'var(--accent-dim)' : 'var(--bg-1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="printScope" 
+                      checked={printScope === 'current'} 
+                      onChange={() => setPrintScope('current')} 
+                      style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
+                        Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
+                        Gera folha única avulsa da divisão atualmente selecionada.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Opções de Conteúdo */}
+              <div>
+                <label className="section-label" style={{ marginBottom: '0.5rem' }}>
+                  Opções de Conteúdo & Diagramação
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--bg-1)', padding: '0.75rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border)' }}>
+                  {printScope === 'all' && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={printPagePerFicha} 
+                        onChange={e => setPrintPagePerFicha(e.target.checked)} 
+                        style={{ accentColor: 'var(--accent)' }}
+                      />
+                      <span><strong>Quebrar página por ficha</strong> (Recomendado para impressão física)</span>
+                    </label>
+                  )}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={printNotesLine} 
+                      onChange={e => setPrintNotesLine(e.target.checked)} 
+                      style={{ accentColor: 'var(--accent)' }}
+                    />
+                    <span><strong>Linhas para anotação de cargas</strong> (Para o aluno preencher os pesos com caneta)</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={printGuidelines} 
+                      onChange={e => setPrintGuidelines(e.target.checked)} 
+                      style={{ accentColor: 'var(--accent)' }}
+                    />
+                    <span><strong>Diretrizes técnicas & aquecimento</strong> (Recomendações de segurança no rodapé)</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={printSignature} 
+                      onChange={e => setPrintSignature(e.target.checked)} 
+                      style={{ accentColor: 'var(--accent)' }}
+                    />
+                    <span><strong>Campo de assinatura do profissional</strong> (Carimbo e validação CREF)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, paddingTop: '0.5rem' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowPrintModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary" 
+                  onClick={handleTriggerPrint}
+                >
+                  <Printer size={16} />
+                  <span>Imprimir / Gerar PDF</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
