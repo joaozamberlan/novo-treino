@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Protótipo Interativo — Login & Dashboard Inicial | TreinosApp</title>
+  
+  <!-- Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       CSS VARIABLES & THEMES (Science x Streetwear)
+       ========================================================================== */
+    :root {
+      /* Theme 1: Carbon Lab (Dark) */
+      --bg-0: #0c0d0f;
+      --bg-1: #14161a;
+      --bg-2: #1b1e24;
+      --bg-3: #242831;
+      --border: rgba(240, 239, 234, 0.08);
+      --border-strong: rgba(240, 239, 234, 0.16);
+      --border-focus: #ba281a;
+      --text-0: #f0efea;
+      --text-1: #a2a6b0;
+      --text-2: #656975;
+      
+      /* Burnt Red System */
+      --accent: #ba281a;
+      --accent-hover: #cb392c;
+      --accent-soft: rgba(186, 40, 26, 0.12);
+      --accent-dim: rgba(186, 40, 26, 0.05);
+      --accent-border: rgba(186, 40, 26, 0.32);
+      
+      /* Semantics */
+      --success: #22c55e;
+      --success-soft: rgba(34, 197, 94, 0.12);
+      --warning: #f59e0b;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-s: 4px;
+      --radius-m: 8px;
+      --radius-l: 12px;
+      --radius-xl: 18px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body.theme-paper {
+      /* Theme 2: Technical Paper (Light Mode) */
+      --bg-0: #f4f3ef;
+      --bg-1: #ffffff;
+      --bg-2: #eae8e1;
+      --bg-3: #dedbd2;
+      --border: rgba(20, 22, 26, 0.10);
+      --border-strong: rgba(20, 22, 26, 0.18);
+      --border-focus: #ba281a;
+      --text-0: #121316;
+      --text-1: #565963;
+      --text-2: #868a95;
+      --accent: #ba281a;
+      --accent-hover: #9e251a;
+      --accent-soft: rgba(186, 40, 26, 0.08);
+      --accent-dim: rgba(186, 40, 26, 0.04);
+      --accent-border: rgba(186, 40, 26, 0.25);
+    }
+
+    /* ==========================================================================
+       RESET & BASE
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-0);
+      color: var(--text-0);
+      font-family: var(--font);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 200ms ease, color 200ms ease;
+      min-height: 100vh;
+    }
+
+    /* ==========================================================================
+       PROTOTYPE CONTROL BAR (TOP BAR)
+       ========================================================================== */
+    .proto-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border-strong);
+      padding: 0.65rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .proto-badge-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .proto-badge-brand::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 1.5px;
+    }
+
+    .proto-tabs {
+      display: flex;
+      gap: 0.35rem;
+      background: var(--bg-2);
+      padding: 3px;
+      border-radius: var(--radius-m);
+      border: 1px solid var(--border);
+    }
+
+    .proto-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-1);
+      padding: 0.4rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      border-radius: var(--radius-s);
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .proto-tab-btn:hover {
+      color: var(--text-0);
+    }
+
+    .proto-tab-btn.active {
+      background: var(--bg-0);
+      color: var(--text-0);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .proto-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .proto-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      color: var(--text-0);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-m);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 140ms var(--ease);
+    }
+
+    .proto-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* Screen Views */
+    .screen-view {
+      display: none;
+      animation: fadeIn 0.25s var(--ease) forwards;
+    }
+
+    .screen-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       SCREEN 1: LOGIN (SCIENCE x STREETWEAR SPLIT)
+       ========================================================================== */
+    .login-wrapper {
+      min-height: calc(100vh - 54px);
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+    }
+
+    @media (max-width: 960px) {
+      .login-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Panel: High Impact Brand & Interactive Showcase */
+    .login-left-panel {
+      background: radial-gradient(circle at 10% 20%, rgba(186, 40, 26, 0.08) 0%, transparent 45%),
+                  linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
+      border-right: 1px solid var(--border-strong);
+      padding: 3.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (max-width: 960px) {
+      .login-left-panel {
+        display: none; /* Em mobile foca direto no form de login */
+      }
+    }
+
+    /* Subtle grid background pattern */
+    .login-left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .login-brand-header {
+      position: relative;
+      z-index: 2;
+    }
+
+    .login-brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-s);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .login-hero-title {
+      font-size: 2.25rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+      color: var(--text-0);
+    }
+
+    .login-hero-title span {
+      color: var(--accent);
+      background: linear-gradient(135deg, var(--accent) 0%, #ff5242 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-hero-desc {
+      font-size: 0.95rem;
+      color: var(--text-1);
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* Card Mockup Showcase (The Core Preview) */
+    .login-card-preview {
+      position: relative;
+      z-index: 2;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      padding: 1.25rem;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+      max-width: 480px;
+      margin: 2rem 0;
+    }
+
+    .login-card-preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .login-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .login-card-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .login-card-pill-muscle {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-1);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius-s);
+    }
+
+    /* Sets row inside login mockup */
+    .login-mock-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 1fr 1fr 28px;
+      gap: 0.4rem;
+      align-items: center;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.6rem;
+      border-radius: var(--radius-s);
+      margin-bottom: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .login-mock-row.completed {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .mock-badge-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 3px;
+      background: var(--bg-3);
+      color: var(--text-0);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .login-mock-row.completed .mock-badge-num {
+      background: rgba(34, 197, 94, 0.25);
+      color: var(--success);
+    }
+
+    .mock-pr-tag {
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.05rem 0.35rem;
+      border-radius: 2px;
+      border: 1px solid var(--accent-border);
+    }
+
+    /* Left Footer Technical Features */
+    .login-left-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+    }
+
+    .login-tech-feature {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .login-tech-feature span {
+      color: var(--accent);
+    }
+
+    /* Right Panel: Form Box */
+    .login-right-panel {
+      background: var(--bg-0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .login-form-container {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-form-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .login-form-eyebrow::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .login-form-title {
+      font-size: 1.75rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.35rem;
+    }
+
+    .login-form-sub {
+      font-size: 0.875rem;
+      color: var(--text-1);
+      margin-bottom: 1.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.15rem;
+    }
+
+    .form-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-1);
+    }
+
+    .form-forgot-link {
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 140ms ease;
+    }
+
+    .form-forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    .form-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 44px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-m);
+      color: var(--text-0);
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 0 1rem;
+      outline: none;
+      transition: all 140ms var(--ease);
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-border);
+      background: var(--bg-2);
+    }
+
+    .form-toggle-password {
+      position: absolute;
+      right: 0.75rem;
+      background: transparent;
+      border: none;
+      color: var(--text-2);
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 140ms ease;
+    }
+
+    .form-toggle-password:hover {
+      color: var(--text-0);
+    }
+
+    .form-remember-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.8125rem;
+      color: var(--text-1);
+      cursor: pointer;
+    }
+
+    .form-remember-row input {
+      accent-color: var(--accent);
+    }
+
+    .btn-login-submit {
+      width: 100%;
+      height: 46px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-m);
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(186, 40, 26, 0.35);
+      transition: all 140ms var(--ease);
+    }
+
+    .btn-login-submit:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(186, 40, 26, 0.45);
+    }
+
+    .login-footer-support {
+      margin-top: 1.75rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--text-2);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .login-footer-support a {
+      color: var(--text-0);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .login-footer-support a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       SCREEN 2: HOME DASHBOARD (OPERACIONAL & SPORTS SCIENCE)
+       ========================================================================== */
+    .home-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2.25rem 1.5rem 4rem 1.5rem;
+    }
+
+    /* Dashboard Header */
+    .dash-masthead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .dash-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .dash-eyebrow::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .dash-title {
+      font-size: 1.85rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .dash-sub {
+      font-size: 0.875rem;
+      color: var(--text-1);
+      margin-top: 0.25rem;
+    }
+
+    .dash-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--success);
+      background: var(--success-soft);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-s);
+    }
+
+    .dash-status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* KPIs Grid (4 Cards) */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 540px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-m);
+      padding: 1rem 1.15rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 160ms var(--ease);
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .kpi-card-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-2);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-card-value {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-0);
+      line-height: 1.1;
+    }
+
+    .kpi-card-sub {
+      font-size: 0.75rem;
+      color: var(--text-1);
+      margin-top: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .kpi-trend-up {
+      color: var(--success);
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    /* Quick Launcher / Actions Bar */
+    .quick-actions-bar {
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      padding: 0.85rem 1.25rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .quick-tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .quick-btns-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-quick-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-m);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+      box-shadow: 0 2px 8px rgba(186, 40, 26, 0.3);
+    }
+
+    .btn-quick-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-quick-secondary {
+      background: var(--bg-2);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-m);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+    }
+
+    .btn-quick-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Primary Navigation Cards (Elevated 3-Column Layout) */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 860px) {
+      .module-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .module-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-l);
+      padding: 1.35rem;
+      cursor: pointer;
+      transition: all 160ms var(--ease);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px -6px rgba(0,0,0,0.4);
+      transform: translateY(-2px);
+    }
+
+    .module-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .module-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-m);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-0);
+      transition: all 160ms ease;
+    }
+
+    .module-card:hover .module-icon-wrap {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .module-arrow {
+      color: var(--text-2);
+      transition: all 160ms ease;
+    }
+
+    .module-card:hover .module-arrow {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    .module-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35rem;
+    }
+
+    .module-card-desc {
+      font-size: 0.8125rem;
+      color: var(--text-1);
+      line-height: 1.5;
+      margin-bottom: 1.15rem;
+    }
+
+    .module-card-meta {
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-2);
+    }
+
+    .module-card-meta strong {
+      color: var(--text-0);
+    }
+
+    /* Section: Recent Students List */
+    .section-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-label-bold {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-label-bold span {
+      color: var(--accent);
+    }
+
+    .recent-students-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-l);
+      overflow: hidden;
+    }
+
+    .student-item {
+      display: grid;
+      grid-template-columns: 2.2fr 2fr 1.5fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 140ms ease;
+    }
+
+    .student-item:last-child {
+      border-bottom: none;
+    }
+
+    .student-item:hover {
+      background: var(--bg-2);
+    }
+
+    .student-col-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .student-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-s);
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .student-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .student-meta {
+      font-size: 0.75rem;
+      color: var(--text-2);
+    }
+
+    .protocol-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-s);
+    }
+
+    .student-col-activity {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-1);
+    }
+
+    .btn-student-action {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--radius-s);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 140ms ease;
+    }
+
+    .btn-student-action:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       HOME OPTION SWITCHER & OPÇÃO 2 (HUB MINIMALISTA STREETWEAR)
+       ========================================================================== */
+    .home-option-switcher-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .home-option-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      padding: 3px;
+      border-radius: var(--radius-m);
+      gap: 3px;
+    }
+
+    .home-opt-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-1);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      border-radius: var(--radius-s);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 140ms var(--ease);
+    }
+
+    .home-opt-btn:hover {
+      color: var(--text-0);
+    }
+
+    .home-opt-btn.active {
+      background: var(--bg-0);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+
+    .home-opt-indicator {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-2);
+    }
+
+    .home-subview {
+      display: none;
+      animation: fadeIn 0.22s var(--ease) forwards;
+    }
+
+    .home-subview.active {
+      display: block;
+    }
+
+    /* ─── Opção 2: Spotlight / Quick Jump ─── */
+    .hub-spotlight-bar {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+
+    .hub-search-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-l);
+      padding: 0.35rem 1.15rem;
+      transition: all 160ms var(--ease);
+      box-shadow: 0 4px 20px -5px rgba(0,0,0,0.25);
+    }
+
+    .hub-search-input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-border), 0 8px 30px -5px rgba(186, 40, 26, 0.2);
+      background: var(--bg-2);
+    }
+
+    .hub-search-icon {
+      color: var(--text-2);
+      margin-right: 0.85rem;
+      transition: color 140ms ease;
+    }
+
+    .hub-search-input-wrap:focus-within .hub-search-icon {
+      color: var(--accent);
+    }
+
+    .hub-search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-0);
+      font-family: inherit;
+      font-size: 0.95rem;
+      height: 46px;
+    }
+
+    .hub-search-input::placeholder {
+      color: var(--text-2);
+      font-size: 0.875rem;
+    }
+
+    .hub-kbd-pill {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-2);
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-s);
+      letter-spacing: 0.05em;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* Live Search Results Dropdown (Simulation) */
+    .hub-search-results {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--bg-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-m);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      z-index: 50;
+      overflow: hidden;
+      display: none;
+    }
+
+    .hub-search-results.visible {
+      display: block;
+      animation: fadeIn 0.15s var(--ease) forwards;
+    }
+
+    .hub-search-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 140ms ease;
+    }
+
+    .hub-search-item:last-child {
+      border-bottom: none;
+    }
+
+    .hub-search-item:hover {
+      background: var(--bg-2);
+    }
+
+    /* ─── Opção 2: Hero Tactical 3-Cards Grid ─── */
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.75rem;
+    }
+
+    @media (max-width: 920px) {
+      .hub-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hub-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-l);
+      padding: 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 180ms var(--ease);
+    }
+
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      transition: background 180ms ease;
+    }
+
+    .hub-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px -10px rgba(0,0,0,0.5);
+    }
+
+    .hub-card:hover::before {
+      background: var(--accent);
+    }
+
+    .hub-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .hub-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hub-card-stat {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-1);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-s);
+    }
+
+    .hub-card-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+      color: var(--text-0);
+    }
+
+    .hub-card-desc {
+      font-size: 0.85rem;
+      color: var(--text-1);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      min-height: 2.7rem;
+    }
+
+    .hub-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .btn-hub-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 0.55rem 1.05rem;
+      border-radius: var(--radius-m);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 140ms var(--ease);
+      box-shadow: 0 2px 8px rgba(186, 40, 26, 0.28);
+    }
+
+    .btn-hub-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-hub-subtle {
+      background: transparent;
+      color: var(--text-1);
+      border: 1px solid var(--border);
+      padding: 0.55rem 0.9rem;
+      border-radius: var(--radius-m);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 140ms var(--ease);
+    }
+
+    .btn-hub-subtle:hover {
+      color: var(--text-0);
+      border-color: var(--border-strong);
+      background: var(--bg-2);
+    }
+
+    /* ─── Opção 2: Fast Access / Recent Athletes (Clean micro-cards, zero table noise) ─── */
+    .hub-recents-section {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-l);
+      padding: 1.35rem 1.5rem;
+    }
+
+    .hub-recents-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.15rem;
+    }
+
+    .hub-recents-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .hub-recents-title span {
+      color: var(--accent);
+    }
+
+    .hub-recents-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 860px) {
+      .hub-recents-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hub-recent-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-m);
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 140ms ease;
+    }
+
+    .hub-recent-card:hover {
+      border-color: var(--accent-border);
+      background: var(--bg-3);
+      transform: translateY(-1px);
+    }
+
+    .hub-recent-card-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .hub-recent-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-s);
+      background: var(--bg-0);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .hub-recent-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-0);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hub-recent-meta {
+      font-size: 0.72rem;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hub-recent-arrow {
+      color: var(--text-2);
+      transition: transform 140ms ease, color 140ms ease;
+      flex-shrink: 0;
+    }
+
+    .hub-recent-card:hover .hub-recent-arrow {
+      color: var(--accent);
+      transform: translateX(2px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       CONTROL BAR INTERATIVA (PROTOTYPE SWITCHER)
+       ========================================================================== -->
+  <header class="proto-bar">
+    <div class="proto-badge-brand">
+      PROTÓTIPO // SPORTS SCIENCE
+    </div>
+
+    <div class="proto-tabs">
+      <button id="btnTabLogin" class="proto-tab-btn active" onclick="switchScreen('login')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        1. Tela de Login
+      </button>
+      <button id="btnTabHome" class="proto-tab-btn" onclick="switchScreen('home')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        2. Tela Inicial (Dashboard)
+      </button>
+    </div>
+
+    <div class="proto-actions">
+      <button class="proto-btn" onclick="toggleTheme()" title="Alternar entre Carbon Lab e Technical Paper">
+        <span id="themeLabel">🌓 Tema: Escuro (Carbon)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       SCREEN 1: LOGIN (SCIENCE x STREETWEAR)
+       ========================================================================== -->
+  <section id="screenLogin" class="screen-view active">
+    <div class="login-wrapper">
+      
+      <!-- Left Panel: Brand & Live Interactive Mockup -->
+      <div class="login-left-panel">
+        <div class="login-brand-header">
+          <div class="login-brand-pill">
+            TREINOS // APP • MOTOR DE PRESCRIÇÃO
+          </div>
+          <h1 class="login-hero-title">
+            Estrutura, precisão e velocidade <span>na prescrição de treinos.</span>
+          </h1>
+          <p class="login-hero-desc">
+            Organize periodizações, registre cargas e volumes sem atrito e entregue prescrições limpas e diretas aos seus alunos.
+          </p>
+        </div>
+
+        <!-- Interactive Workout Card Mockup -->
+        <div class="login-card-preview">
+          <div class="login-card-preview-head">
+            <div>
+              <div class="login-card-tag">EXERCÍCIO 01 // PEITORAL & OMBRO</div>
+              <div class="login-card-name">Supino Inclinado com Halteres</div>
+            </div>
+            <div class="login-card-pill-muscle">PEITORAL SUPERIOR</div>
+          </div>
+
+          <!-- Mock sets -->
+          <div class="login-mock-row completed">
+            <div class="mock-badge-num">1</div>
+            <div><strong>12 reps</strong></div>
+            <div>30 kg</div>
+            <div><span class="mock-pr-tag">PR +2.5kg</span></div>
+            <div style="color: var(--success); display: flex; align-items: center; justify-content: center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="login-mock-row completed">
+            <div class="mock-badge-num">2</div>
+            <div><strong>10 reps</strong></div>
+            <div>32 kg</div>
+            <div style="color: var(--text-2);">RIR 1</div>
+            <div style="color: var(--success); display: flex; align-items: center; justify-content: center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+
+          <div class="login-mock-row" style="border-color: var(--accent); background: var(--accent-dim);">
+            <div class="mock-badge-num" style="background: var(--accent); color: #fff;">3</div>
+            <div><strong>8-10 reps</strong></div>
+            <div>34 kg</div>
+            <div style="color: var(--accent); font-weight: 700;">REST-PAUSE</div>
+            <div style="color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 700;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>90s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Left Footer: Clean SVG Monospace Highlights (No emojis) -->
+        <div class="login-left-footer">
+          <div class="login-tech-feature">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            Sincronização em Nuvem
+          </div>
+          <div class="login-tech-feature">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+            Armazenamento Offline Nativo
+          </div>
+          <div class="login-tech-feature">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><circle cx="4" cy="14" r="2"/><circle cx="12" cy="8" r="2"/><circle cx="20" cy="16" r="2"/></svg>
+            Cálculo Dinâmico de Séries e Cargas
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Sleek Access Form -->
+      <div class="login-right-panel">
+        <div class="login-form-container">
+          <div class="login-form-eyebrow">ACESSO RESTRITO // TREINADOR</div>
+          <h2 class="login-form-title">Entrar na plataforma</h2>
+          <p class="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
+
+          <form onsubmit="event.preventDefault(); alert('Simulação de login bem-sucedida!');">
+            <div class="form-group">
+              <div class="form-label-row">
+                <label class="form-label" for="loginEmail">E-mail Profissional</label>
+              </div>
+              <div class="form-input-wrap">
+                <input 
+                  id="loginEmail" 
+                  type="email" 
+                  class="form-input" 
+                  placeholder="exemplo@treinador.com" 
+                  value="treinador@demo.com" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label-row">
+                <label class="form-label" for="loginPass">Senha de Acesso</label>
+                <a href="#recuperar" class="form-forgot-link">Esqueceu a senha?</a>
+              </div>
+              <div class="form-input-wrap">
+                <input 
+                  id="loginPass" 
+                  type="password" 
+                  class="form-input" 
+                  placeholder="••••••••" 
+                  value="senha12345" 
+                  required 
+                />
+                <button 
+                  type="button" 
+                  class="form-toggle-password" 
+                  onclick="togglePasswordVisibility()" 
+                  id="btnTogglePass"
+                  title="Mostrar/ocultar senha"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <label class="form-remember-row">
+              <input type="checkbox" checked />
+              <span>Manter sessão ativa neste dispositivo</span>
+            </label>
+
+            <button type="submit" class="btn-login-submit">
+              <span>Acessar Painel</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </form>
+
+          <div class="login-footer-support">
+            Não possui acesso profissional? <a href="#solicitar">Cadastre-se aqui</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SCREEN 2: HOME DASHBOARD (OPERACIONAL & SPORTS SCIENCE)
+       ========================================================================== -->
+  <section id="screenHome" class="screen-view">
+    <div class="home-container">
+      
+      <!-- Sub-Switcher: Opção 2 vs Opção 1 -->
+      <div class="home-option-switcher-wrap">
+        <div class="home-option-switcher">
+          <button id="btnHomeOp2" class="home-opt-btn active" onclick="switchHomeOption('op2')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Opção 2: Hub Minimalista Streetwear (Recomendado)
+          </button>
+          <button id="btnHomeOp1" class="home-opt-btn" onclick="switchHomeOption('op1')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Opção 1: Painel Completo (ERP com KPIs)
+          </button>
+        </div>
+        <div class="home-opt-indicator">
+          <span>Alternância direta entre propostas</span>
+        </div>
+      </div>
+
+      <!-- ================================================================
+           OPÇÃO 2: HUB MINIMALISTA STREETWEAR (FOCO TOTAL EM VELOCIDADE)
+           ================================================================ -->
+      <div id="homeViewOp2" class="home-subview active">
+        <!-- Masthead Minimalista -->
+        <div class="dash-masthead" style="margin-bottom: 2rem;">
+          <div>
+            <div class="dash-eyebrow">PAINEL OPERACIONAL // SESSÃO ATIVA</div>
+            <h1 class="dash-title">Olá, João</h1>
+            <p class="dash-sub">Selecione um módulo ou busque um atleta diretamente pelo atalho rápido.</p>
+          </div>
+
+          <div class="dash-status-pill">
+            <span class="dash-status-dot"></span>
+            SISTEMA PRONTO • 24 ALUNOS ATIVOS
+          </div>
+        </div>
+
+        <!-- Spotlight / Quick Jump Bar -->
+        <div class="hub-spotlight-bar">
+          <div class="hub-search-input-wrap">
+            <svg class="hub-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input 
+              id="hubSearchInput"
+              type="text" 
+              class="hub-search-input" 
+              placeholder="Digite o nome ou e-mail do aluno para prescrever direto... (Ex: Carlos, Mariana)"
+              oninput="handleHubSearch(this.value)"
+              onfocus="handleHubSearch(this.value)"
+            />
+            <span class="hub-kbd-pill">BUSCA RÁPIDA</span>
+          </div>
+
+          <!-- Dynamic Dropdown Filter (Interactive Simulation) -->
+          <div id="hubSearchResults" class="hub-search-results">
+            <div class="hub-search-item" onclick="selectStudentDemo('Carlos Mendes')">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="hub-recent-avatar">CM</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-0);">Carlos Mendes</div>
+                  <div style="font-size: 0.72rem; color: var(--text-2);">carlos.m@gmail.com • Hipertrofia 2026</div>
+                </div>
+              </div>
+              <span class="btn-hub-primary" style="padding: 0.35rem 0.75rem; font-size: 0.72rem;">Abrir Treinos →</span>
+            </div>
+            <div class="hub-search-item" onclick="selectStudentDemo('Mariana Souza')">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="hub-recent-avatar" style="color: var(--text-0);">MS</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-0);">Mariana Souza</div>
+                  <div style="font-size: 0.72rem; color: var(--text-2);">mari.souza@outlook.com • Upper/Lower</div>
+                </div>
+              </div>
+              <span class="btn-hub-primary" style="padding: 0.35rem 0.75rem; font-size: 0.72rem;">Abrir Treinos →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Hero Tactical Module Cards -->
+        <div class="hub-grid">
+          
+          <!-- Card 01: Alunos -->
+          <div class="hub-card">
+            <div>
+              <div class="hub-card-header">
+                <span class="hub-card-tag">01 // GESTÃO DE ATLETAS</span>
+                <span class="hub-card-stat">24 ATIVOS</span>
+              </div>
+              <h2 class="hub-card-title">Alunos & Prescrições</h2>
+              <p class="hub-card-desc">
+                Cadastre prontuários, estruture fichas de treinos, controle histórico de cargas e envie links interativos aos alunos.
+              </p>
+            </div>
+            <div class="hub-card-actions">
+              <button class="btn-hub-primary" onclick="alert('Navegar para /alunos')">
+                <span>Acessar Alunos</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+              <button class="btn-hub-subtle" onclick="alert('Abrir modal de Novo Aluno')">
+                <span>+ Novo Aluno</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 02: Biblioteca -->
+          <div class="hub-card">
+            <div>
+              <div class="hub-card-header">
+                <span class="hub-card-tag">02 // BANCO DE MOVIMENTOS</span>
+                <span class="hub-card-stat">142 CADASTRADOS</span>
+              </div>
+              <h2 class="hub-card-title">Biblioteca de Exercícios</h2>
+              <p class="hub-card-desc">
+                Catálogo completo separado por grupamentos musculares, biomecânica, vídeos de execução e métodos avançados.
+              </p>
+            </div>
+            <div class="hub-card-actions">
+              <button class="btn-hub-primary" onclick="alert('Navegar para /exercicios')">
+                <span>Explorar Catálogo</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+              <button class="btn-hub-subtle" onclick="alert('Abrir modal de Novo Exercício')">
+                <span>+ Novo Exercício</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 03: Configurações -->
+          <div class="hub-card">
+            <div>
+              <div class="hub-card-header">
+                <span class="hub-card-tag">03 // DADOS PROFISSIONAIS</span>
+                <span class="hub-card-stat" style="color: var(--success); border-color: rgba(34,197,94,0.3);">CREF ATIVO</span>
+              </div>
+              <h2 class="hub-card-title">Configurações & Marca</h2>
+              <p class="hub-card-desc">
+                Personalize seu registro CREF, logotipo, contatos, link do WhatsApp e dados que aparecem no cabeçalho dos treinos.
+              </p>
+            </div>
+            <div class="hub-card-actions">
+              <button class="btn-hub-primary" onclick="alert('Navegar para /configuracoes')">
+                <span>Ajustar Perfil</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Fast Resume: 3 Recent Students (Clean & Minimalist, No Table) -->
+        <div class="hub-recents-section">
+          <div class="hub-recents-header">
+            <div class="hub-recents-title">
+              <span>//</span> ATALHOS RÁPIDOS • ÚLTIMOS ALUNOS
+            </div>
+            <a href="#todos-alunos" onclick="alert('Navega para /alunos')" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 700; text-decoration: none;">
+              Ver todos (24) →
+            </a>
+          </div>
+
+          <div class="hub-recents-grid">
+            
+            <div class="hub-recent-card" onclick="alert('Ir direto aos treinos do Carlos Mendes')">
+              <div class="hub-recent-card-left">
+                <div class="hub-recent-avatar">CM</div>
+                <div>
+                  <div class="hub-recent-name">Carlos Mendes</div>
+                  <div class="hub-recent-meta">Hipertrofia 2026 • Treino A hoje</div>
+                </div>
+              </div>
+              <svg class="hub-recent-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+
+            <div class="hub-recent-card" onclick="alert('Ir direto aos treinos da Mariana Souza')">
+              <div class="hub-recent-card-left">
+                <div class="hub-recent-avatar" style="color: var(--text-0);">MS</div>
+                <div>
+                  <div class="hub-recent-name">Mariana Souza</div>
+                  <div class="hub-recent-meta">Upper/Lower • Treino B ontem</div>
+                </div>
+              </div>
+              <svg class="hub-recent-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+
+            <div class="hub-recent-card" onclick="alert('Criar protocolo para Rodrigo Antunes')">
+              <div class="hub-recent-card-left">
+                <div class="hub-recent-avatar" style="border-color: var(--accent); color: var(--accent);">RA</div>
+                <div>
+                  <div class="hub-recent-name">Rodrigo Antunes</div>
+                  <div class="hub-recent-meta" style="color: var(--warning);">Pendente de prescrição</div>
+                </div>
+              </div>
+              <svg class="hub-recent-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================================================================
+           OPÇÃO 1: PAINEL COMPLETO (ERP COM 4 KPIS + LANÇADOR + TABELA)
+           ================================================================ -->
+      <div id="homeViewOp1" class="home-subview">
+        <!-- Masthead -->
+        <div class="dash-masthead">
+          <div>
+            <div class="dash-eyebrow">PAINEL DE CONTROLE OPERACIONAL // VISÃO GERAL</div>
+            <h1 class="dash-title">Olá, João</h1>
+            <p class="dash-sub">Quinta-feira, 06 de Setembro • 3 alunos treinaram hoje</p>
+          </div>
+
+          <div class="dash-status-pill">
+            <span class="dash-status-dot"></span>
+            MOTOR DE PRESCRIÇÃO ATIVO • v2.4
+          </div>
+        </div>
+
+        <!-- KPIs Summary Grid (4 Cards) -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-card-label">
+              <span>ALUNOS ATIVOS</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="kpi-card-value">24</div>
+            <div class="kpi-card-sub">
+              <span class="kpi-trend-up">↑ +3</span> novos alunos este mês
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-label">
+              <span>PROTOCOLOS VIGENTES</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </div>
+            <div class="kpi-card-value">19</div>
+            <div class="kpi-card-sub">
+              <span>79% dos alunos com ciclo ativo</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-label">
+              <span>VOLUME SEMANAL MÉDIO</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+            <div class="kpi-card-value">342</div>
+            <div class="kpi-card-sub">
+              <span>Séries semanais planejadas</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-label">
+              <span>SESSÕES REALIZADAS</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="kpi-card-value">48</div>
+            <div class="kpi-card-sub">
+              <span class="kpi-trend-up">↑ 12 hoje</span> na academia
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Launcher -->
+        <div class="quick-actions-bar">
+          <div class="quick-actions-left">
+            <span class="quick-tag">AÇÕES RÁPIDAS //</span>
+            <span style="font-size: 0.8125rem; color: var(--text-1);">Agilize suas tarefas diárias de prescrição:</span>
+          </div>
+          <div class="quick-btns-row">
+            <button class="btn-quick-primary" onclick="alert('Abre modal de Novo Aluno')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              + Novo Aluno
+            </button>
+            <button class="btn-quick-secondary" onclick="alert('Navega para Meus Alunos')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              Nova Prescrição
+            </button>
+            <button class="btn-quick-secondary" onclick="alert('Abre Biblioteca de Exercícios')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+              Biblioteca (142 exercícios)
+            </button>
+          </div>
+        </div>
+
+        <!-- Module Navigation Cards (Elevated) -->
+        <div class="module-grid">
+          <!-- Module 1: Alunos -->
+          <div class="module-card" onclick="alert('Ir para /alunos')">
+            <div>
+              <div class="module-card-top">
+                <div class="module-icon-wrap">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <svg class="module-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <h3 class="module-card-title">Alunos & Prescrições</h3>
+              <p class="module-card-desc">Cadastro de prontuários, fichas A/B/C, controle de cargas e compartilhamento de treinos.</p>
+            </div>
+            <div class="module-card-meta">
+              <span>Total: <strong>24 alunos</strong></span>
+              <span style="color: var(--accent); font-weight: 700;">Gerenciar →</span>
+            </div>
+          </div>
+
+          <!-- Module 2: Biblioteca -->
+          <div class="module-card" onclick="alert('Ir para /exercicios')">
+            <div>
+              <div class="module-card-top">
+                <div class="module-icon-wrap">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <svg class="module-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <h3 class="module-card-title">Biblioteca de Exercícios</h3>
+              <p class="module-card-desc">Catálogo com grupamentos musculares, biomecânica e técnicas avançadas de treinamento.</p>
+            </div>
+            <div class="module-card-meta">
+              <span>Catálogo: <strong>142 itens</strong></span>
+              <span style="color: var(--accent); font-weight: 700;">Consultar →</span>
+            </div>
+          </div>
+
+          <!-- Module 3: Configurações -->
+          <div class="module-card" onclick="alert('Ir para /configuracoes')">
+            <div>
+              <div class="module-card-top">
+                <div class="module-icon-wrap">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <svg class="module-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <h3 class="module-card-title">Configurações & Perfil</h3>
+              <p class="module-card-desc">Personalize seu registro CREF, logotipo, contatos profissionais e preferências visuais.</p>
+            </div>
+            <div class="module-card-meta">
+              <span>Status: <strong>CREF Ativo</strong></span>
+              <span style="color: var(--accent); font-weight: 700;">Ajustar →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Students List (Operational Jump-start) -->
+        <div>
+          <div class="section-head-row">
+            <div class="section-label-bold">
+              <span>//</span> ATIVIDADE RECENTE & ALUNOS
+            </div>
+            <a href="#todos" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); font-weight: 700; text-decoration: none;">Ver todos os alunos (24) →</a>
+          </div>
+
+          <div class="recent-students-card">
+            <!-- Item 1 -->
+            <div class="student-item">
+              <div class="student-col-info">
+                <div class="student-avatar">CM</div>
+                <div>
+                  <div class="student-name">Carlos Mendes</div>
+                  <div class="student-meta">carlos.m@gmail.com</div>
+                </div>
+              </div>
+              <div>
+                <div class="protocol-pill">HIPERTROFIA 2026 // CICLO A/B/C</div>
+              </div>
+              <div class="student-col-activity">
+                Treino A realizado hoje às 08:30
+              </div>
+              <div>
+                <button class="btn-student-action" onclick="alert('Ir direto aos treinos do Carlos')">Prescrever</button>
+              </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="student-item">
+              <div class="student-col-info">
+                <div class="student-avatar" style="background: var(--accent-soft); color: var(--accent);">MS</div>
+                <div>
+                  <div class="student-name">Mariana Souza</div>
+                  <div class="student-meta">mari.souza@outlook.com</div>
+                </div>
+              </div>
+              <div>
+                <div class="protocol-pill">CONDICIONAMENTO // UPPER/LOWER</div>
+              </div>
+              <div class="student-col-activity">
+                Treino B ontem às 19:15
+              </div>
+              <div>
+                <button class="btn-student-action" onclick="alert('Ir direto aos treinos da Mariana')">Prescrever</button>
+              </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="student-item">
+              <div class="student-col-info">
+                <div class="student-avatar">RA</div>
+                <div>
+                  <div class="student-name">Rodrigo Antunes</div>
+                  <div class="student-meta">rodrigo@antunes.io</div>
+                </div>
+              </div>
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-2);">Sem protocolo ativo</span>
+              </div>
+              <div class="student-col-activity" style="color: var(--warning);">
+                Pendente de novo ciclo
+              </div>
+              <div>
+                <button class="btn-student-action" style="border-color: var(--accent); color: var(--accent);" onclick="alert('Criar protocolo para Rodrigo')">+ Criar Ciclo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       INTERACTION SCRIPTS
+       ========================================================================== -->
+  <script>
+    // Screen switcher
+    function switchScreen(screen) {
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.proto-tab-btn').forEach(el => el.classList.remove('active'));
+
+      if (screen === 'login') {
+        document.getElementById('screenLogin').classList.add('active');
+        document.getElementById('btnTabLogin').classList.add('active');
+      } else {
+        document.getElementById('screenHome').classList.add('active');
+        document.getElementById('btnTabHome').classList.add('active');
+      }
+    }
+
+    // Theme toggle
+    function toggleTheme() {
+      const body = document.body;
+      const isPaper = body.classList.toggle('theme-paper');
+      const label = document.getElementById('themeLabel');
+      if (isPaper) {
+        label.textContent = '☀️ Tema: Claro (Technical Paper)';
+      } else {
+        label.textContent = '🌙 Tema: Escuro (Carbon Lab)';
+      }
+    }
+
+    // Home Sub-view Switcher (Opção 2 vs Opção 1)
+    function switchHomeOption(opt) {
+      const btnOp1 = document.getElementById('btnHomeOp1');
+      const btnOp2 = document.getElementById('btnHomeOp2');
+      const viewOp1 = document.getElementById('homeViewOp1');
+      const viewOp2 = document.getElementById('homeViewOp2');
+
+      if (opt === 'op2') {
+        btnOp2.classList.add('active');
+        btnOp1.classList.remove('active');
+        viewOp2.classList.add('active');
+        viewOp1.classList.remove('active');
+      } else {
+        btnOp1.classList.add('active');
+        btnOp2.classList.remove('active');
+        viewOp1.classList.add('active');
+        viewOp2.classList.remove('active');
+      }
+    }
+
+    // Spotlight / Quick Jump search demo
+    function handleHubSearch(query) {
+      const results = document.getElementById('hubSearchResults');
+      if (query && query.trim().length > 0) {
+        results.classList.add('visible');
+      } else {
+        results.classList.remove('visible');
+      }
+    }
+
+    function selectStudentDemo(name) {
+      const input = document.getElementById('hubSearchInput');
+      input.value = name;
+      document.getElementById('hubSearchResults').classList.remove('visible');
+      alert('Acessando ficha de treinos de: ' + name);
+    }
+
+    // Close spotlight search when clicking outside
+    document.addEventListener('click', (e) => {
+      const spotlightWrap = document.querySelector('.hub-spotlight-bar');
+      const results = document.getElementById('hubSearchResults');
+      if (spotlightWrap && results && !spotlightWrap.contains(e.target)) {
+        results.classList.remove('visible');
+      }
+    });
+
+    // Password toggle
+    function togglePasswordVisibility() {
+      const input = document.getElementById('loginPass');
+      const btn = document.getElementById('btnTogglePass');
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      }
+    }
+  </script>
+
+</body>
+</html>

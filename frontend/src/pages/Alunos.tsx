@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
@@ -16,12 +16,13 @@ interface Aluno {
 
 export const Alunos: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const cachedAlunos = memoryCache.get<Aluno[]>('alunos');
   const [alunos, setAlunos] = useState<Aluno[]>(cachedAlunos || []);
   const [search, setSearch] = useState('');
 
   // Add form state
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState<boolean>(Boolean(location.state?.openAdd));
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -57,6 +58,12 @@ export const Alunos: React.FC = () => {
     document.title = 'Alunos | TreinosApp';
     fetchAlunos();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.openAdd) {
+      setShowAddForm(true);
+    }
+  }, [location.state]);
 
   // Fecha modais com tecla ESC
   useEffect(() => {

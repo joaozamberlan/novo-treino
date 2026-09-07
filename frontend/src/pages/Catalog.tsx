@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { 
   Plus, Layers, Sparkles, Edit, Trash2, 
@@ -28,6 +29,7 @@ interface TecnicaTreino {
 }
 
 export const Catalog: React.FC = () => {
+  const location = useLocation();
   const cached = memoryCache.get<any>('catalogo');
   const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos'>('exercicios');
   const [exercicios, setExercicios] = useState<Exercicio[]>(cached?.exercicios || []);
@@ -40,7 +42,7 @@ export const Catalog: React.FC = () => {
 
   // --- MODAL / FORM STATES ---
   // Exercise modal
-  const [showExForm, setShowExForm] = useState(false);
+  const [showExForm, setShowExForm] = useState(Boolean(location.state?.openAdd));
   const [editingExId, setEditingExId] = useState<number | null>(null);
   const [exNome, setExNome] = useState('');
   const [exGrupoId, setExGrupoId] = useState<number>(0);
@@ -98,6 +100,13 @@ export const Catalog: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showExForm, showTecForm, showGrupoTabForm]);
+
+  useEffect(() => {
+    if (location.state?.openAdd) {
+      setActiveTab('exercicios');
+      setShowExForm(true);
+    }
+  }, [location.state]);
 
   const loadData = async () => {
     try {
