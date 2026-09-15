@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff } from 'lucide-react';
+import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 
 export const Configuracoes: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -442,6 +442,23 @@ export const Configuracoes: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* Group 5: Admin (SuperAdmin only) */}
+      {user?.role === 'SUPERADMIN' && (
+        <div className="settings-group">
+          <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <Shield size={15} color="var(--accent)" />
+            <span>Administração</span>
+          </div>
+          <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            Gerencie contas de treinadores, aprovações de acesso e permissões de SuperAdmin.
+          </p>
+          <Link to="/admin" className="btn btn-secondary btn-sm">
+            <ExternalLink size={14} />
+            <span>Abrir Painel Admin</span>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

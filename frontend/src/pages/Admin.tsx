@@ -54,10 +54,14 @@ export const Admin: React.FC = () => {
     loadProfessionals();
   }, []);
 
-  const handleToggleStatus = async (idProfissional: number, currentStatus: boolean) => {
+  const handleToggleStatus = async (idProfissional: number, currentStatus: boolean, nome: string) => {
+    if (currentStatus && !confirm(`Suspender o acesso de ${nome}? Ele não conseguirá mais fazer login até ser reativado.`)) {
+      return;
+    }
+
     setError('');
     setSuccess('');
-    
+
     try {
       const targetStatus = !currentStatus;
       await api.patch(`/admin/profissionais/${idProfissional}/status`, {
@@ -72,10 +76,18 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleToggleRole = async (idProfissional: number, currentRole: string) => {
+  const handleToggleRole = async (idProfissional: number, currentRole: string, nome: string) => {
+    const promovendo = currentRole !== 'SUPERADMIN';
+    const confirmMsg = promovendo
+      ? `Promover ${nome} a SuperAdmin? Ele terá acesso total ao painel de administração.`
+      : `Remover os privilégios de SuperAdmin de ${nome}?`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
     setError('');
     setSuccess('');
-    
+
     try {
       const targetRole = currentRole === 'SUPERADMIN' ? 'USER' : 'SUPERADMIN';
       await api.patch(`/admin/profissionais/${idProfissional}/role`, {
@@ -147,7 +159,7 @@ export const Admin: React.FC = () => {
     p.cref.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) {
+  if (loading && professionals.length === 0) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>Carregando painel de administração...</div>;
   }
 
@@ -175,17 +187,17 @@ export const Admin: React.FC = () => {
 
       {/* Estatísticas Rápidas de Contas */}
       <div className="grid grid-cols-3">
-        <div className="card">
+        <div className="card stagger-1">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Total de Clientes</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem' }}>{professionals.length}</div>
         </div>
-        <div className="card">
+        <div className="card stagger-2">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Contas Ativas (Pagas)</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--success)' }}>
             {professionals.filter(p => p.ativo).length}
           </div>
         </div>
-        <div className="card">
+        <div className="card stagger-3">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Aprovações Pendentes</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--warning)' }}>
             {professionals.filter(p => !p.ativo).length}
@@ -196,12 +208,14 @@ export const Admin: React.FC = () => {
       {/* Barra de Busca */}
       <div className="card" style={{ padding: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-2)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
-          <Search size={18} style={{ color: 'var(--text-muted)' }} />
+          <Search size={18} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
           <input
             type="text"
             className="form-control"
             style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset' }}
             placeholder="Buscar por nome, email ou CREF..."
+            aria-label="Buscar profissionais por nome, email ou CREF"
+            autoComplete="off"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -313,7 +327,7 @@ export const Admin: React.FC = () => {
                           </button>
 
                           <button
-                            onClick={() => handleToggleStatus(prof.idProfissional, prof.ativo)}
+                            onClick={() => handleToggleStatus(prof.idProfissional, prof.ativo, prof.nome)}
                             className="btn"
                             style={{ 
                               minHeight: 'unset', 
@@ -332,7 +346,7 @@ export const Admin: React.FC = () => {
                           </button>
 
                           <button
-                            onClick={() => handleToggleRole(prof.idProfissional, prof.role)}
+                            onClick={() => handleToggleRole(prof.idProfissional, prof.role, prof.nome)}
                             className="btn btn-secondary"
                             style={{ 
                               minHeight: 'unset', 
@@ -417,6 +431,8 @@ export const Admin: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setResetModalProf(null)}
+                title="Fechar"
+                aria-label="Fechar modal"
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -476,7 +492,7 @@ export const Admin: React.FC = () => {
                   title="Copiar senha"
                   style={{ padding: '0 0.85rem' }}
                 >
-                  {copiedPassword ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
+                  {copiedPassword ? <Check size={16} color="var(--success)" className="check-pop-icon" /> : <Copy size={16} />}
                 </button>
               </div>
             </div>

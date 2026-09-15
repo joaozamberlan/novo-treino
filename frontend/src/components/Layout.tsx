@@ -39,6 +39,11 @@ export const Layout: React.FC = () => {
     } else {
       document.body.classList.remove('light-theme');
     }
+
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', theme === 'light' ? '#f4f3ef' : '#0c0d0f');
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -133,9 +138,9 @@ export const Layout: React.FC = () => {
       {/* Top Header Bar */}
       <header className="topbar">
         <div className="topbar-left">
-          <button 
-            className="topbar-btn" 
-            onClick={toggleSidebar} 
+          <button
+            className="topbar-btn menu-toggle-btn"
+            onClick={toggleSidebar}
             title={isExpanded ? "Recolher menu" : "Expandir menu"}
             aria-label={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
             style={{ marginRight: '0.25rem' }}
@@ -373,6 +378,26 @@ export const Layout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Tab Bar — replaces the sidebar drawer on small screens */}
+      <nav className="mobile-tab-bar" aria-label="Navegação principal">
+        <NavLink to="/" end className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
+          <Home size={20} aria-hidden="true" />
+          <span>Início</span>
+        </NavLink>
+        <NavLink to="/alunos" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
+          <Users size={20} aria-hidden="true" />
+          <span>Alunos</span>
+        </NavLink>
+        <NavLink to="/exercicios?tab=exercicios" className={`tab-bar-item ${isExerciciosRoute ? 'active' : ''}`}>
+          <Layers size={20} aria-hidden="true" />
+          <span>Biblioteca</span>
+        </NavLink>
+        <NavLink to="/configuracoes" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
+          <Settings size={20} aria-hidden="true" />
+          <span>Config.</span>
+        </NavLink>
+      </nav>
     </div>
   );
 };

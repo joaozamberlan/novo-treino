@@ -235,7 +235,9 @@ export const Register: React.FC = () => {
                 <div className="login-input-wrap">
                   <input
                     id="telefone"
-                    type="text"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     className="form-input"
                     placeholder="(00) 90000-0000"
                     value={telefone}

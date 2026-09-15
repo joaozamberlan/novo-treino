@@ -196,6 +196,7 @@ textarea:focus-visible,
   top: 0;
   z-index: 100;
   transition: background-color var(--transition);
+  transform: translateZ(0);
 }
 
 body.light-theme .topbar {
@@ -523,6 +524,12 @@ select.form-input:focus {
   background: var(--bg-1);
 }
 
+.form-input:focus-visible,
+select.form-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .form-input-sm {
   height: 28px;
   font-size: 0.8rem;
@@ -564,6 +571,11 @@ select.form-input {
 .form-control:focus {
   border-color: var(--border-focus);
   background: var(--bg-1);
+}
+
+.form-control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
@@ -610,6 +622,7 @@ select.form-input {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
   -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
 }
 
 .card > .table-wrap,
@@ -1598,6 +1611,18 @@ body.light-theme .floating-rest-timer {
   font-size: 0.8125rem;
   color: var(--danger);
   margin-bottom: 1.25rem;
+  animation: authErrorIn 200ms var(--ease-out) forwards;
+}
+
+@keyframes authErrorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-form {
@@ -2375,6 +2400,55 @@ body.light-theme .floating-rest-timer {
   z-index: 90;
 }
 
+/* ── Mobile Tab Bar (replaces sidebar drawer on small screens) ─────────── */
+
+.mobile-tab-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  align-items: stretch;
+  justify-content: space-around;
+  height: calc(58px + var(--sab));
+  padding-bottom: var(--sab);
+  background: rgba(17, 18, 21, 0.85);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  transform: translateZ(0);
+}
+
+body.light-theme .mobile-tab-bar {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 140ms var(--ease-out), transform 100ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tab-bar-item:active {
+  transform: scale(0.93);
+}
+
+.tab-bar-item.active {
+  color: var(--accent);
+}
+
 .app-sidebar.expanded {
   width: 240px;
 }
@@ -2597,7 +2671,7 @@ body.light-theme .floating-rest-timer {
   }
 
   .content-area {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 1rem calc(58px + var(--sab) + 1.25rem) 1rem;
   }
 
   .form-row {
@@ -2625,32 +2699,15 @@ body.light-theme .floating-rest-timer {
     width: 100%;
   }
 
-  .sidebar-backdrop-mobile {
-    display: block;
-    position: fixed;
-    inset: 52px 0 0 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 85;
-    animation: fadeIn 180ms var(--ease-out) forwards;
-    backdrop-filter: blur(2px);
+  /* Sidebar drawer replaced by the bottom tab bar on mobile */
+  .sidebar-backdrop-mobile,
+  .app-sidebar,
+  .menu-toggle-btn {
+    display: none !important;
   }
 
-  .app-sidebar {
-    position: fixed;
-    left: 0;
-    top: 52px;
-    height: calc(100dvh - 52px);
-    width: 240px;
-    border-right: 1px solid var(--border);
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-    transform: translateX(-100%);
-    transition: transform 220ms var(--ease-drawer);
-    visibility: hidden;
-  }
-
-  .app-sidebar.expanded {
-    transform: translateX(0);
-    visibility: visible;
+  .mobile-tab-bar {
+    display: flex;
   }
 }
 
@@ -2960,6 +3017,45 @@ body.light-theme .floating-rest-timer {
   .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5 {
     animation: none !important;
     transform: none !important;
+  }
+}
+
+/* ── Reduced Transparency & High Contrast (Apple HIG Accessibility) ───── */
+
+@media (prefers-reduced-transparency: reduce) {
+  .topbar,
+  .mobile-tab-bar {
+    background: var(--bg-1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .modal-backdrop {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .sidebar-backdrop-mobile {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: var(--border-strong);
+  }
+
+  .topbar,
+  .modal-content,
+  .app-sidebar,
+  .mobile-tab-bar,
+  .btn,
+  .form-input,
+  select.form-input {
+    border-width: 1.5px;
+    border-color: var(--border-strong);
   }
 }
 

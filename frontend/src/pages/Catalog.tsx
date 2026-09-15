@@ -505,6 +505,8 @@ export const Catalog: React.FC = () => {
             className="form-control"
             style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset' }}
             placeholder={`Buscar por nome...`}
+            aria-label="Buscar por nome"
+            autoComplete="off"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -535,8 +537,10 @@ export const Catalog: React.FC = () => {
                           {ex.grupoMuscular.nome}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {ex.descricao || '-'}
+                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
+                        <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {ex.descricao || '-'}
+                        </div>
                       </td>
                       <td>
                         {ex.videoUrl ? (
@@ -550,10 +554,10 @@ export const Catalog: React.FC = () => {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditExercicio(ex)}>
+                          <button className="btn btn-secondary" title="Editar exercício" aria-label={`Editar ${ex.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditExercicio(ex)}>
                             <Edit size={14} />
                           </button>
-                          <button className="btn btn-danger" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
+                          <button className="btn btn-danger" title="Excluir exercício" aria-label={`Excluir ${ex.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -595,10 +599,10 @@ export const Catalog: React.FC = () => {
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditTecnica(tec)}>
+                          <button className="btn btn-secondary" title="Editar técnica" aria-label={`Editar ${tec.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditTecnica(tec)}>
                             <Edit size={14} />
                           </button>
-                          <button className="btn btn-danger" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
+                          <button className="btn btn-danger" title="Excluir técnica" aria-label={`Excluir ${tec.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -644,10 +648,10 @@ export const Catalog: React.FC = () => {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                            <button className="btn btn-secondary" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditGrupoTab(g)}>
+                            <button className="btn btn-secondary" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditGrupoTab(g)}>
                               <Edit size={14} />
                             </button>
-                            <button className="btn btn-danger" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
+                            <button className="btn btn-danger" title="Excluir grupo muscular" aria-label={`Excluir ${g.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
                               <Trash2 size={14} />
                             </button>
                           </div>
