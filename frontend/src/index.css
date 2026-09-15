@@ -1392,6 +1392,14 @@ body.light-theme .floating-rest-timer {
   gap: 1px;
   padding: 0.25rem;
   align-self: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+}
+
+.exercise-block-handle:active {
+  cursor: grabbing;
 }
 
 .exercise-block-info {
@@ -2886,10 +2894,7 @@ body.light-theme .mobile-tab-bar {
 
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--app-vh, 100dvh);
+  inset: 0;
   z-index: 500;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
@@ -3134,7 +3139,7 @@ body.light-theme .mobile-tab-bar {
   .modal-content {
     position: relative;
     max-width: 100%;
-    max-height: calc(var(--app-vh, 100dvh) - 2rem);
+    max-height: calc(100dvh - 2rem);
     overflow-y: auto;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;

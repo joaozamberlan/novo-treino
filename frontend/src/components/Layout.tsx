@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { PageTransition } from './PageTransition';
+import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Layers, Settings, LogOut, User, Shield, Users, Menu, Home, 
@@ -385,47 +385,31 @@ export const Layout: React.FC = () => {
         </main>
       </div>
 
-      {/* iOS Tab Bar — spring press feedback via Motion */}
+      {/* iOS Tab Bar — subtle press feedback via PressScale (high-frequency nav, kept restrained) */}
       <nav className="mobile-tab-bar" aria-label="Navegação principal">
         <NavLink to="/" end className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <motion.span
-            className="tab-bar-inner"
-            whileTap={{ scale: 0.82 }}
-            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
-          >
+          <PressScale as="span" className="tab-bar-inner">
             <Home size={22} aria-hidden="true" />
             <span>Início</span>
-          </motion.span>
+          </PressScale>
         </NavLink>
         <NavLink to="/alunos" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <motion.span
-            className="tab-bar-inner"
-            whileTap={{ scale: 0.82 }}
-            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
-          >
+          <PressScale as="span" className="tab-bar-inner">
             <Users size={22} aria-hidden="true" />
             <span>Alunos</span>
-          </motion.span>
+          </PressScale>
         </NavLink>
         <NavLink to="/exercicios?tab=exercicios" className={`tab-bar-item ${isExerciciosRoute ? 'active' : ''}`}>
-          <motion.span
-            className="tab-bar-inner"
-            whileTap={{ scale: 0.82 }}
-            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
-          >
+          <PressScale as="span" className="tab-bar-inner">
             <Layers size={22} aria-hidden="true" />
             <span>Biblioteca</span>
-          </motion.span>
+          </PressScale>
         </NavLink>
         <NavLink to="/configuracoes" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <motion.span
-            className="tab-bar-inner"
-            whileTap={{ scale: 0.82 }}
-            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
-          >
+          <PressScale as="span" className="tab-bar-inner">
             <Settings size={22} aria-hidden="true" />
             <span>Config.</span>
-          </motion.span>
+          </PressScale>
         </NavLink>
       </nav>
     </div>

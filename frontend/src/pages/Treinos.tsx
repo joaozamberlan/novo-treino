@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Reorder, useDragControls } from 'motion/react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  ArrowLeft, Plus, Calendar, 
+import {
+  ArrowLeft, Plus, Calendar,
   Trash2, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 
@@ -71,6 +72,64 @@ let cachedCatalogs: {
   tecnicas: TecnicaTreino[];
   grupos: GrupoMuscular[];
 } | null = null;
+
+interface ExerciseBlockRowProps {
+  item: PrescribedExercise;
+  index: number;
+  total: number;
+  onMove: (direction: 'up' | 'down') => void;
+  onEdit: () => void;
+  onRemove: () => void;
+}
+
+// Item isolado por precisar do próprio useDragControls (hooks não rodam dentro de .map())
+const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total, onMove, onEdit, onRemove }) => {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item value={item} as="div" dragListener={false} dragControls={dragControls} className="exercise-block">
+      <div
+        className="exercise-block-handle"
+        onPointerDown={(e) => dragControls.start(e)}
+        title="Arraste para reordenar"
+      >
+        <GripVertical size={16} />
+        <button className="exercise-action-btn" disabled={index === 0} onClick={() => onMove('up')}>
+          <ArrowUp size={14} />
+        </button>
+        <button className="exercise-action-btn" disabled={index === total - 1} onClick={() => onMove('down')}>
+          <ArrowDown size={14} />
+        </button>
+      </div>
+      <div className="exercise-block-info">
+        <div className="exercise-block-name">{item.exercicio.nome}</div>
+        <div className="exercise-block-detail">
+          <span className="exercise-block-tag">{item.exercicio.grupoMuscular.nome}</span>
+          {item.tecnica && <span className="exercise-block-tag">{item.tecnica.nome}</span>}
+          {item.observacao && <span>{item.observacao}</span>}
+        </div>
+      </div>
+      <div className="exercise-block-stats">
+        <span className="exercise-block-stat">
+          {item.series}<span className="exercise-block-stat-label">×</span>{item.repeticoes}
+        </span>
+        {item.descansoSegundos && (
+          <span className="exercise-block-stat">
+            {item.descansoSegundos}<span className="exercise-block-stat-label">s</span>
+          </span>
+        )}
+      </div>
+      <div className="exercise-block-actions">
+        <button className="exercise-action-btn accent" onClick={onEdit} title="Editar">
+          <Edit size={14} />
+        </button>
+        <button className="exercise-action-btn danger" onClick={onRemove} title="Remover">
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+};
 
 export const Treinos: React.FC = () => {
   const { idAluno } = useParams<{ idAluno: string }>();
@@ -793,6 +852,32 @@ export const Treinos: React.FC = () => {
     }
   };
 
+  // Reordenação via drag-and-drop — recebe a lista já na nova ordem
+  const handleReorderExercises = async (treino: FichaTreino, newOrder: PrescribedExercise[]) => {
+    const updatedList = newOrder.map((ex, idx) => ({ ...ex, ordem: idx + 1 }));
+
+    setActiveProtocol(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        treinos: prev.treinos.map(t =>
+          t.idTreino === treino.idTreino ? { ...t, exercicios: updatedList } : t
+        ),
+      };
+    });
+
+    try {
+      await Promise.all(
+        updatedList.map((ex, idx) =>
+          api.patch(`/treinos/exercicios/${ex.idTreinoExercicio}`, { ordem: idx + 1 })
+        )
+      );
+    } catch (err) {
+      console.error('Erro ao reordenar:', err);
+      loadOverview(false);
+    }
+  };
+
   // Remoção otimista instantânea
   const handleRemoveExercise = async (idTreinoExercicio: number) => {
     if (!confirm('Deseja excluir esta prescrição?')) return;
@@ -931,7 +1016,7 @@ export const Treinos: React.FC = () => {
       {/* Screen Interactive UI Wrapper (Hidden during print) */}
       <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header Section */}
-        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+        <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', rowGap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Link to="/" className="btn btn-ghost btn-icon">
               <ArrowLeft size={18} />
@@ -947,7 +1032,7 @@ export const Treinos: React.FC = () => {
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {aluno?.tokenAcesso && (
               <button className="btn btn-secondary btn-sm" onClick={handleShare}>
                 <Share2 size={14} />
@@ -1065,63 +1150,28 @@ export const Treinos: React.FC = () => {
               </div>
 
               {/* Exercise Stack */}
-              <div className="exercise-stack">
-                {sortedExercicios.length > 0 ? (
-                  sortedExercicios.map((item, idx) => (
-                    <div key={item.idTreinoExercicio} className="exercise-block">
-                      <div className="exercise-block-handle">
-                        <button
-                          className="exercise-action-btn"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveExercise(activeFicha, idx, 'up')}
-                        >
-                          <ArrowUp size={14} />
-                        </button>
-                        <button
-                          className="exercise-action-btn"
-                          disabled={idx === sortedExercicios.length - 1}
-                          onClick={() => handleMoveExercise(activeFicha, idx, 'down')}
-                        >
-                          <ArrowDown size={14} />
-                        </button>
-                      </div>
-                      <div className="exercise-block-info">
-                        <div className="exercise-block-name">{item.exercicio.nome}</div>
-                        <div className="exercise-block-detail">
-                          <span className="exercise-block-tag">{item.exercicio.grupoMuscular.nome}</span>
-                          {item.tecnica && <span className="exercise-block-tag">{item.tecnica.nome}</span>}
-                          {item.observacao && <span>{item.observacao}</span>}
-                        </div>
-                      </div>
-                      <div className="exercise-block-stats">
-                        <span className="exercise-block-stat">
-                          {item.series}<span className="exercise-block-stat-label">×</span>{item.repeticoes}
-                        </span>
-                        {item.descansoSegundos && (
-                          <span className="exercise-block-stat">
-                            {item.descansoSegundos}<span className="exercise-block-stat-label">s</span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="exercise-block-actions">
-                        <button
-                          className="exercise-action-btn accent"
-                          onClick={() => handleEditPrescription(item, activeFicha.idTreino)}
-                          title="Editar"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          className="exercise-action-btn danger"
-                          onClick={() => handleRemoveExercise(item.idTreinoExercicio)}
-                          title="Remover"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
+              {sortedExercicios.length > 0 ? (
+                <Reorder.Group
+                  as="div"
+                  axis="y"
+                  values={sortedExercicios}
+                  onReorder={(newOrder) => handleReorderExercises(activeFicha, newOrder)}
+                  className="exercise-stack"
+                >
+                  {sortedExercicios.map((item, idx) => (
+                    <ExerciseBlockRow
+                      key={item.idTreinoExercicio}
+                      item={item}
+                      index={idx}
+                      total={sortedExercicios.length}
+                      onMove={(direction) => handleMoveExercise(activeFicha, idx, direction)}
+                      onEdit={() => handleEditPrescription(item, activeFicha.idTreino)}
+                      onRemove={() => handleRemoveExercise(item.idTreinoExercicio)}
+                    />
+                  ))}
+                </Reorder.Group>
+              ) : (
+                <div className="exercise-stack">
                   <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                     <p style={{ margin: 0 }}>Nenhum exercício prescrito nesta ficha ainda.</p>
                     <button type="button" className="btn btn-primary btn-sm" onClick={openNewExerciseModal}>
@@ -1129,8 +1179,8 @@ export const Treinos: React.FC = () => {
                       Prescrever Primeiro Exercício
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Add Exercise Action Button */}
               <button

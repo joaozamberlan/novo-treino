@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useLocation } from 'react-router-dom';
 
 const pageVariants = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  exit:    { opacity: 0, y: -4 },
+  initial: { opacity: 0, transform: 'translateY(6px)' },
+  animate: { opacity: 1, transform: 'translateY(0px)' },
+  exit:    { opacity: 0, transform: 'translateY(-4px)' },
 };
 
 const pageTransition = {
@@ -17,7 +17,8 @@ const pageTransition = {
 /**
  * PageTransition — Apple-style critically damped page transition.
  * Wraps <Outlet /> in Layout to give each route a spring entrance/exit.
- * Respects prefers-reduced-motion via Motion's built-in reducedMotion support.
+ * Respects prefers-reduced-motion because <MotionConfig reducedMotion="user">
+ * wraps the app root (see App.tsx) — this component doesn't need its own check.
  */
 export const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
