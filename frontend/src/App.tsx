@@ -13,6 +13,7 @@ import { Treinos } from './pages/Treinos';
 import { Catalog } from './pages/Catalog';
 import { Admin } from './pages/Admin';
 import { Configuracoes } from './pages/Configuracoes';
+import { useMobileViewportFix } from './hooks/useMobileViewportFix';
 import './App.css';
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +35,8 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 function App() {
+  useMobileViewportFix();
+
   return (
     <AuthProvider>
       <BrowserRouter>
