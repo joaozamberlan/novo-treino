@@ -100,7 +100,7 @@ export const Treinos: React.FC = () => {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printScope, setPrintScope] = useState<'all' | 'current'>('all');
   const [printPagePerFicha, setPrintPagePerFicha] = useState(true);
-  const [printGuidelines, setPrintGuidelines] = useState(true);
+  const [printGuidelines, setPrintGuidelines] = useState(false);
 
   // Edit Ficha state
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
@@ -864,8 +864,6 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Screen Interactive UI Wrapper (Hidden during print) */}
@@ -1204,19 +1202,9 @@ export const Treinos: React.FC = () => {
               <div className="print-header-stamp">
                 <div className="print-stamp-title">BACKUP DIGITAL OFFLINE</div>
                 <div className="print-stamp-item">
-                  <span className="print-stamp-label">GERADO EM:</span>
-                  <span className="print-stamp-value">{dataHoje}</span>
-                </div>
-                <div className="print-stamp-item">
                   <span className="print-stamp-label">PROTOCOLO:</span>
                   <span className="print-stamp-value">#{String(activeProtocol.idProtocolo).padStart(4, '0')}</span>
                 </div>
-                {aluno.tokenAcesso && (
-                  <div className="print-stamp-item">
-                    <span className="print-stamp-label">ACESSO WEB:</span>
-                    <span className="print-stamp-value print-stamp-active">/v/{aluno.tokenAcesso}</span>
-                  </div>
-                )}
               </div>
             </header>
 
@@ -1225,9 +1213,9 @@ export const Treinos: React.FC = () => {
               <div className="print-meta-cell">
                 <span className="print-meta-label">ALUNO // PRONTUÁRIO</span>
                 <span className="print-meta-val-primary">{aluno.nome}</span>
-                <span className="print-meta-val-secondary">
-                  ID #{aluno.idAluno} {aluno.email ? `• ${aluno.email}` : ''}
-                </span>
+                {aluno.email && (
+                  <span className="print-meta-val-secondary">{aluno.email}</span>
+                )}
               </div>
 
               <div className="print-meta-cell">
@@ -1295,7 +1283,6 @@ export const Treinos: React.FC = () => {
                         <th style={{ width: '34%' }}>EXERCÍCIO & GRUPO</th>
                         <th style={{ width: '48px', textAlign: 'center' }}>SÉRIES</th>
                         <th style={{ width: '68px', textAlign: 'center' }}>REPS</th>
-                        <th style={{ width: '74px', textAlign: 'center' }}>CARGA</th>
                         <th style={{ width: '64px', textAlign: 'center' }}>PAUSA</th>
                         <th>TÉCNICA & ORIENTAÇÕES</th>
                       </tr>
@@ -1311,13 +1298,6 @@ export const Treinos: React.FC = () => {
                             </td>
                             <td className="print-td-series">{item.series}</td>
                             <td className="print-td-reps">{item.repeticoes}</td>
-                            <td className="print-td-carga">
-                              {item.carga ? (
-                                <span>{item.carga}</span>
-                              ) : (
-                                <span style={{ color: '#9ca3af' }}>Livre</span>
-                              )}
-                            </td>
                             <td className="print-td-descanso">
                               {item.descansoSegundos ? `${item.descansoSegundos}s` : '60s'}
                             </td>
@@ -1331,7 +1311,7 @@ export const Treinos: React.FC = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} style={{ textAlign: 'center', padding: '1.2rem', color: '#6b7280' }}>
+                          <td colSpan={6} style={{ textAlign: 'center', padding: '1.2rem', color: '#6b7280' }}>
                             Nenhum exercício prescrito nesta divisão.
                           </td>
                         </tr>
@@ -1376,11 +1356,6 @@ export const Treinos: React.FC = () => {
 
               <div className="print-footer-right">
                 <span className="print-footer-badge">VERSÃO OFFLINE // BACKUP</span>
-                {aluno.tokenAcesso && (
-                  <span className="print-footer-url">
-                    {window.location.origin}/v/{aluno.tokenAcesso}
-                  </span>
-                )}
               </div>
             </footer>
           </div>

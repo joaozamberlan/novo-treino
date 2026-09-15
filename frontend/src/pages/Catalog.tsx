@@ -431,14 +431,16 @@ export const Catalog: React.FC = () => {
       <div className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <button 
-            className={`btn`} 
-            style={{ 
-              minHeight: 'unset', 
-              padding: '0.5rem 1.25rem', 
+        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
+          <button
+            className={`btn`}
+            style={{
+              minHeight: 'unset',
+              padding: '0.5rem 1.25rem',
               borderRadius: '6px',
               fontSize: '0.9rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               backgroundColor: activeTab === 'exercicios' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'exercicios' ? 'var(--accent)' : 'var(--text-1)'
             }}
@@ -447,13 +449,15 @@ export const Catalog: React.FC = () => {
             <Layers size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Exercícios
           </button>
-          <button 
-            className={`btn`} 
-            style={{ 
-              minHeight: 'unset', 
-              padding: '0.5rem 1.25rem', 
+          <button
+            className={`btn`}
+            style={{
+              minHeight: 'unset',
+              padding: '0.5rem 1.25rem',
               borderRadius: '6px',
               fontSize: '0.9rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               backgroundColor: activeTab === 'grupos' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'grupos' ? 'var(--accent)' : 'var(--text-1)'
             }}
@@ -462,13 +466,15 @@ export const Catalog: React.FC = () => {
             <FolderPlus size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Grupos Musculares
           </button>
-          <button 
+          <button
             className={`btn`}
-            style={{ 
-              minHeight: 'unset', 
-              padding: '0.5rem 1.25rem', 
+            style={{
+              minHeight: 'unset',
+              padding: '0.5rem 1.25rem',
               borderRadius: '6px',
               fontSize: '0.9rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               backgroundColor: activeTab === 'tecnicas' ? 'var(--bg-tertiary)' : 'transparent',
               color: activeTab === 'tecnicas' ? 'var(--accent)' : 'var(--text-1)'
             }}
