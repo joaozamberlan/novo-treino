@@ -167,8 +167,59 @@ export const Treinos: React.FC = () => {
 
   const handleTriggerPrint = () => {
     setShowPrintModal(false);
-    setTimeout(() => {
-      window.print();
+
+    setTimeout(async () => {
+      const element = document.getElementById('print-section');
+      if (!element) return;
+
+      const toastId = toast.loading('Gerando PDF...');
+
+      // Lift the existing @media print rules onto the live page (instead of
+      // only inside html2canvas's clone) so the print-only content is
+      // actually visible and correctly sized before html2canvas measures it.
+      const printCss = Array.from(document.styleSheets)
+        .flatMap((sheet) => {
+          try {
+            return Array.from(sheet.cssRules);
+          } catch {
+            return [];
+          }
+        })
+        .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.media.mediaText.includes('print'))
+        .flatMap((rule) => Array.from(rule.cssRules))
+        .map((rule) => rule.cssText)
+        .join('\n');
+
+      const styleTag = document.createElement('style');
+      styleTag.textContent = printCss;
+      document.head.appendChild(styleTag);
+
+      try {
+        const html2pdf = (await import('html2pdf.js')).default;
+
+        const fileName = `Treino-${(aluno?.nome || 'aluno').replace(/[^a-zA-Z0-9]+/g, '-')}.pdf`;
+
+        const pdfOptions = {
+          margin: [10, 12, 12, 12] as [number, number, number, number],
+          filename: fileName,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, windowWidth: 794 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+          pagebreak: { mode: ['css', 'legacy'] },
+        };
+
+        await html2pdf()
+          .set(pdfOptions)
+          .from(element)
+          .save();
+
+        toast.success('PDF gerado com sucesso!', { id: toastId });
+      } catch (err) {
+        console.error(err);
+        toast.error('Erro ao gerar o PDF. Tente novamente.', { id: toastId });
+      } finally {
+        styleTag.remove();
+      }
     }, 150);
   };
 
@@ -847,9 +898,20 @@ export const Treinos: React.FC = () => {
     acc + (t.exercicios?.reduce((sAcc, e) => sAcc + (Number(e.series) || 0), 0) || 0)
   , 0) || 0;
 
-  const totalExerciciosProtocolo = activeProtocol?.treinos.reduce((acc, t) => 
+  const totalExerciciosProtocolo = activeProtocol?.treinos.reduce((acc, t) =>
     acc + (t.exercicios?.length || 0)
   , 0) || 0;
+
+  const volumeSemanalPorGrupo = (() => {
+    const acc: Record<string, number> = {};
+    activeProtocol?.treinos.forEach((t) => {
+      t.exercicios?.forEach((item) => {
+        const grupo = item.exercicio.grupoMuscular?.nome || 'Outro';
+        acc[grupo] = (acc[grupo] || 0) + (Number(item.series) || 0);
+      });
+    });
+    return Object.entries(acc).sort((a, b) => b[1] - a[1]);
+  })();
 
   const formatPrintDate = (dateStr?: string) => {
     if (!dateStr) return null;
@@ -1321,6 +1383,36 @@ export const Treinos: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Weekly volume by muscle group — extra summary page */}
+            {volumeSemanalPorGrupo.length > 0 && (
+              <div className="print-volume-page">
+                <div className="print-treino-header">
+                  <div className="print-treino-title-wrap">
+                    <span className="print-treino-badge">RESUMO</span>
+                    <h2 className="print-treino-title">Volume Semanal por Grupo Muscular</h2>
+                  </div>
+                </div>
+                <p className="print-volume-subtitle">
+                  Total de séries prescritas por grupo muscular somando todas as fichas do protocolo — referência de distribuição de volume ao longo da semana.
+                </p>
+                <div className="print-volume-list">
+                  {volumeSemanalPorGrupo.map(([grupo, series]) => {
+                    const max = volumeSemanalPorGrupo[0][1];
+                    const pct = max > 0 ? Math.max((series / max) * 100, 6) : 0;
+                    return (
+                      <div className="print-volume-row" key={grupo}>
+                        <span className="print-volume-group-name">{grupo}</span>
+                        <div className="print-volume-bar-track">
+                          <div className="print-volume-bar-fill" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="print-volume-count">{series} séries</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* General safety & performance guidelines */}
             {printGuidelines && (

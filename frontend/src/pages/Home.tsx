@@ -99,14 +99,13 @@ export const Home: React.FC = () => {
       {/* ─── Masthead Minimalista ─── */}
       <div className="hub-masthead">
         <div>
-          <div className="hub-eyebrow">PAINEL OPERACIONAL // SESSÃO ATIVA</div>
           <h1 className="hub-title">Olá, {firstName}</h1>
-          <p className="hub-sub">Selecione um módulo ou busque um atleta diretamente pelo atalho rápido.</p>
+          <p className="hub-sub">Por onde você começa hoje?</p>
         </div>
 
         <div className="hub-status-pill">
           <span className="hub-status-dot" />
-          <span>SISTEMA PRONTO • {alunos.length} ALUNOS ATIVOS</span>
+          <span>{alunos.length} alunos ativos</span>
         </div>
       </div>
 
@@ -171,7 +170,7 @@ export const Home: React.FC = () => {
         <div className="hub-card">
           <div>
             <div className="hub-card-header">
-              <span className="hub-card-tag">01 // GESTÃO DE ATLETAS</span>
+              <span className="hub-card-tag">Alunos</span>
               <span className="hub-card-stat">{alunos.length} ATIVOS</span>
             </div>
             <h2 className="hub-card-title">Alunos & Prescrições</h2>
@@ -197,7 +196,7 @@ export const Home: React.FC = () => {
         <div className="hub-card">
           <div>
             <div className="hub-card-header">
-              <span className="hub-card-tag">02 // BIBLIOTECA DE EXERCÍCIOS</span>
+              <span className="hub-card-tag">Exercícios</span>
               <span className="hub-card-stat">
                 {exerciciosCount > 0 ? `${exerciciosCount} CADASTRADOS` : 'CATÁLOGO'}
               </span>
@@ -225,7 +224,7 @@ export const Home: React.FC = () => {
         <div className="hub-card">
           <div>
             <div className="hub-card-header">
-              <span className="hub-card-tag">03 // DADOS PROFISSIONAIS</span>
+              <span className="hub-card-tag">Perfil</span>
               <span className="hub-card-stat" style={{ color: 'var(--success)', borderColor: 'rgba(45, 168, 104, 0.3)' }}>
                 CREF ATIVO
               </span>
@@ -248,7 +247,7 @@ export const Home: React.FC = () => {
           <div className="hub-card" style={{ borderColor: 'rgba(240, 68, 56, 0.3)' }}>
             <div>
               <div className="hub-card-header">
-                <span className="hub-card-tag" style={{ color: 'var(--danger)' }}>04 // SISTEMA</span>
+                <span className="hub-card-tag" style={{ color: 'var(--danger)' }}>Admin</span>
                 <span className="hub-card-stat" style={{ color: 'var(--danger)' }}>SUPERADMIN</span>
               </div>
               <h2 className="hub-card-title">Administração Geral</h2>
@@ -274,7 +273,7 @@ export const Home: React.FC = () => {
       <div className="hub-recents-section">
         <div className="hub-recents-header">
           <div className="hub-recents-title">
-            <span>//</span> ATALHOS RÁPIDOS • ÚLTIMOS ALUNOS
+            Alunos recentes
           </div>
           <Link
             to="/alunos"

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'motion/react';
+import { PageTransition } from './PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Layers, Settings, LogOut, User, Shield, Users, Menu, Home, 
@@ -21,7 +23,9 @@ export const Layout: React.FC = () => {
   const [isLibraryOpen, setIsLibraryOpen] = useState(() => isExerciciosRoute);
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = localStorage.getItem('sidebar-expanded');
-    return saved === 'true';
+    // Default expanded on desktop (≥1024px) unless user explicitly collapsed it
+    if (saved !== null) return saved === 'true';
+    return window.innerWidth >= 1024;
   });
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
@@ -217,7 +221,7 @@ export const Layout: React.FC = () => {
             <NavLink 
               to="/" 
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              title="Início"
+              data-tooltip="Início"
               onClick={() => {
                 if (window.innerWidth <= 768) setIsExpanded(false);
               }}
@@ -230,7 +234,7 @@ export const Layout: React.FC = () => {
             <NavLink 
               to="/alunos" 
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              title="Alunos"
+              data-tooltip="Alunos"
               onClick={() => {
                 if (window.innerWidth <= 768) setIsExpanded(false);
               }}
@@ -244,7 +248,7 @@ export const Layout: React.FC = () => {
               <button 
                 type="button"
                 className={`sidebar-item sidebar-item-header ${isExerciciosRoute ? 'active' : ''}`}
-                title="Biblioteca"
+                data-tooltip="Biblioteca"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isExpanded) {
@@ -313,7 +317,7 @@ export const Layout: React.FC = () => {
               <NavLink 
                 to="/admin" 
                 className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-                title="Admin"
+                data-tooltip="Administração"
                 onClick={() => {
                   if (window.innerWidth <= 768) setIsExpanded(false);
                 }}
@@ -326,7 +330,7 @@ export const Layout: React.FC = () => {
             <NavLink 
               to="/configuracoes" 
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              title="Configurações"
+              data-tooltip="Configurações"
               onClick={() => {
                 if (window.innerWidth <= 768) setIsExpanded(false);
               }}
@@ -375,27 +379,53 @@ export const Layout: React.FC = () => {
         </aside>
 
         <main className="content-area">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
 
-      {/* Mobile Tab Bar — replaces the sidebar drawer on small screens */}
+      {/* iOS Tab Bar — spring press feedback via Motion */}
       <nav className="mobile-tab-bar" aria-label="Navegação principal">
         <NavLink to="/" end className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <Home size={20} aria-hidden="true" />
-          <span>Início</span>
+          <motion.span
+            className="tab-bar-inner"
+            whileTap={{ scale: 0.82 }}
+            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
+          >
+            <Home size={22} aria-hidden="true" />
+            <span>Início</span>
+          </motion.span>
         </NavLink>
         <NavLink to="/alunos" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <Users size={20} aria-hidden="true" />
-          <span>Alunos</span>
+          <motion.span
+            className="tab-bar-inner"
+            whileTap={{ scale: 0.82 }}
+            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
+          >
+            <Users size={22} aria-hidden="true" />
+            <span>Alunos</span>
+          </motion.span>
         </NavLink>
         <NavLink to="/exercicios?tab=exercicios" className={`tab-bar-item ${isExerciciosRoute ? 'active' : ''}`}>
-          <Layers size={20} aria-hidden="true" />
-          <span>Biblioteca</span>
+          <motion.span
+            className="tab-bar-inner"
+            whileTap={{ scale: 0.82 }}
+            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
+          >
+            <Layers size={22} aria-hidden="true" />
+            <span>Biblioteca</span>
+          </motion.span>
         </NavLink>
         <NavLink to="/configuracoes" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
-          <Settings size={20} aria-hidden="true" />
-          <span>Config.</span>
+          <motion.span
+            className="tab-bar-inner"
+            whileTap={{ scale: 0.82 }}
+            transition={{ type: 'spring', bounce: 0.35, duration: 0.28 }}
+          >
+            <Settings size={22} aria-hidden="true" />
+            <span>Config.</span>
+          </motion.span>
         </NavLink>
       </nav>
     </div>

@@ -2,10 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, Sparkles, X } from 'lucide-react';
+import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const emailField = useFieldValidation('', (v) => {
+    if (!v.trim()) return 'Informe seu e-mail';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'E-mail inválido';
+    return null;
+  });
+  const senhaField = useFieldValidation('', (v) => {
+    if (!v) return 'Informe sua senha';
+    return null;
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [error, setError] = useState('');
@@ -20,11 +29,16 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Force-validate all fields on submit
+    const emailOk = emailField.touch();
+    const senhaOk = senhaField.touch();
+    if (!emailOk || !senhaOk) return;
+
     setError('');
     setLoading(true);
 
     try {
-      await login(email, senha);
+      await login(emailField.value, senhaField.value);
       navigate('/');
     } catch (err: any) {
       console.error(err);
@@ -43,7 +57,7 @@ export const Login: React.FC = () => {
       <div className="login-left-panel">
         <div className="login-brand-header">
           <div className="login-brand-pill">
-            TREINOS // APP • MOTOR DE PRESCRIÇÃO
+            TREINOS APP • PRESCRIÇÃO PROFISSIONAL
           </div>
           <h1 className="login-hero-title">
             Estrutura, precisão e velocidade <span>na prescrição de treinos.</span>
@@ -116,7 +130,7 @@ export const Login: React.FC = () => {
       {/* ─── Right Panel: Form Box ─── */}
       <div className="login-right-panel">
         <div className="login-form-container">
-          <div className="login-form-eyebrow">ACESSO RESTRITO // TREINADOR</div>
+          <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
           <h2 className="login-form-title">Entrar na plataforma</h2>
           <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
 
@@ -135,15 +149,18 @@ export const Login: React.FC = () => {
                 <input
                   id="email"
                   type="email"
-                  className="form-input"
+                  className={`form-input ${emailField.inputClass}`}
                   placeholder="exemplo@treinador.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  value={emailField.value}
+                  onChange={emailField.onChange}
+                  onBlur={emailField.onBlur}
                   autoComplete="email"
                   disabled={loading}
                 />
               </div>
+              {emailField.error && (
+                <span className="field-error" role="alert">{emailField.error}</span>
+              )}
             </div>
 
             <div className="form-group" style={{ marginBottom: '1.25rem' }}>
@@ -172,11 +189,11 @@ export const Login: React.FC = () => {
                 <input
                   id="senha"
                   type={showPassword ? 'text' : 'password'}
-                  className="form-input"
+                  className={`form-input ${senhaField.inputClass}`}
                   placeholder="••••••••"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  required
+                  value={senhaField.value}
+                  onChange={senhaField.onChange}
+                  onBlur={senhaField.onBlur}
                   autoComplete="current-password"
                   disabled={loading}
                 />
@@ -190,6 +207,9 @@ export const Login: React.FC = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {senhaField.error && (
+                <span className="field-error" role="alert">{senhaField.error}</span>
+              )}
             </div>
 
             <button

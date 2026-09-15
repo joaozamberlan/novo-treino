@@ -117,6 +117,21 @@ body {
   padding-left: var(--sal);
   padding-right: var(--sar);
   touch-action: manipulation;
+  overscroll-behavior-y: none;
+}
+
+/* iOS native feel: prevent long-press callout magnifier on buttons & links */
+button,
+a,
+.btn,
+.tab-bar-item,
+.sidebar-item,
+.card-clickable,
+.exercise-action-btn,
+.set-check-btn,
+.load-stepper-btn,
+.rest-timer-trigger {
+  -webkit-touch-callout: none;
 }
 
 ::selection {
@@ -494,6 +509,42 @@ p {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+/* ── Inline field validation (Apple HIG: error near the source) ─────────── */
+
+.form-input--error {
+  border-color: var(--danger) !important;
+  background: rgba(240, 68, 56, 0.04) !important;
+}
+
+.form-input--error:focus {
+  outline-color: var(--danger) !important;
+}
+
+.form-input--valid {
+  border-color: var(--success) !important;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  line-height: 1.4;
+  animation: fieldErrorIn 180ms var(--ease-out) forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+@keyframes fieldErrorIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  color: var(--text-2);
+  line-height: 1.4;
 }
 
 .form-label {
@@ -1995,6 +2046,70 @@ body.light-theme .floating-rest-timer {
     break-after: page;
   }
 
+  /* Weekly Volume by Muscle Group — summary page */
+  .print-volume-page {
+    page-break-before: always;
+    break-before: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-volume-subtitle {
+    font-size: 9px;
+    color: #6b7280 !important;
+    line-height: 1.4;
+    margin: 8px 0 14px 0;
+    max-width: 520px;
+  }
+
+  .print-volume-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .print-volume-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 64px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .print-volume-group-name {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #111827 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .print-volume-bar-track {
+    height: 10px;
+    background: #eef0f2 !important;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-volume-bar-fill {
+    height: 100%;
+    background: #ba281a !important;
+    border-radius: 2px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-volume-count {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #4b5563 !important;
+    text-align: right;
+    white-space: nowrap;
+  }
+
   .print-treino-header {
     display: flex;
     justify-content: space-between;
@@ -2430,19 +2545,26 @@ body.light-theme .mobile-tab-bar {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   color: var(--text-2);
   text-decoration: none;
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  transition: color 140ms var(--ease-out), transform 100ms var(--ease-out);
+  transition: color 160ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  /* No :active transform here — Motion spring handles it via .tab-bar-inner */
 }
 
-.tab-bar-item:active {
-  transform: scale(0.93);
+/* Inner wrapper — Motion applies whileTap spring scale to this */
+.tab-bar-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-m);
 }
 
 .tab-bar-item.active {
@@ -2501,6 +2623,45 @@ body.light-theme .mobile-tab-bar {
   .sidebar-item:hover {
     background: var(--bg-2);
     color: var(--text-0);
+  }
+
+  /* Instant floating tooltip for collapsed sidebar (macOS/iPadOS style) */
+  .app-sidebar:not(.expanded) {
+    overflow: visible;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-nav {
+    overflow: visible;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip] {
+    position: relative;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%) scale(0.95);
+    background: var(--bg-1);
+    color: var(--text-0);
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--radius-s);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms var(--ease-out), transform 120ms var(--ease-spring);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-strong);
+    z-index: 999;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
   }
 }
 
@@ -2745,7 +2906,7 @@ body.light-theme .mobile-tab-bar {
   width: 100%;
   max-width: 420px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
-  animation: modalScaleIn 200ms var(--ease-out) forwards;
+  animation: modalScaleIn 300ms var(--ease-spring) forwards;
   transform-origin: center;
 }
 
@@ -2799,11 +2960,11 @@ body.light-theme .mobile-tab-bar {
 @keyframes modalScaleIn {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.94) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -2964,17 +3125,35 @@ body.light-theme .mobile-tab-bar {
   .modal-backdrop {
     align-items: flex-end;
     padding: 0;
+    overscroll-behavior-y: contain;
   }
 
   .modal-content {
+    position: relative;
     max-width: 100%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-left: none;
     border-right: none;
     border-bottom: none;
-    padding: 1.5rem 1.25rem max(1.5rem, calc(var(--sab) + 1.25rem)) 1.25rem;
+    padding: 2.2rem 1.25rem max(1.5rem, calc(var(--sab) + 1.25rem)) 1.25rem;
     animation: sheetSlideUp 280ms var(--ease-drawer) forwards;
+    overscroll-behavior-y: contain;
+  }
+
+  /* iOS Sheet Grabber / Drag Indicator (Apple HIG standard) */
+  .modal-content::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--text-2);
+    opacity: 0.35;
+    pointer-events: none;
   }
 }
 
@@ -3090,17 +3269,6 @@ body.light-theme .mobile-tab-bar {
   }
 }
 
-.login-left-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(var(--border) 1px, transparent 1px),
-                    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 32px 32px;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 .login-brand-header {
   position: relative;
   z-index: 2;
@@ -3135,9 +3303,6 @@ body.light-theme .mobile-tab-bar {
 
 .login-hero-title span {
   color: var(--accent);
-  background: linear-gradient(135deg, var(--accent) 0%, #ff5242 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .login-hero-desc {

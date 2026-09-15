@@ -4,6 +4,7 @@ dist/
 
 # Ferramentas locais e relatórios
 graphify-out/
+.impeccable/
 
 # Variáveis de ambiente
 .env

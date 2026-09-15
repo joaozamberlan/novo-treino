@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff, Shield } from 'lucide-react';
+import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Configuracoes: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -15,10 +16,19 @@ export const Configuracoes: React.FC = () => {
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
 
-  // Password form
+  // Password form — inline validation
+  const novaSenhaField = useFieldValidation('', (v) => {
+    if (!v) return 'Informe a nova senha';
+    if (v.length < 8) return 'A senha deve ter no mínimo 8 caracteres';
+    return null;
+  });
+  const confirmarSenhaField = useFieldValidation('', useCallback((v: string) => {
+    if (!v) return 'Confirme a nova senha';
+    if (v !== novaSenhaField.value) return 'As senhas não conferem';
+    return null;
+  }, [novaSenhaField.value]));
+
   const [senhaAtual, setSenhaAtual] = useState('');
-  const [novaSenha, setNovaSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showNovaSenha, setShowNovaSenha] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -95,25 +105,22 @@ export const Configuracoes: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (novaSenha.length < 8) {
-      toast.error('A nova senha deve ter no mínimo 8 caracteres.');
-      return;
-    }
-    if (novaSenha !== confirmarSenha) {
-      toast.error('A nova senha e a confirmação não conferem.');
-      return;
-    }
+    // Force-validate inline before sending to API
+    const novaOk = novaSenhaField.touch();
+    const confirmarOk = confirmarSenhaField.touch();
+    if (!senhaAtual) { toast.error('Informe sua senha atual'); return; }
+    if (!novaOk || !confirmarOk) return;
 
     setSavingPassword(true);
     try {
       await api.patch('/profissionais/me/senha', {
         senhaAtual,
-        novaSenha,
+        novaSenha: novaSenhaField.value,
       });
       toast.success('Senha atualizada com sucesso!');
       setSenhaAtual('');
-      setNovaSenha('');
-      setConfirmarSenha('');
+      novaSenhaField.reset();
+      confirmarSenhaField.reset();
     } catch (err: any) {
       console.error(err);
       const errText = err.response?.data?.message || 'Erro ao alterar senha. Verifique sua senha atual.';
@@ -398,11 +405,11 @@ export const Configuracoes: React.FC = () => {
                 <input
                   id="novaSenha"
                   type={showNovaSenha ? 'text' : 'password'}
-                  className="form-input"
-                  value={novaSenha}
-                  onChange={(e) => setNovaSenha(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  required
+                  className={`form-input ${novaSenhaField.inputClass}`}
+                  value={novaSenhaField.value}
+                  onChange={novaSenhaField.onChange}
+                  onBlur={novaSenhaField.onBlur}
+                  placeholder="Mínimo 8 caracteres"
                 />
                 <button
                   type="button"
@@ -413,6 +420,9 @@ export const Configuracoes: React.FC = () => {
                   {showNovaSenha ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {novaSenhaField.error && (
+                <span className="field-error" role="alert">{novaSenhaField.error}</span>
+              )}
             </div>
 
             <div className="form-group">
@@ -421,13 +431,16 @@ export const Configuracoes: React.FC = () => {
                 <input
                   id="confirmarSenha"
                   type={showNovaSenha ? 'text' : 'password'}
-                  className="form-input"
-                  value={confirmarSenha}
-                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  className={`form-input ${confirmarSenhaField.inputClass}`}
+                  value={confirmarSenhaField.value}
+                  onChange={confirmarSenhaField.onChange}
+                  onBlur={confirmarSenhaField.onBlur}
                   placeholder="Repita a nova senha"
-                  required
                 />
               </div>
+              {confirmarSenhaField.error && (
+                <span className="field-error" role="alert">{confirmarSenhaField.error}</span>
+              )}
             </div>
           </div>
 

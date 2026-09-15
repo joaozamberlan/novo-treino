@@ -2,13 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders } from 'lucide-react';
+import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Register: React.FC = () => {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const nomeField = useFieldValidation('', (v) => {
+    if (!v.trim()) return 'Informe seu nome completo';
+    if (v.trim().length < 3) return 'Nome deve ter pelo menos 3 caracteres';
+    return null;
+  });
+
+  const emailField = useFieldValidation('', (v) => {
+    if (!v.trim()) return 'Informe seu e-mail';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())) return 'Informe um e-mail válido';
+    return null;
+  });
+
+  const senhaField = useFieldValidation('', (v) => {
+    if (!v) return 'Informe uma senha';
+    if (v.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+    return null;
+  });
+
+  const crefField = useFieldValidation('', (v) => {
+    if (!v.trim()) return 'Informe seu registro CREF';
+    return null;
+  });
+
   const [showPassword, setShowPassword] = useState(false);
-  const [cref, setCref] = useState('');
   const [profissao, setProfissao] = useState('Personal Trainer');
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -24,18 +44,26 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const nomeOk = nomeField.touch();
+    const emailOk = emailField.touch();
+    const senhaOk = senhaField.touch();
+    const crefOk = crefField.touch();
+
+    if (!nomeOk || !emailOk || !senhaOk || !crefOk) return;
+
     setError('');
     setLoading(true);
 
     try {
       await register({
-        nome,
-        email,
-        senha,
-        cref,
-        profissao,
-        telefone: telefone || undefined,
-        instagram: instagram || undefined,
+        nome: nomeField.value.trim(),
+        email: emailField.value.trim(),
+        senha: senhaField.value,
+        cref: crefField.value.trim(),
+        profissao: profissao.trim() || 'Personal Trainer',
+        telefone: telefone.trim() || undefined,
+        instagram: instagram.trim() || undefined,
       });
       navigate('/login');
     } catch (err: any) {
@@ -55,7 +83,7 @@ export const Register: React.FC = () => {
       <div className="login-left-panel">
         <div className="login-brand-header">
           <div className="login-brand-pill">
-            TREINOS // APP • MOTOR DE PRESCRIÇÃO
+            TREINOS APP • PRESCRIÇÃO PROFISSIONAL
           </div>
           <h1 className="login-hero-title">
             Prescreva com estrutura <span>e sem complicações.</span>
@@ -128,7 +156,7 @@ export const Register: React.FC = () => {
       {/* ─── Right Panel: Form Box ─── */}
       <div className="login-right-panel">
         <div className="login-form-container register-form-container">
-          <div className="login-form-eyebrow">NOVO TREINADOR // CADASTRO</div>
+          <div className="login-form-eyebrow">CADASTRO PROFISSIONAL</div>
           <h2 className="login-form-title">Criar conta</h2>
           <p className="login-form-sub">Preencha seus dados para começar a prescrever treinos.</p>
 
@@ -138,21 +166,24 @@ export const Register: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" htmlFor="nome">Nome completo</label>
               <div className="login-input-wrap">
                 <input
                   id="nome"
                   type="text"
-                  className="form-input"
+                  className={`form-input ${nomeField.inputClass}`}
                   placeholder="Ex: Prof. João Silva"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  required
+                  value={nomeField.value}
+                  onChange={nomeField.onChange}
+                  onBlur={nomeField.onBlur}
                   autoComplete="name"
                 />
               </div>
+              {nomeField.error && (
+                <span className="field-error" role="alert">{nomeField.error}</span>
+              )}
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
@@ -161,14 +192,17 @@ export const Register: React.FC = () => {
                 <input
                   id="email"
                   type="email"
-                  className="form-input"
+                  className={`form-input ${emailField.inputClass}`}
                   placeholder="treinador@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  value={emailField.value}
+                  onChange={emailField.onChange}
+                  onBlur={emailField.onBlur}
                   autoComplete="email"
                 />
               </div>
+              {emailField.error && (
+                <span className="field-error" role="alert">{emailField.error}</span>
+              )}
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
@@ -177,11 +211,11 @@ export const Register: React.FC = () => {
                 <input
                   id="senha"
                   type={showPassword ? 'text' : 'password'}
-                  className="form-input"
+                  className={`form-input ${senhaField.inputClass}`}
                   placeholder="Mínimo 6 caracteres"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  required
+                  value={senhaField.value}
+                  onChange={senhaField.onChange}
+                  onBlur={senhaField.onBlur}
                   autoComplete="new-password"
                 />
                 <button
@@ -193,6 +227,9 @@ export const Register: React.FC = () => {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {senhaField.error && (
+                <span className="field-error" role="alert">{senhaField.error}</span>
+              )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -202,13 +239,16 @@ export const Register: React.FC = () => {
                   <input
                     id="cref"
                     type="text"
-                    className="form-input"
+                    className={`form-input ${crefField.inputClass}`}
                     placeholder="000000-G/UF"
-                    value={cref}
-                    onChange={(e) => setCref(e.target.value)}
-                    required
+                    value={crefField.value}
+                    onChange={crefField.onChange}
+                    onBlur={crefField.onBlur}
                   />
                 </div>
+                {crefField.error && (
+                  <span className="field-error" role="alert">{crefField.error}</span>
+                )}
               </div>
 
               <div className="form-group">
