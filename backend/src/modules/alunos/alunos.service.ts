@@ -3,6 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
 import { randomUUID } from 'crypto';
+import {
+  PaginationQueryDto,
+  toSkipTake,
+} from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class AlunosService {
@@ -18,10 +22,11 @@ export class AlunosService {
     });
   }
 
-  async findAll(idProfissional: number) {
+  async findAll(idProfissional: number, pagination?: PaginationQueryDto) {
     return this.prisma.aluno.findMany({
       where: { idProfissional },
       orderBy: { nome: 'asc' },
+      ...toSkipTake(pagination),
     });
   }
 
@@ -42,13 +47,50 @@ export class AlunosService {
     return aluno;
   }
 
-  async update(idAluno: number, updateAlunoDto: UpdateAlunoDto, idProfissional: number) {
+  async update(
+    idAluno: number,
+    updateAlunoDto: UpdateAlunoDto,
+    idProfissional: number,
+  ) {
     // Check if student exists and belongs to the personal trainer
     await this.findOne(idAluno, idProfissional);
 
     return this.prisma.aluno.update({
       where: { idAluno },
       data: updateAlunoDto,
+    });
+  }
+
+  // Gera um novo tokenAcesso e descarta o anterior — o link público antigo
+  // (e qualquer cópia dele que tenha vazado) para de funcionar imediatamente.
+  async regenerateToken(idAluno: number, idProfissional: number) {
+    const aluno = await this.prisma.aluno.findFirst({
+      where: { idAluno, idProfissional },
+    });
+    if (!aluno) {
+      throw new NotFoundException('Aluno não encontrado');
+    }
+    return this.prisma.aluno.update({
+      where: { idAluno },
+      data: { tokenAcesso: randomUUID() },
+      select: { idAluno: true, nome: true, tokenAcesso: true },
+    });
+  }
+
+  // Revoga o link público sem gerar um novo — /publico/* para de reconhecer
+  // esse aluno até que um novo token seja gerado (regenerateToken ou o
+  // próximo findOne/getVisaoGeralAluno, que recria automaticamente).
+  async revokeToken(idAluno: number, idProfissional: number) {
+    const aluno = await this.prisma.aluno.findFirst({
+      where: { idAluno, idProfissional },
+    });
+    if (!aluno) {
+      throw new NotFoundException('Aluno não encontrado');
+    }
+    return this.prisma.aluno.update({
+      where: { idAluno },
+      data: { tokenAcesso: null },
+      select: { idAluno: true, nome: true, tokenAcesso: true },
     });
   }
 

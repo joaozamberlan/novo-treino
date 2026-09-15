@@ -1,7 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
+import {
+  PaginationQueryDto,
+  toSkipTake,
+} from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class ProfissionaisService {
@@ -18,7 +27,10 @@ export class ProfissionaisService {
     return result;
   }
 
-  async updateProfile(idProfissional: number, updateDto: UpdateProfissionalDto) {
+  async updateProfile(
+    idProfissional: number,
+    updateDto: UpdateProfissionalDto,
+  ) {
     // Ensure professional exists
     await this.getProfile(idProfissional);
 
@@ -30,8 +42,9 @@ export class ProfissionaisService {
     return result;
   }
 
-  async listAllProfessionals() {
+  async listAllProfessionals(pagination?: PaginationQueryDto) {
     return this.prisma.profissional.findMany({
+      ...toSkipTake(pagination),
       orderBy: { dataCadastro: 'desc' },
       select: {
         idProfissional: true,
@@ -50,7 +63,9 @@ export class ProfissionaisService {
   }
 
   async updateProfessionalStatus(idProfissional: number, ativo: boolean) {
-    const exists = await this.prisma.profissional.findUnique({ where: { idProfissional } });
+    const exists = await this.prisma.profissional.findUnique({
+      where: { idProfissional },
+    });
     if (!exists) {
       throw new NotFoundException('Profissional não encontrado');
     }
@@ -66,7 +81,9 @@ export class ProfissionaisService {
   }
 
   async updateProfessionalRole(idProfissional: number, role: string) {
-    const exists = await this.prisma.profissional.findUnique({ where: { idProfissional } });
+    const exists = await this.prisma.profissional.findUnique({
+      where: { idProfissional },
+    });
     if (!exists) {
       throw new NotFoundException('Profissional não encontrado');
     }
@@ -81,12 +98,18 @@ export class ProfissionaisService {
     });
   }
 
-  async changePassword(idProfissional: number, senhaAtual: string, novaSenha: string) {
+  async changePassword(
+    idProfissional: number,
+    senhaAtual: string,
+    novaSenha: string,
+  ) {
     if (!senhaAtual || !novaSenha) {
       throw new BadRequestException('Informe a senha atual e a nova senha');
     }
-    if (novaSenha.length < 6) {
-      throw new BadRequestException('A nova senha deve ter no mínimo 6 caracteres');
+    if (novaSenha.length < 8) {
+      throw new BadRequestException(
+        'A nova senha deve ter no mínimo 8 caracteres',
+      );
     }
 
     const prof = await this.prisma.profissional.findUnique({
@@ -113,10 +136,14 @@ export class ProfissionaisService {
   }
 
   async resetPasswordByAdmin(idProfissional: number, novaSenha: string) {
-    if (!novaSenha || novaSenha.length < 6) {
-      throw new BadRequestException('A nova senha deve ter no mínimo 6 caracteres');
+    if (!novaSenha || novaSenha.length < 8) {
+      throw new BadRequestException(
+        'A nova senha deve ter no mínimo 8 caracteres',
+      );
     }
-    const exists = await this.prisma.profissional.findUnique({ where: { idProfissional } });
+    const exists = await this.prisma.profissional.findUnique({
+      where: { idProfissional },
+    });
     if (!exists) {
       throw new NotFoundException('Profissional não encontrado');
     }

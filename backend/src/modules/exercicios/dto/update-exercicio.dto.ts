@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class UpdateExercicioDto {
   @IsInt()
@@ -13,7 +13,10 @@ export class UpdateExercicioDto {
   @IsOptional()
   descricao?: string;
 
-  @IsString()
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'URL de vídeo inválida' },
+  )
   @IsOptional()
   videoUrl?: string;
 

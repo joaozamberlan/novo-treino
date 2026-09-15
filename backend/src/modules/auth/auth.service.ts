@@ -1,11 +1,26 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
-import { DEFAULT_CATALOG, DEFAULT_TECNICAS } from '../../constants/default-catalog';
+import {
+  DEFAULT_CATALOG,
+  DEFAULT_TECNICAS,
+} from '../../constants/default-catalog';
+
+// Hash "dummy" comparado quando o e-mail não existe, para que bcrypt.compare()
+// sempre execute o mesmo trabalho — evita um timing side-channel que revelaria
+// se um e-mail está cadastrado antes mesmo de checar a senha.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  'senha-nao-existe-para-timing-safety',
+  10,
+);
 
 @Injectable()
 export class AuthService {
@@ -15,7 +30,8 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, senha, nome, cref, profissao, telefone, instagram } = registerDto;
+    const { email, senha, nome, cref, profissao, telefone, instagram } =
+      registerDto;
 
     const emailExists = await this.prisma.profissional.findUnique({
       where: { email },
@@ -55,8 +71,8 @@ export class AuthService {
         const group = await this.prisma.grupoMuscular.create({
           data: {
             nome: groupName,
-            idProfissional
-          }
+            idProfissional,
+          },
         });
 
         for (const exName of exercises) {
@@ -64,8 +80,8 @@ export class AuthService {
             data: {
               nome: exName,
               idGrupoMuscular: group.idGrupoMuscular,
-              idProfissional
-            }
+              idProfissional,
+            },
           });
         }
       }
@@ -76,12 +92,15 @@ export class AuthService {
           data: {
             nome: tech.nome,
             descricao: tech.desc,
-            idProfissional
-          }
+            idProfissional,
+          },
         });
       }
     } catch (err) {
-      console.error(`Falha ao semear catálogo inicial para o profissional ${idProfissional}:`, err);
+      console.error(
+        `Falha ao semear catálogo inicial para o profissional ${idProfissional}:`,
+        err,
+      );
     }
   }
 
@@ -92,17 +111,30 @@ export class AuthService {
       where: { email },
     });
 
-    if (!profesional || !profesional.ativo) {
-      throw new UnauthorizedException('Credenciais inválidas ou conta inativa');
-    }
+    // Sempre compara contra um hash — real ou "dummy" — para não revelar,
+    // nem pela resposta nem pelo tempo de resposta, se o e-mail existe.
+    const isMatch = await bcrypt.compare(
+      senha,
+      profesional?.senhaHash ?? DUMMY_PASSWORD_HASH,
+    );
 
-    const isMatch = await bcrypt.compare(senha, profesional.senhaHash);
-    if (!isMatch) {
+    if (!profesional || !isMatch) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const payload = { sub: profesional.idProfissional, email: profesional.email };
-    
+    // Só revela o status "pendente" depois de confirmar que a senha está
+    // correta — quem não conhece a senha nunca aprende que a conta existe.
+    if (!profesional.ativo) {
+      throw new UnauthorizedException(
+        'Conta pendente de aprovação. Aguarde a liberação do administrador.',
+      );
+    }
+
+    const payload = {
+      sub: profesional.idProfissional,
+      email: profesional.email,
+    };
+
     return {
       accessToken: this.jwtService.sign(payload),
       profissional: {

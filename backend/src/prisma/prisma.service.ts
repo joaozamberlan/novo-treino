@@ -3,7 +3,10 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
-import { DEFAULT_CATALOG, DEFAULT_TECNICAS } from '../constants/default-catalog';
+import {
+  DEFAULT_CATALOG,
+  DEFAULT_TECNICAS,
+} from '../constants/default-catalog';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -21,45 +24,67 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
   async onModuleInit() {
     await this.$connect();
-    await this.seedAdmin();
+    await this.seedAdminIfEnabled();
   }
 
-  private async seedAdmin() {
-    const adminEmail = 'admin@treinosapp.com';
+  /**
+   * Seed opcional de uma conta SUPERADMIN para ambiente de desenvolvimento local.
+   *
+   * Nunca roda em produção por padrão: exige SEED_ADMIN=true explicitamente, e as
+   * credenciais vêm de variáveis de ambiente definidas pelo próprio desenvolvedor
+   * (nunca fixas no código). Só cria a conta se ela ainda não existir — nunca
+   * sobrescreve role/status de uma conta já existente durante o boot.
+   */
+  private async seedAdminIfEnabled() {
+    if (process.env.SEED_ADMIN !== 'true') {
+      return;
+    }
+
+    const adminEmail = process.env.SEED_ADMIN_EMAIL;
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      console.warn(
+        'SEED_ADMIN=true, mas SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD não foram definidos. Seed de admin ignorado.',
+      );
+      return;
+    }
+
+    if (adminPassword.length < 8) {
+      console.warn(
+        'SEED_ADMIN_PASSWORD é muito curta (mínimo 8 caracteres). Seed de admin ignorado.',
+      );
+      return;
+    }
+
     const exists = await this.profissional.findUnique({
       where: { email: adminEmail },
     });
-
-    if (!exists) {
-      const salt = await bcrypt.genSalt(10);
-      const senhaHash = await bcrypt.hash('admin123', salt);
-
-      const admin = await this.profissional.create({
-        data: {
-          nome: 'Administrador TreinosApp',
-          email: adminEmail,
-          senhaHash,
-          cref: '000000-G/ADMIN',
-          profissao: 'Administrador',
-          ativo: true,
-          role: 'SUPERADMIN',
-        },
-      });
-      console.log('--- ADMIN ACCOUNT SEEDED AUTOMATICALLY: admin@treinosapp.com / admin123 ---');
-      
-      // Seed isolated catalog for Admin
-      await this.seedAdminCatalog(admin.idProfissional);
-    } else {
-      // Force update existing admin account to SUPERADMIN role and active status
-      await this.profissional.update({
-        where: { email: adminEmail },
-        data: {
-          ativo: true,
-          role: 'SUPERADMIN',
-        },
-      });
-      console.log('--- ADMIN ACCOUNT UPDATED TO SUPERADMIN AUTOMATICALLY ---');
+    if (exists) {
+      // Nunca sobrescreve uma conta já existente durante o boot.
+      return;
     }
+
+    const salt = await bcrypt.genSalt(10);
+    const senhaHash = await bcrypt.hash(adminPassword, salt);
+
+    const admin = await this.profissional.create({
+      data: {
+        nome: 'Administrador (dev)',
+        email: adminEmail,
+        senhaHash,
+        cref: '000000-G/ADMIN',
+        profissao: 'Administrador',
+        ativo: true,
+        role: 'SUPERADMIN',
+      },
+    });
+
+    console.log(
+      'Conta SUPERADMIN de desenvolvimento criada a partir de SEED_ADMIN_EMAIL (credenciais não exibidas no log).',
+    );
+
+    await this.seedAdminCatalog(admin.idProfissional);
   }
 
   private async seedAdminCatalog(idProfissional: number) {
@@ -68,8 +93,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         const group = await this.grupoMuscular.create({
           data: {
             nome: groupName,
-            idProfissional
-          }
+            idProfissional,
+          },
         });
 
         for (const exName of exercises) {
@@ -77,8 +102,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
             data: {
               nome: exName,
               idGrupoMuscular: group.idGrupoMuscular,
-              idProfissional
-            }
+              idProfissional,
+            },
           });
         }
       }
@@ -88,8 +113,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
           data: {
             nome: tech.nome,
             descricao: tech.desc,
-            idProfissional
-          }
+            idProfissional,
+          },
         });
       }
       console.log('--- ADMIN CATALOG SEEDED AUTOMATICALLY ---');

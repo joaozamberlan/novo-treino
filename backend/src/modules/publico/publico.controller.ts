@@ -1,6 +1,18 @@
-import { Controller, Get, Post, Param, ParseIntPipe, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  ParseIntPipe,
+  Body,
+} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { PublicoService } from './publico.service';
 
+// Endpoints sem autenticação — mais expostos a scraping/automação do que os
+// autenticados. 30/min por IP acomoda um aluno ativo registrando séries
+// (cada campo sincroniza com debounce próprio) sem travar o uso legítimo.
+@Throttle({ default: { limit: 30, ttl: 60_000 } })
 @Controller('publico')
 export class PublicoController {
   constructor(private readonly publicoService: PublicoService) {}
@@ -19,30 +31,51 @@ export class PublicoController {
     return this.publicoService.getOuCriarSessao(token, idTreino);
   }
 
-  // POST /publico/sessao/:idSessao/toggle/:idTreinoExercicio — toggle exercício
-  @Post('sessao/:idSessao/toggle/:idTreinoExercicio')
+  // POST /publico/sessao/:token/:idSessao/toggle/:idTreinoExercicio — toggle exercício
+  @Post('sessao/:token/:idSessao/toggle/:idTreinoExercicio')
   async toggleExercicio(
+    @Param('token') token: string,
     @Param('idSessao', ParseIntPipe) idSessao: number,
     @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
   ) {
-    return this.publicoService.toggleExercicio(idSessao, idTreinoExercicio);
+    return this.publicoService.toggleExercicio(
+      token,
+      idSessao,
+      idTreinoExercicio,
+    );
   }
 
-  // POST /publico/sessao/:idSessao/exercicio/:idTreinoExercicio/series — salva séries realizadas
-  @Post('sessao/:idSessao/exercicio/:idTreinoExercicio/series')
+  // POST /publico/sessao/:token/:idSessao/exercicio/:idTreinoExercicio/series — salva séries realizadas
+  @Post('sessao/:token/:idSessao/exercicio/:idTreinoExercicio/series')
   async salvarSeries(
+    @Param('token') token: string,
     @Param('idSessao', ParseIntPipe) idSessao: number,
     @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
-    @Body() body: { series: Array<{ numeroSerie: number; cargaKg?: number | null; repeticoes?: number | null; concluido?: boolean }> },
+    @Body()
+    body: {
+      series: Array<{
+        numeroSerie: number;
+        cargaKg?: number | null;
+        repeticoes?: number | null;
+        concluido?: boolean;
+      }>;
+    },
   ) {
-    return this.publicoService.salvarSeriesExercicio(idSessao, idTreinoExercicio, body.series || []);
+    return this.publicoService.salvarSeriesExercicio(
+      token,
+      idSessao,
+      idTreinoExercicio,
+      body.series || [],
+    );
   }
 
-  // POST /publico/sessao/:idSessao/encerrar — encerra o treino e comita para o histórico
-  @Post('sessao/:idSessao/encerrar')
+  // POST /publico/sessao/:token/:idSessao/encerrar — encerra o treino e comita para o histórico
+  @Post('sessao/:token/:idSessao/encerrar')
   async encerrarSessao(
+    @Param('token') token: string,
     @Param('idSessao', ParseIntPipe) idSessao: number,
-    @Body() body?: {
+    @Body()
+    body?: {
       exercicios?: Array<{
         idTreinoExercicio: number;
         series: Array<{
@@ -54,7 +87,11 @@ export class PublicoController {
       }>;
     },
   ) {
-    return this.publicoService.encerrarSessao(idSessao, body?.exercicios);
+    return this.publicoService.encerrarSessao(
+      token,
+      idSessao,
+      body?.exercicios,
+    );
   }
 
   // POST /publico/sessao/:token/:idTreino/nova — inicia uma nova sessão (nova semana)

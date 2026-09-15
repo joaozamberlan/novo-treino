@@ -95,8 +95,8 @@ export const Configuracoes: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (novaSenha.length < 6) {
-      toast.error('A nova senha deve ter no mínimo 6 caracteres.');
+    if (novaSenha.length < 8) {
+      toast.error('A nova senha deve ter no mínimo 8 caracteres.');
       return;
     }
     if (novaSenha !== confirmarSenha) {

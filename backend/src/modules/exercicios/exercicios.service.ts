@@ -1,8 +1,20 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateExercicioDto } from './dto/create-exercicio.dto';
 import { UpdateExercicioDto } from './dto/update-exercicio.dto';
-import { DEFAULT_CATALOG, DEFAULT_TECNICAS } from '../../constants/default-catalog';
+import { UpdateTecnicaDto } from './dto/update-tecnica.dto';
+import {
+  DEFAULT_CATALOG,
+  DEFAULT_TECNICAS,
+} from '../../constants/default-catalog';
+import {
+  PaginationQueryDto,
+  toSkipTake,
+} from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class ExerciciosService {
@@ -12,7 +24,7 @@ export class ExerciciosService {
   async createGrupoMuscular(nome: string, idProfissional: number) {
     const exists = await this.prisma.grupoMuscular.findUnique({
       where: {
-        nome_idProfissional: { nome, idProfissional }
+        nome_idProfissional: { nome, idProfissional },
       },
     });
     if (exists) {
@@ -30,7 +42,11 @@ export class ExerciciosService {
     });
   }
 
-  async updateGrupoMuscular(idGrupoMuscular: number, nome: string, idProfissional: number) {
+  async updateGrupoMuscular(
+    idGrupoMuscular: number,
+    nome: string,
+    idProfissional: number,
+  ) {
     const exists = await this.prisma.grupoMuscular.findFirst({
       where: { idGrupoMuscular, idProfissional },
     });
@@ -40,11 +56,13 @@ export class ExerciciosService {
 
     const nameExists = await this.prisma.grupoMuscular.findUnique({
       where: {
-        nome_idProfissional: { nome, idProfissional }
-      }
+        nome_idProfissional: { nome, idProfissional },
+      },
     });
     if (nameExists && nameExists.idGrupoMuscular !== idGrupoMuscular) {
-      throw new ConflictException('Você já possui um grupo muscular com este nome');
+      throw new ConflictException(
+        'Você já possui um grupo muscular com este nome',
+      );
     }
 
     return this.prisma.grupoMuscular.update({
@@ -70,7 +88,7 @@ export class ExerciciosService {
   async createExercicio(createDto: CreateExercicioDto, idProfissional: number) {
     const exists = await this.prisma.exercicio.findUnique({
       where: {
-        nome_idProfissional: { nome: createDto.nome, idProfissional }
+        nome_idProfissional: { nome: createDto.nome, idProfissional },
       },
     });
     if (exists) {
@@ -87,17 +105,21 @@ export class ExerciciosService {
     return this.prisma.exercicio.create({
       data: {
         ...createDto,
-        idProfissional
+        idProfissional,
       },
       include: { grupoMuscular: true },
     });
   }
 
-  async findAllExercicios(idProfissional: number) {
+  async findAllExercicios(
+    idProfissional: number,
+    pagination?: PaginationQueryDto,
+  ) {
     return this.prisma.exercicio.findMany({
       where: { idProfissional, ativo: true },
       include: { grupoMuscular: true },
       orderBy: { nome: 'asc' },
+      ...toSkipTake(pagination),
     });
   }
 
@@ -112,7 +134,11 @@ export class ExerciciosService {
     return exercicio;
   }
 
-  async updateExercicio(idExercicio: number, updateDto: UpdateExercicioDto, idProfissional: number) {
+  async updateExercicio(
+    idExercicio: number,
+    updateDto: UpdateExercicioDto,
+    idProfissional: number,
+  ) {
     await this.findOneExercicio(idExercicio, idProfissional);
 
     if (updateDto.idGrupoMuscular) {
@@ -120,18 +146,22 @@ export class ExerciciosService {
         where: { idGrupoMuscular: updateDto.idGrupoMuscular, idProfissional },
       });
       if (!group) {
-        throw new NotFoundException('Grupo muscular não encontrado ou inválido');
+        throw new NotFoundException(
+          'Grupo muscular não encontrado ou inválido',
+        );
       }
     }
 
     if (updateDto.nome) {
       const nameExists = await this.prisma.exercicio.findUnique({
         where: {
-          nome_idProfissional: { nome: updateDto.nome, idProfissional }
-        }
+          nome_idProfissional: { nome: updateDto.nome, idProfissional },
+        },
       });
       if (nameExists && nameExists.idExercicio !== idExercicio) {
-        throw new ConflictException('Você já possui um exercício com este nome');
+        throw new ConflictException(
+          'Você já possui um exercício com este nome',
+        );
       }
     }
 
@@ -153,10 +183,14 @@ export class ExerciciosService {
   }
 
   // --- TECNICAS DE TREINO ---
-  async createTecnicaTreino(nome: string, idProfissional: number, descricao?: string) {
+  async createTecnicaTreino(
+    nome: string,
+    idProfissional: number,
+    descricao?: string,
+  ) {
     const exists = await this.prisma.tecnicaTreino.findUnique({
       where: {
-        nome_idProfissional: { nome, idProfissional }
+        nome_idProfissional: { nome, idProfissional },
       },
     });
     if (exists) {
@@ -174,8 +208,14 @@ export class ExerciciosService {
     });
   }
 
-  async updateTecnicaTreino(idTecnica: number, updateDto: { nome?: string; descricao?: string; ativo?: boolean }, idProfissional: number) {
-    const exists = await this.prisma.tecnicaTreino.findFirst({ where: { idTecnica, idProfissional } });
+  async updateTecnicaTreino(
+    idTecnica: number,
+    updateDto: UpdateTecnicaDto,
+    idProfissional: number,
+  ) {
+    const exists = await this.prisma.tecnicaTreino.findFirst({
+      where: { idTecnica, idProfissional },
+    });
     if (!exists) {
       throw new NotFoundException('Técnica não encontrada');
     }
@@ -183,8 +223,8 @@ export class ExerciciosService {
     if (updateDto.nome) {
       const nameExists = await this.prisma.tecnicaTreino.findUnique({
         where: {
-          nome_idProfissional: { nome: updateDto.nome, idProfissional }
-        }
+          nome_idProfissional: { nome: updateDto.nome, idProfissional },
+        },
       });
       if (nameExists && nameExists.idTecnica !== idTecnica) {
         throw new ConflictException('Você já possui uma técnica com este nome');
@@ -198,7 +238,9 @@ export class ExerciciosService {
   }
 
   async removeTecnicaTreino(idTecnica: number, idProfissional: number) {
-    const exists = await this.prisma.tecnicaTreino.findFirst({ where: { idTecnica, idProfissional } });
+    const exists = await this.prisma.tecnicaTreino.findFirst({
+      where: { idTecnica, idProfissional },
+    });
     if (!exists) {
       throw new NotFoundException('Técnica não encontrada');
     }
@@ -212,11 +254,13 @@ export class ExerciciosService {
   async seedCatalogForProfessional(idProfissional: number) {
     // Check if professional already has any groups to prevent duplicate seeding
     const existingGroupsCount = await this.prisma.grupoMuscular.count({
-      where: { idProfissional }
+      where: { idProfissional },
     });
 
     if (existingGroupsCount > 0) {
-      return { message: 'Profissional já possui dados cadastrados no catálogo.' };
+      return {
+        message: 'Profissional já possui dados cadastrados no catálogo.',
+      };
     }
 
     // 1. Seed Groups & Exercises
@@ -224,8 +268,8 @@ export class ExerciciosService {
       const group = await this.prisma.grupoMuscular.create({
         data: {
           nome: groupName,
-          idProfissional
-        }
+          idProfissional,
+        },
       });
 
       for (const exName of exercises) {
@@ -233,8 +277,8 @@ export class ExerciciosService {
           data: {
             nome: exName,
             idGrupoMuscular: group.idGrupoMuscular,
-            idProfissional
-          }
+            idProfissional,
+          },
         });
       }
     }
@@ -245,8 +289,8 @@ export class ExerciciosService {
         data: {
           nome: tech.nome,
           descricao: tech.desc,
-          idProfissional
-        }
+          idProfissional,
+        },
       });
     }
 

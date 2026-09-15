@@ -1,4 +1,10 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateExercicioDto {
   @IsInt({ message: 'Grupo muscular inválido' })
@@ -13,7 +19,12 @@ export class CreateExercicioDto {
   @IsOptional()
   descricao?: string;
 
-  @IsString()
+  // Só http/https — bloqueia esquemas como javascript: que poderiam ser
+  // renderizados como link clicável na ficha pública do aluno.
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'URL de vídeo inválida' },
+  )
   @IsOptional()
   videoUrl?: string;
 }

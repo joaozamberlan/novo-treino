@@ -1,10 +1,29 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ExerciciosService } from './exercicios.service';
 import { CreateExercicioDto } from './dto/create-exercicio.dto';
 import { UpdateExercicioDto } from './dto/update-exercicio.dto';
+import { GrupoMuscularDto } from './dto/grupo-muscular.dto';
+import { CreateTecnicaDto } from './dto/create-tecnica.dto';
+import { UpdateTecnicaDto } from './dto/update-tecnica.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetProfissional } from '../auth/get-profissional.decorator';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import type { Profissional } from '@prisma/client';
+
+const VALIDATE = new ValidationPipe({ whitelist: true, transform: true });
 
 @Controller('exercicios')
 @UseGuards(JwtAuthGuard)
@@ -13,25 +32,36 @@ export class ExerciciosController {
 
   // --- GRUPOS MUSCULARES ---
   @Post('grupos')
+  @UsePipes(VALIDATE)
   async createGrupo(
-    @Body('nome') nome: string,
+    @Body() dto: GrupoMuscularDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.createGrupoMuscular(nome, profissional.idProfissional);
+    return this.exerciciosService.createGrupoMuscular(
+      dto.nome,
+      profissional.idProfissional,
+    );
   }
 
   @Get('grupos')
   async findAllGrupos(@GetProfissional() profissional: Profissional) {
-    return this.exerciciosService.findAllGruposMusculares(profissional.idProfissional);
+    return this.exerciciosService.findAllGruposMusculares(
+      profissional.idProfissional,
+    );
   }
 
   @Patch('grupos/:id')
+  @UsePipes(VALIDATE)
   async updateGrupo(
     @Param('id', ParseIntPipe) id: number,
-    @Body('nome') nome: string,
+    @Body() dto: GrupoMuscularDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.updateGrupoMuscular(id, nome, profissional.idProfissional);
+    return this.exerciciosService.updateGrupoMuscular(
+      id,
+      dto.nome,
+      profissional.idProfissional,
+    );
   }
 
   @Delete('grupos/:id')
@@ -39,17 +69,24 @@ export class ExerciciosController {
     @Param('id', ParseIntPipe) id: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.removeGrupoMuscular(id, profissional.idProfissional);
+    return this.exerciciosService.removeGrupoMuscular(
+      id,
+      profissional.idProfissional,
+    );
   }
 
   // --- TECNICAS DE TREINO ---
   @Post('tecnicas')
+  @UsePipes(VALIDATE)
   async createTecnica(
-    @Body('nome') nome: string,
-    @Body('descricao') descricao: string | undefined,
+    @Body() dto: CreateTecnicaDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.createTecnicaTreino(nome, profissional.idProfissional, descricao);
+    return this.exerciciosService.createTecnicaTreino(
+      dto.nome,
+      profissional.idProfissional,
+      dto.descricao,
+    );
   }
 
   @Get('tecnicas')
@@ -58,12 +95,17 @@ export class ExerciciosController {
   }
 
   @Patch('tecnicas/:id')
+  @UsePipes(VALIDATE)
   async updateTecnica(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: { nome?: string; descricao?: string; ativo?: boolean },
+    @Body() dto: UpdateTecnicaDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.updateTecnicaTreino(id, updateDto, profissional.idProfissional);
+    return this.exerciciosService.updateTecnicaTreino(
+      id,
+      dto,
+      profissional.idProfissional,
+    );
   }
 
   @Delete('tecnicas/:id')
@@ -71,22 +113,35 @@ export class ExerciciosController {
     @Param('id', ParseIntPipe) id: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.removeTecnicaTreino(id, profissional.idProfissional);
+    return this.exerciciosService.removeTecnicaTreino(
+      id,
+      profissional.idProfissional,
+    );
   }
 
   // --- EXERCICIOS ---
   @Post()
-  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UsePipes(VALIDATE)
   async create(
     @Body() createDto: CreateExercicioDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.createExercicio(createDto, profissional.idProfissional);
+    return this.exerciciosService.createExercicio(
+      createDto,
+      profissional.idProfissional,
+    );
   }
 
   @Get()
-  async findAll(@GetProfissional() profissional: Profissional) {
-    return this.exerciciosService.findAllExercicios(profissional.idProfissional);
+  @UsePipes(VALIDATE)
+  async findAll(
+    @GetProfissional() profissional: Profissional,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.exerciciosService.findAllExercicios(
+      profissional.idProfissional,
+      pagination,
+    );
   }
 
   @Get(':id')
@@ -94,17 +149,24 @@ export class ExerciciosController {
     @Param('id', ParseIntPipe) id: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.findOneExercicio(id, profissional.idProfissional);
+    return this.exerciciosService.findOneExercicio(
+      id,
+      profissional.idProfissional,
+    );
   }
 
   @Patch(':id')
-  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UsePipes(VALIDATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateExercicioDto,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.updateExercicio(id, updateDto, profissional.idProfissional);
+    return this.exerciciosService.updateExercicio(
+      id,
+      updateDto,
+      profissional.idProfissional,
+    );
   }
 
   @Delete(':id')
@@ -112,11 +174,16 @@ export class ExerciciosController {
     @Param('id', ParseIntPipe) id: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.exerciciosService.removeExercicio(id, profissional.idProfissional);
+    return this.exerciciosService.removeExercicio(
+      id,
+      profissional.idProfissional,
+    );
   }
 
   @Post('seed')
   async seed(@GetProfissional() profissional: Profissional) {
-    return this.exerciciosService.seedCatalogForProfessional(profissional.idProfissional);
+    return this.exerciciosService.seedCatalogForProfessional(
+      profissional.idProfissional,
+    );
   }
 }

@@ -3,6 +3,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
 import { CreateTreinoDto } from './dto/create-treino.dto';
 import { AddExercicioDto } from './dto/add-exercicio.dto';
+import { UpdateProtocoloDto } from './dto/update-protocolo.dto';
+import { UpdateTreinoDto } from './dto/update-treino.dto';
+import { UpdateTreinoExercicioDto } from './dto/update-treino-exercicio.dto';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -10,7 +13,11 @@ export class TreinosService {
   constructor(private prisma: PrismaService) {}
 
   // --- PROTOCOLOS ---
-  async createProtocolo(idAluno: number, idProfissional: number, createDto: CreateProtocoloDto) {
+  async createProtocolo(
+    idAluno: number,
+    idProfissional: number,
+    createDto: CreateProtocoloDto,
+  ) {
     const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
     });
@@ -31,7 +38,9 @@ export class TreinosService {
           idAluno,
           idProfissional,
           ativo: true,
-          dataInicio: createDto.dataInicio ? new Date(createDto.dataInicio) : null,
+          dataInicio: createDto.dataInicio
+            ? new Date(createDto.dataInicio)
+            : null,
           dataFim: createDto.dataFim ? new Date(createDto.dataFim) : null,
         },
       });
@@ -74,7 +83,11 @@ export class TreinosService {
     return protocolo;
   }
 
-  async updateProtocolo(idProtocolo: number, idProfissional: number, updateDto: any) {
+  async updateProtocolo(
+    idProtocolo: number,
+    idProfissional: number,
+    updateDto: UpdateProtocoloDto,
+  ) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
       where: { idProtocolo, idProfissional },
     });
@@ -82,7 +95,17 @@ export class TreinosService {
       throw new NotFoundException('Protocolo não encontrado');
     }
 
-    const data: any = { ...updateDto };
+    const data: {
+      nome?: string;
+      objetivo?: string;
+      ativo?: boolean;
+      dataInicio?: Date;
+      dataFim?: Date;
+    } = {
+      nome: updateDto.nome,
+      objetivo: updateDto.objetivo,
+      ativo: updateDto.ativo,
+    };
     if (updateDto.dataInicio) data.dataInicio = new Date(updateDto.dataInicio);
     if (updateDto.dataFim) data.dataFim = new Date(updateDto.dataFim);
 
@@ -90,7 +113,11 @@ export class TreinosService {
     if (updateDto.ativo === true) {
       return this.prisma.$transaction(async (tx) => {
         await tx.protocoloTreino.updateMany({
-          where: { idAluno: protocolo.idAluno, idProtocolo: { not: idProtocolo }, ativo: true },
+          where: {
+            idAluno: protocolo.idAluno,
+            idProtocolo: { not: idProtocolo },
+            ativo: true,
+          },
           data: { ativo: false },
         });
 
@@ -121,7 +148,11 @@ export class TreinosService {
   }
 
   // --- TREINOS (FICHAS) ---
-  async createTreino(idProtocolo: number, idProfissional: number, createDto: CreateTreinoDto) {
+  async createTreino(
+    idProtocolo: number,
+    idProfissional: number,
+    createDto: CreateTreinoDto,
+  ) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
       where: { idProtocolo, idProfissional },
     });
@@ -137,7 +168,11 @@ export class TreinosService {
     });
   }
 
-  async updateTreino(idTreino: number, idProfissional: number, updateDto: any) {
+  async updateTreino(
+    idTreino: number,
+    idProfissional: number,
+    updateDto: UpdateTreinoDto,
+  ) {
     const treino = await this.prisma.treino.findFirst({
       where: { idTreino, protocolo: { idProfissional } },
     });
@@ -239,7 +274,11 @@ export class TreinosService {
   }
 
   // --- TREINO EXERCICIOS ---
-  async addExercicioToTreino(idTreino: number, idProfissional: number, addDto: AddExercicioDto) {
+  async addExercicioToTreino(
+    idTreino: number,
+    idProfissional: number,
+    addDto: AddExercicioDto,
+  ) {
     const treino = await this.prisma.treino.findFirst({
       where: { idTreino, protocolo: { idProfissional } },
     });
@@ -247,16 +286,18 @@ export class TreinosService {
       throw new NotFoundException('Ficha de treino não encontrada');
     }
 
-    const exercicio = await this.prisma.exercicio.findUnique({
-      where: { idExercicio: addDto.idExercicio },
+    // Escopado por idProfissional: sem isso, um treinador poderia anexar (e
+    // assim enxergar o nome de) um exercício/técnica de outro treinador.
+    const exercicio = await this.prisma.exercicio.findFirst({
+      where: { idExercicio: addDto.idExercicio, idProfissional },
     });
     if (!exercicio) {
       throw new NotFoundException('Exercício não encontrado');
     }
 
     if (addDto.idTecnica) {
-      const tecnica = await this.prisma.tecnicaTreino.findUnique({
-        where: { idTecnica: addDto.idTecnica },
+      const tecnica = await this.prisma.tecnicaTreino.findFirst({
+        where: { idTecnica: addDto.idTecnica, idProfissional },
       });
       if (!tecnica) {
         throw new NotFoundException('Técnica de treino não encontrada');
@@ -280,7 +321,7 @@ export class TreinosService {
   async updateExercicioInTreino(
     idTreinoExercicio: number,
     idProfissional: number,
-    updateDto: any,
+    updateDto: UpdateTreinoExercicioDto,
   ) {
     const rel = await this.prisma.treinoExercicio.findFirst({
       where: {
@@ -292,6 +333,25 @@ export class TreinosService {
     });
     if (!rel) {
       throw new NotFoundException('Exercício prescrito não encontrado');
+    }
+
+    // Mesma checagem de posse do addExercicioToTreino: só permite reapontar
+    // para um exercício/técnica que pertença ao mesmo treinador.
+    if (updateDto.idExercicio !== undefined) {
+      const exercicio = await this.prisma.exercicio.findFirst({
+        where: { idExercicio: updateDto.idExercicio, idProfissional },
+      });
+      if (!exercicio) {
+        throw new NotFoundException('Exercício não encontrado');
+      }
+    }
+    if (updateDto.idTecnica !== undefined && updateDto.idTecnica !== null) {
+      const tecnica = await this.prisma.tecnicaTreino.findFirst({
+        where: { idTecnica: updateDto.idTecnica, idProfissional },
+      });
+      if (!tecnica) {
+        throw new NotFoundException('Técnica de treino não encontrada');
+      }
     }
 
     return this.prisma.treinoExercicio.update({
@@ -306,7 +366,10 @@ export class TreinosService {
     });
   }
 
-  async removeExercicioFromTreino(idTreinoExercicio: number, idProfissional: number) {
+  async removeExercicioFromTreino(
+    idTreinoExercicio: number,
+    idProfissional: number,
+  ) {
     const rel = await this.prisma.treinoExercicio.findFirst({
       where: {
         idTreinoExercicio,
@@ -362,4 +425,3 @@ export class TreinosService {
     return volumePorGrupo;
   }
 }
-

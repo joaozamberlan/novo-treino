@@ -12,12 +12,21 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'alguma-chave-secreta-e-segura-de-sua-escolha',
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '7d') as any,
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error(
+            'JWT_SECRET não definido. Configure a variável de ambiente JWT_SECRET antes de iniciar a aplicação.',
+          );
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+              '7d') as any,
+          },
+        };
+      },
     }),
   ],
   controllers: [AuthController],

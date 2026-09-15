@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterDto {
   @IsEmail({}, { message: 'E-mail inválido' })
@@ -6,7 +12,7 @@ export class RegisterDto {
   email: string;
 
   @IsString({ message: 'A senha deve ser uma string' })
-  @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres' })
+  @MinLength(8, { message: 'A senha deve ter no mínimo 8 caracteres' })
   @IsNotEmpty({ message: 'A senha é obrigatória' })
   senha: string;
 

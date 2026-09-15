@@ -133,8 +133,8 @@ export const Admin: React.FC = () => {
 
   const handleSaveResetPassword = async () => {
     if (!resetModalProf) return;
-    if (!newTempPassword || newTempPassword.length < 6) {
-      toast.error('A senha deve ter no mínimo 6 caracteres.');
+    if (!newTempPassword || newTempPassword.length < 8) {
+      toast.error('A senha deve ter no mínimo 8 caracteres.');
       return;
     }
 

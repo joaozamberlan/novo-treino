@@ -207,9 +207,9 @@ export const PublicTreino: React.FC = () => {
 
   const syncSetsToServer = async (idTreinoExercicio: number, setsToSync: ExerciseSetEntry[], targetSessaoId?: number) => {
     const activeSessao = targetSessaoId || sessaoId;
-    if (!activeSessao) return;
+    if (!activeSessao || !token) return;
     try {
-      await api.post(`/publico/sessao/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
+      await api.post(`/publico/sessao/${token}/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
         series: setsToSync.map(s => {
           const kgClean = s.kg ? String(s.kg).trim().replace(',', '.') : '';
           const repsClean = s.reps ? String(s.reps).trim() : '';
@@ -512,11 +512,11 @@ export const PublicTreino: React.FC = () => {
 
   // Toggle com optimistic update + persistência no servidor
   const toggleExerciseCompleted = async (id: number) => {
-    if (!sessaoId || savingId !== null) return;
+    if (!sessaoId || !token || savingId !== null) return;
     setCompletedList(prev => ({ ...prev, [id]: !prev[id] }));
     setSavingId(id);
     try {
-      const res = await api.post(`/publico/sessao/${sessaoId}/toggle/${id}`);
+      const res = await api.post(`/publico/sessao/${token}/${sessaoId}/toggle/${id}`);
       setCompletedList(prev => ({ ...prev, [id]: res.data.concluido }));
     } catch (err) {
       // Reverte em caso de erro
@@ -549,7 +549,7 @@ export const PublicTreino: React.FC = () => {
   };
 
   const executarEncerramento = async () => {
-    if (!sessaoId || endingWorkout) return;
+    if (!sessaoId || !token || endingWorkout) return;
     setEndingWorkout(true);
     try {
       if ('vibrate' in navigator) {
@@ -575,7 +575,7 @@ export const PublicTreino: React.FC = () => {
         };
       });
 
-      const res = await api.post(`/publico/sessao/${sessaoId}/encerrar`, {
+      const res = await api.post(`/publico/sessao/${token}/${sessaoId}/encerrar`, {
         exercicios: exerciciosPayload,
       });
 

@@ -1,11 +1,34 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { TreinosService } from './treinos.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
 import { CreateTreinoDto } from './dto/create-treino.dto';
 import { AddExercicioDto } from './dto/add-exercicio.dto';
+import { UpdateProtocoloDto } from './dto/update-protocolo.dto';
+import { UpdateTreinoDto } from './dto/update-treino.dto';
+import { UpdateTreinoExercicioDto } from './dto/update-treino-exercicio.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetProfissional } from '../auth/get-profissional.decorator';
 import type { Profissional } from '@prisma/client';
+
+// forbidNonWhitelisted: campos fora do DTO (ex.: idProfissional, idProtocolo,
+// idTreino tentando reatribuir a posse do recurso) são rejeitados com 400 em
+// vez de silenciosamente descartados — sinal explícito de payload malicioso.
+const STRICT_VALIDATION = new ValidationPipe({
+  whitelist: true,
+  forbidNonWhitelisted: true,
+});
 
 @Controller('treinos')
 @UseGuards(JwtAuthGuard)
@@ -20,7 +43,11 @@ export class TreinosController {
     @GetProfissional() profissional: Profissional,
     @Body() createDto: CreateProtocoloDto,
   ) {
-    return this.treinosService.createProtocolo(idAluno, profissional.idProfissional, createDto);
+    return this.treinosService.createProtocolo(
+      idAluno,
+      profissional.idProfissional,
+      createDto,
+    );
   }
 
   @Get('visao-geral/:idAluno')
@@ -28,7 +55,10 @@ export class TreinosController {
     @Param('idAluno', ParseIntPipe) idAluno: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.getVisaoGeralAluno(idAluno, profissional.idProfissional);
+    return this.treinosService.getVisaoGeralAluno(
+      idAluno,
+      profissional.idProfissional,
+    );
   }
 
   @Get('protocolos/:idAluno')
@@ -36,7 +66,10 @@ export class TreinosController {
     @Param('idAluno', ParseIntPipe) idAluno: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.findAllProtocolos(idAluno, profissional.idProfissional);
+    return this.treinosService.findAllProtocolos(
+      idAluno,
+      profissional.idProfissional,
+    );
   }
 
   @Get('protocolos/detalhes/:idProtocolo')
@@ -44,16 +77,24 @@ export class TreinosController {
     @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.findOneProtocolo(idProtocolo, profissional.idProfissional);
+    return this.treinosService.findOneProtocolo(
+      idProtocolo,
+      profissional.idProfissional,
+    );
   }
 
   @Patch('protocolos/:idProtocolo')
+  @UsePipes(STRICT_VALIDATION)
   async updateProtocolo(
     @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
     @GetProfissional() profissional: Profissional,
-    @Body() updateDto: any,
+    @Body() updateDto: UpdateProtocoloDto,
   ) {
-    return this.treinosService.updateProtocolo(idProtocolo, profissional.idProfissional, updateDto);
+    return this.treinosService.updateProtocolo(
+      idProtocolo,
+      profissional.idProfissional,
+      updateDto,
+    );
   }
 
   @Delete('protocolos/:idProtocolo')
@@ -61,7 +102,10 @@ export class TreinosController {
     @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.deleteProtocolo(idProtocolo, profissional.idProfissional);
+    return this.treinosService.deleteProtocolo(
+      idProtocolo,
+      profissional.idProfissional,
+    );
   }
 
   // --- FICHAS (TREINOS) ---
@@ -72,16 +116,25 @@ export class TreinosController {
     @GetProfissional() profissional: Profissional,
     @Body() createDto: CreateTreinoDto,
   ) {
-    return this.treinosService.createTreino(idProtocolo, profissional.idProfissional, createDto);
+    return this.treinosService.createTreino(
+      idProtocolo,
+      profissional.idProfissional,
+      createDto,
+    );
   }
 
   @Patch('fichas/:idTreino')
+  @UsePipes(STRICT_VALIDATION)
   async updateTreino(
     @Param('idTreino', ParseIntPipe) idTreino: number,
     @GetProfissional() profissional: Profissional,
-    @Body() updateDto: any,
+    @Body() updateDto: UpdateTreinoDto,
   ) {
-    return this.treinosService.updateTreino(idTreino, profissional.idProfissional, updateDto);
+    return this.treinosService.updateTreino(
+      idTreino,
+      profissional.idProfissional,
+      updateDto,
+    );
   }
 
   @Delete('fichas/:idTreino')
@@ -89,7 +142,10 @@ export class TreinosController {
     @Param('idTreino', ParseIntPipe) idTreino: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.deleteTreino(idTreino, profissional.idProfissional);
+    return this.treinosService.deleteTreino(
+      idTreino,
+      profissional.idProfissional,
+    );
   }
 
   // --- EXERCICIOS NO TREINO ---
@@ -100,16 +156,25 @@ export class TreinosController {
     @GetProfissional() profissional: Profissional,
     @Body() addDto: AddExercicioDto,
   ) {
-    return this.treinosService.addExercicioToTreino(idTreino, profissional.idProfissional, addDto);
+    return this.treinosService.addExercicioToTreino(
+      idTreino,
+      profissional.idProfissional,
+      addDto,
+    );
   }
 
   @Patch('exercicios/:idTreinoExercicio')
+  @UsePipes(STRICT_VALIDATION)
   async updateExercicioInTreino(
     @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
     @GetProfissional() profissional: Profissional,
-    @Body() updateDto: any,
+    @Body() updateDto: UpdateTreinoExercicioDto,
   ) {
-    return this.treinosService.updateExercicioInTreino(idTreinoExercicio, profissional.idProfissional, updateDto);
+    return this.treinosService.updateExercicioInTreino(
+      idTreinoExercicio,
+      profissional.idProfissional,
+      updateDto,
+    );
   }
 
   @Delete('exercicios/:idTreinoExercicio')
@@ -117,7 +182,10 @@ export class TreinosController {
     @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.removeExercicioFromTreino(idTreinoExercicio, profissional.idProfissional);
+    return this.treinosService.removeExercicioFromTreino(
+      idTreinoExercicio,
+      profissional.idProfissional,
+    );
   }
 
   // --- VOLUME SEMANAL ---
@@ -126,6 +194,9 @@ export class TreinosController {
     @Param('idAluno', ParseIntPipe) idAluno: number,
     @GetProfissional() profissional: Profissional,
   ) {
-    return this.treinosService.getVolumeSemanal(idAluno, profissional.idProfissional);
+    return this.treinosService.getVolumeSemanal(
+      idAluno,
+      profissional.idProfissional,
+    );
   }
 }

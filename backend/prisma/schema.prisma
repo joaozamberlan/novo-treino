@@ -43,6 +43,8 @@ model Aluno {
   profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
   protocolos     ProtocoloTreino[]
   sessoes        SessaoTreino[]
+
+  @@index([idProfissional])
 }
 
 model ProtocoloTreino {
@@ -58,6 +60,8 @@ model ProtocoloTreino {
   aluno          Aluno             @relation(fields: [idAluno], references: [idAluno])
   profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
   treinos        Treino[]
+
+  @@index([idAluno, idProfissional])
 }
 
 model Treino {
@@ -71,6 +75,8 @@ model Treino {
   protocolo   ProtocoloTreino      @relation(fields: [idProtocolo], references: [idProtocolo], onDelete: Cascade)
   exercicios  TreinoExercicio[]
   sessoes     SessaoTreino[]
+
+  @@index([idProtocolo])
 }
 
 model GrupoMuscular {
@@ -83,6 +89,7 @@ model GrupoMuscular {
   exercicios      Exercicio[]
 
   @@unique([nome, idProfissional])
+  @@index([idProfissional])
 }
 
 model Exercicio {
@@ -99,6 +106,7 @@ model Exercicio {
   treinos         TreinoExercicio[]
 
   @@unique([nome, idProfissional])
+  @@index([idProfissional])
 }
 
 model TecnicaTreino {
@@ -112,6 +120,7 @@ model TecnicaTreino {
   exercicios     TreinoExercicio[]
 
   @@unique([nome, idProfissional])
+  @@index([idProfissional])
 }
 
 model TreinoExercicio {
@@ -131,6 +140,8 @@ model TreinoExercicio {
   tecnica           TecnicaTreino? @relation(fields: [idTecnica], references: [idTecnica], onDelete: SetNull)
   concluidos        ExercicioConcluido[]
   seriesRealizadas  SessaoExercicioSerie[]
+
+  @@index([idTreino])
 }
 
 model SessaoTreino {

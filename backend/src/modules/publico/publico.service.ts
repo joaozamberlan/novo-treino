@@ -5,6 +5,55 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class PublicoService {
   constructor(private prisma: PrismaService) {}
 
+  // ── Cadeia de posse: tokenAcesso → aluno → treino → sessão → exercício ──
+  // Todas as mutações públicas passam por aqui antes de tocar em qualquer dado.
+  // Erros são sempre NotFoundException com mensagem genérica — nunca revelam
+  // se um recurso existe mas pertence a outro aluno, para não facilitar
+  // enumeração de IDs sequenciais.
+
+  private async getAlunoPorToken(tokenAcesso: string) {
+    const aluno = await this.prisma.aluno.findUnique({
+      where: { tokenAcesso },
+    });
+    if (!aluno) {
+      throw new NotFoundException('Ficha de treino não encontrada.');
+    }
+    return aluno;
+  }
+
+  private async getTreinoDoAluno(idTreino: number, idAluno: number) {
+    const treino = await this.prisma.treino.findFirst({
+      where: { idTreino, protocolo: { idAluno } },
+    });
+    if (!treino) {
+      throw new NotFoundException('Treino não encontrado.');
+    }
+    return treino;
+  }
+
+  private async getSessaoDoAluno(idSessao: number, idAluno: number) {
+    const sessao = await this.prisma.sessaoTreino.findFirst({
+      where: { idSessao, idAluno },
+    });
+    if (!sessao) {
+      throw new NotFoundException('Sessão não encontrada.');
+    }
+    return sessao;
+  }
+
+  private async getTreinoExercicioDaSessao(
+    idTreinoExercicio: number,
+    idTreino: number,
+  ) {
+    const rel = await this.prisma.treinoExercicio.findFirst({
+      where: { idTreinoExercicio, idTreino },
+    });
+    if (!rel) {
+      throw new NotFoundException('Exercício não encontrado nesta sessão.');
+    }
+    return rel;
+  }
+
   async findActiveByToken(tokenAcesso: string) {
     const aluno = await this.prisma.aluno.findUnique({
       where: { tokenAcesso },
@@ -54,10 +103,8 @@ export class PublicoService {
 
   // Retorna (ou cria) a sessão ativa do treino + histórico anterior
   async getOuCriarSessao(tokenAcesso: string, idTreino: number) {
-    const aluno = await this.prisma.aluno.findUnique({
-      where: { tokenAcesso },
-    });
-    if (!aluno) throw new NotFoundException('Aluno não encontrado.');
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    await this.getTreinoDoAluno(idTreino, aluno.idAluno);
 
     const hoje = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
@@ -146,7 +193,15 @@ export class PublicoService {
     }
 
     // Mapeia as séries de hoje por idTreinoExercicio
-    const seriesHoje: Record<number, Array<{ numeroSerie: number; cargaKg: number | null; repeticoes: number | null; concluido: boolean }>> = {};
+    const seriesHoje: Record<
+      number,
+      Array<{
+        numeroSerie: number;
+        cargaKg: number | null;
+        repeticoes: number | null;
+        concluido: boolean;
+      }>
+    > = {};
     for (const s of sessao.seriesRealizadas) {
       if (!seriesHoje[s.idTreinoExercicio]) {
         seriesHoje[s.idTreinoExercicio] = [];
@@ -164,11 +219,25 @@ export class PublicoService {
       idSessao: number;
       data: string;
       finalizadoEm: Date | null;
-      exercicios: Record<number, Array<{ numeroSerie: number; cargaKg: number | null; repeticoes: number | null }>>;
+      exercicios: Record<
+        number,
+        Array<{
+          numeroSerie: number;
+          cargaKg: number | null;
+          repeticoes: number | null;
+        }>
+      >;
     } | null = null;
 
     if (sessaoAnterior && sessaoAnterior.seriesRealizadas.length > 0) {
-      const exerciciosMap: Record<number, Array<{ numeroSerie: number; cargaKg: number | null; repeticoes: number | null }>> = {};
+      const exerciciosMap: Record<
+        number,
+        Array<{
+          numeroSerie: number;
+          cargaKg: number | null;
+          repeticoes: number | null;
+        }>
+      > = {};
       for (const s of sessaoAnterior.seriesRealizadas) {
         if (!exerciciosMap[s.idTreinoExercicio]) {
           exerciciosMap[s.idTreinoExercicio] = [];
@@ -200,6 +269,7 @@ export class PublicoService {
 
   // Encerra a sessão atual do treino
   async encerrarSessao(
+    tokenAcesso: string,
     idSessao: number,
     exercicios?: Array<{
       idTreinoExercicio: number;
@@ -211,26 +281,25 @@ export class PublicoService {
       }>;
     }>,
   ) {
-    const sessao = await this.prisma.sessaoTreino.findUnique({
-      where: { idSessao },
-      include: {
-        concluidos: true,
-        seriesRealizadas: true,
-      },
-    });
-    if (!sessao) throw new NotFoundException('Sessão não encontrada.');
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    const sessao = await this.getSessaoDoAluno(idSessao, aluno.idAluno);
 
     // Se exercicios com séries foram enviados no encerramento, grava todos atomicamente
     if (exercicios && Array.isArray(exercicios) && exercicios.length > 0) {
       for (const ex of exercicios) {
         if (ex.series && Array.isArray(ex.series) && ex.series.length > 0) {
-          await this.salvarSeriesExercicio(idSessao, ex.idTreinoExercicio, ex.series);
+          await this.salvarSeriesNaSessao(
+            sessao.idSessao,
+            sessao.idTreino,
+            ex.idTreinoExercicio,
+            ex.series,
+          );
         }
       }
     }
 
     const updated = await this.prisma.sessaoTreino.update({
-      where: { idSessao },
+      where: { idSessao: sessao.idSessao },
       data: {
         concluida: true,
         finalizadoEm: new Date(),
@@ -241,7 +310,9 @@ export class PublicoService {
       },
     });
 
-    const totalSeriesConcluidas = updated.seriesRealizadas.filter((s) => s.concluido).length;
+    const totalSeriesConcluidas = updated.seriesRealizadas.filter(
+      (s) => s.concluido,
+    ).length;
 
     return {
       success: true,
@@ -256,10 +327,8 @@ export class PublicoService {
 
   // Inicia uma nova sessão (nova semana), arquivando a anterior como histórico
   async iniciarNovaSessao(tokenAcesso: string, idTreino: number) {
-    const aluno = await this.prisma.aluno.findUnique({
-      where: { tokenAcesso },
-    });
-    if (!aluno) throw new NotFoundException('Aluno não encontrado.');
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    await this.getTreinoDoAluno(idTreino, aluno.idAluno);
 
     // Encerra qualquer sessão aberta deste treino
     await this.prisma.sessaoTreino.updateMany({
@@ -289,9 +358,22 @@ export class PublicoService {
   }
 
   // Toggle: marca ou desmarca um exercício como concluído
-  async toggleExercicio(idSessao: number, idTreinoExercicio: number) {
+  async toggleExercicio(
+    tokenAcesso: string,
+    idSessao: number,
+    idTreinoExercicio: number,
+  ) {
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    const sessao = await this.getSessaoDoAluno(idSessao, aluno.idAluno);
+    await this.getTreinoExercicioDaSessao(idTreinoExercicio, sessao.idTreino);
+
     const existente = await this.prisma.exercicioConcluido.findUnique({
-      where: { idSessao_idTreinoExercicio: { idSessao, idTreinoExercicio } },
+      where: {
+        idSessao_idTreinoExercicio: {
+          idSessao: sessao.idSessao,
+          idTreinoExercicio,
+        },
+      },
     });
 
     if (existente) {
@@ -301,7 +383,7 @@ export class PublicoService {
       return { concluido: false, idTreinoExercicio };
     } else {
       await this.prisma.exercicioConcluido.create({
-        data: { idSessao, idTreinoExercicio },
+        data: { idSessao: sessao.idSessao, idTreinoExercicio },
       });
       return { concluido: true, idTreinoExercicio };
     }
@@ -309,14 +391,39 @@ export class PublicoService {
 
   // Salva ou atualiza as séries de um exercício da sessão
   async salvarSeriesExercicio(
+    tokenAcesso: string,
     idSessao: number,
     idTreinoExercicio: number,
-    series: Array<{ numeroSerie: number; cargaKg?: number | null; repeticoes?: number | null; concluido?: boolean }>,
+    series: Array<{
+      numeroSerie: number;
+      cargaKg?: number | null;
+      repeticoes?: number | null;
+      concluido?: boolean;
+    }>,
   ) {
-    const sessao = await this.prisma.sessaoTreino.findUnique({
-      where: { idSessao },
-    });
-    if (!sessao) throw new NotFoundException('Sessão não encontrada.');
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    const sessao = await this.getSessaoDoAluno(idSessao, aluno.idAluno);
+    return this.salvarSeriesNaSessao(
+      sessao.idSessao,
+      sessao.idTreino,
+      idTreinoExercicio,
+      series,
+    );
+  }
+
+  // Assume que a posse da sessão (tokenAcesso → aluno → sessão) já foi validada pelo chamador.
+  private async salvarSeriesNaSessao(
+    idSessao: number,
+    idTreinoDaSessao: number,
+    idTreinoExercicio: number,
+    series: Array<{
+      numeroSerie: number;
+      cargaKg?: number | null;
+      repeticoes?: number | null;
+      concluido?: boolean;
+    }>,
+  ) {
+    await this.getTreinoExercicioDaSessao(idTreinoExercicio, idTreinoDaSessao);
 
     // Upsert para cada série
     const results = await Promise.all(
@@ -330,16 +437,36 @@ export class PublicoService {
             },
           },
           update: {
-            cargaKg: s.cargaKg !== undefined ? (s.cargaKg !== null && !isNaN(Number(s.cargaKg)) ? Number(s.cargaKg) : null) : undefined,
-            repeticoes: s.repeticoes !== undefined ? (s.repeticoes !== null && !isNaN(Number(s.repeticoes)) ? Number(s.repeticoes) : null) : undefined,
+            cargaKg:
+              s.cargaKg !== undefined
+                ? s.cargaKg !== null && !isNaN(Number(s.cargaKg))
+                  ? Number(s.cargaKg)
+                  : null
+                : undefined,
+            repeticoes:
+              s.repeticoes !== undefined
+                ? s.repeticoes !== null && !isNaN(Number(s.repeticoes))
+                  ? Number(s.repeticoes)
+                  : null
+                : undefined,
             concluido: s.concluido !== undefined ? s.concluido : false,
           },
           create: {
             idSessao,
             idTreinoExercicio,
             numeroSerie: s.numeroSerie,
-            cargaKg: s.cargaKg !== undefined && s.cargaKg !== null && !isNaN(Number(s.cargaKg)) ? Number(s.cargaKg) : null,
-            repeticoes: s.repeticoes !== undefined && s.repeticoes !== null && !isNaN(Number(s.repeticoes)) ? Number(s.repeticoes) : null,
+            cargaKg:
+              s.cargaKg !== undefined &&
+              s.cargaKg !== null &&
+              !isNaN(Number(s.cargaKg))
+                ? Number(s.cargaKg)
+                : null,
+            repeticoes:
+              s.repeticoes !== undefined &&
+              s.repeticoes !== null &&
+              !isNaN(Number(s.repeticoes))
+                ? Number(s.repeticoes)
+                : null,
             concluido: s.concluido !== undefined ? s.concluido : false,
           },
         }),
@@ -347,7 +474,8 @@ export class PublicoService {
     );
 
     // Se todas as séries foram concluídas, garante que ExercicioConcluido esteja registrado
-    const todasConcluidas = results.length > 0 && results.every((r) => r.concluido);
+    const todasConcluidas =
+      results.length > 0 && results.every((r) => r.concluido);
     if (todasConcluidas) {
       await this.prisma.exercicioConcluido.upsert({
         where: { idSessao_idTreinoExercicio: { idSessao, idTreinoExercicio } },
@@ -368,4 +496,3 @@ export class PublicoService {
     return { success: true, idTreinoExercicio, series: results };
   }
 }
-
