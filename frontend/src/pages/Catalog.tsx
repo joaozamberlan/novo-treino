@@ -522,7 +522,7 @@ export const Catalog: React.FC = () => {
       {/* --- EXERCISES TAB TABLE --- */}
       {activeTab === 'exercicios' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-container">
+          <div className="table-container table-responsive">
             <table className="table">
               <thead>
                 <tr>
@@ -537,18 +537,18 @@ export const Catalog: React.FC = () => {
                 {filteredExercicios.length > 0 ? (
                   filteredExercicios.map((ex) => (
                     <tr key={ex.idExercicio}>
-                      <td style={{ fontWeight: '600' }}>{ex.nome}</td>
-                      <td>
+                      <td data-label="Exercício" style={{ fontWeight: '600' }}>{ex.nome}</td>
+                      <td data-label="Grupo Muscular">
                         <span className="badge badge-accent">
                           {ex.grupoMuscular.nome}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
+                      <td data-label="Descrição" style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
                         <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {ex.descricao || '-'}
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Vídeo">
                         {ex.videoUrl ? (
                           <a href={ex.videoUrl} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'inline-flex', gap: '0.25rem' }}>
                             <Video size={14} />
@@ -558,7 +558,7 @@ export const Catalog: React.FC = () => {
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum</span>
                         )}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                           <button className="btn btn-secondary" title="Editar exercício" aria-label={`Editar ${ex.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditExercicio(ex)}>
                             <Edit size={14} />
@@ -586,7 +586,7 @@ export const Catalog: React.FC = () => {
       {/* --- TECHNIQUES TAB TABLE --- */}
       {activeTab === 'tecnicas' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-container">
+          <div className="table-container table-responsive">
             <table className="table">
               <thead>
                 <tr>
@@ -599,11 +599,11 @@ export const Catalog: React.FC = () => {
                 {filteredTecnicas.length > 0 ? (
                   filteredTecnicas.map((tec) => (
                     <tr key={tec.idTecnica}>
-                      <td style={{ fontWeight: '600', color: 'var(--accent)' }}>{tec.nome}</td>
-                      <td style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
+                      <td data-label="Técnica" style={{ fontWeight: '600', color: 'var(--accent)' }}>{tec.nome}</td>
+                      <td data-label="Descrição" style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
                         {tec.descricao || '-'}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                           <button className="btn btn-secondary" title="Editar técnica" aria-label={`Editar ${tec.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditTecnica(tec)}>
                             <Edit size={14} />
@@ -631,7 +631,7 @@ export const Catalog: React.FC = () => {
       {/* --- MUSCLE GROUPS TAB TABLE --- */}
       {activeTab === 'grupos' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-container">
+          <div className="table-container table-responsive">
             <table className="table">
               <thead>
                 <tr>
@@ -646,13 +646,13 @@ export const Catalog: React.FC = () => {
                     const count = exercicios.filter(ex => ex.idGrupoMuscular === g.idGrupoMuscular).length;
                     return (
                       <tr key={g.idGrupoMuscular}>
-                        <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{g.nome}</td>
-                        <td>
+                        <td data-label="Grupo Muscular" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{g.nome}</td>
+                        <td data-label="Exercícios">
                           <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-1)', border: '1px solid var(--border)' }}>
                             {count} {count === 1 ? 'exercício' : 'exercícios'}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td data-label="Ações" style={{ textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                             <button className="btn btn-secondary" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditGrupoTab(g)}>
                               <Edit size={14} />
