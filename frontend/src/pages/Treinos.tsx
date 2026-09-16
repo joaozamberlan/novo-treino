@@ -167,7 +167,8 @@ export const Treinos: React.FC = () => {
   const [editFichaNome, setEditFichaNome] = useState('');
   const [editFichaObs, setEditFichaObs] = useState('');
 
-  // New Protocol inputs
+  // New/Edit Protocol inputs
+  const [editingProtocoloId, setEditingProtocoloId] = useState<number | null>(null);
   const [protoNome, setProtoNome] = useState('');
   const [protoObjetivo, setProtoObjetivo] = useState('');
   const [protoInicio, setProtoInicio] = useState('');
@@ -204,7 +205,24 @@ export const Treinos: React.FC = () => {
   };
 
   // Modal helpers
-  const closeProtocolModal = () => setShowProtocolModal(false);
+  const resetProtocoloForm = () => {
+    setEditingProtocoloId(null);
+    setProtoNome('');
+    setProtoObjetivo('');
+    setProtoInicio('');
+    setProtoFim('');
+  };
+  const closeProtocolModal = () => {
+    setShowProtocolModal(false);
+    resetProtocoloForm();
+  };
+  const startEditProtocolo = (proto: Protocolo) => {
+    setEditingProtocoloId(proto.idProtocolo);
+    setProtoNome(proto.nome);
+    setProtoObjetivo(proto.objetivo || '');
+    setProtoInicio(proto.dataInicio ? proto.dataInicio.split('T')[0] : '');
+    setProtoFim(proto.dataFim ? proto.dataFim.split('T')[0] : '');
+  };
   const closeTreinoModal = () => {
     setShowTreinoModal(false);
     setTreinoNome('');
@@ -500,6 +518,11 @@ export const Treinos: React.FC = () => {
       return;
     }
 
+    if (editingProtocoloId) {
+      await handleUpdateProtocolo(editingProtocoloId);
+      return;
+    }
+
     try {
       await api.post(`/treinos/protocolos/${idAluno}`, {
         nome: protoNome.trim(),
@@ -508,15 +531,43 @@ export const Treinos: React.FC = () => {
         dataFim: protoFim || undefined
       });
 
-      setProtoNome('');
-      setProtoObjetivo('');
-      setProtoInicio('');
-      setProtoFim('');
+      resetProtocoloForm();
       toast.success('Protocolo criado com sucesso!');
       loadOverview(false);
     } catch (err) {
       console.error(err);
       toast.error('Erro ao criar protocolo de treino.');
+    }
+  };
+
+  const handleUpdateProtocolo = async (idProtocolo: number) => {
+    const newNome = protoNome.trim();
+    const newObjetivo = protoObjetivo.trim();
+
+    try {
+      await api.patch(`/treinos/protocolos/${idProtocolo}`, {
+        nome: newNome,
+        objetivo: newObjetivo || null,
+        dataInicio: protoInicio || null,
+        dataFim: protoFim || null,
+      });
+
+      setProtocolos(prev => prev.map(p =>
+        p.idProtocolo === idProtocolo
+          ? { ...p, nome: newNome, objetivo: newObjetivo || undefined, dataInicio: protoInicio || undefined, dataFim: protoFim || undefined }
+          : p
+      ));
+      setActiveProtocol(prev =>
+        prev && prev.idProtocolo === idProtocolo
+          ? { ...prev, nome: newNome, objetivo: newObjetivo || undefined, dataInicio: protoInicio || undefined, dataFim: protoFim || undefined }
+          : prev
+      );
+
+      resetProtocoloForm();
+      toast.success('Protocolo atualizado com sucesso!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao atualizar protocolo de treino.');
     }
   };
 
@@ -1621,6 +1672,15 @@ export const Treinos: React.FC = () => {
                             )}
                             <button
                               type="button"
+                              className="exercise-action-btn accent"
+                              style={{ width: '26px', height: '26px' }}
+                              onClick={() => startEditProtocolo(proto)}
+                              title="Editar protocolo"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              type="button"
                               className="exercise-action-btn danger"
                               style={{ width: '26px', height: '26px' }}
                               onClick={(e) => handleDeleteProtocolo(proto.idProtocolo, proto.nome, e)}
@@ -1638,10 +1698,10 @@ export const Treinos: React.FC = () => {
                 </div>
               </div>
 
-              {/* Formulário Novo Protocolo */}
+              {/* Formulário Novo Protocolo / Edição */}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
                 <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block', fontWeight: 600 }}>
-                  Criar Novo Ciclo / Protocolo
+                  {editingProtocoloId ? 'Editar Ciclo / Protocolo' : 'Criar Novo Ciclo / Protocolo'}
                 </label>
                 <form onSubmit={handleCreateProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
@@ -1690,9 +1750,14 @@ export const Treinos: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {editingProtocoloId && (
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={resetProtocoloForm}>
+                        Cancelar Edição
+                      </button>
+                    )}
                     <button type="submit" className="btn btn-primary btn-sm">
-                      <Plus size={14} />
-                      <span>Criar Protocolo</span>
+                      {editingProtocoloId ? <Save size={14} /> : <Plus size={14} />}
+                      <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Protocolo'}</span>
                     </button>
                   </div>
                 </form>
