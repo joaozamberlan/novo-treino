@@ -571,6 +571,19 @@ export const Treinos: React.FC = () => {
     }
   };
 
+  // Marca uma periodização como a atual (o backend já desativa as outras)
+  const handleActivateProtocolo = async (proto: Protocolo) => {
+    try {
+      await api.patch(`/treinos/protocolos/${proto.idProtocolo}`, { ativo: true });
+      setProtocolos(prev => prev.map(p => ({ ...p, ativo: p.idProtocolo === proto.idProtocolo })));
+      setActiveProtocol({ ...proto, ativo: true });
+      toast.success(`"${proto.nome}" agora é a periodização atual.`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao marcar periodização como atual.');
+    }
+  };
+
   // Ficha operations (com adição instantânea)
   const handleCreateTreino = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1668,6 +1681,17 @@ export const Treinos: React.FC = () => {
                                 }}
                               >
                                 Visualizar
+                              </button>
+                            )}
+                            {!isActive && (
+                              <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', minHeight: 'unset' }}
+                                onClick={() => handleActivateProtocolo(proto)}
+                                title="Marcar esta periodização como a atual"
+                              >
+                                Marcar como Atual
                               </button>
                             )}
                             <button
