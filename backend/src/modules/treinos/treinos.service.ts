@@ -38,6 +38,7 @@ export class TreinosService {
           idAluno,
           idProfissional,
           ativo: true,
+          tokenPublico: randomUUID(),
           dataInicio: createDto.dataInicio
             ? new Date(createDto.dataInicio)
             : null,

@@ -56,6 +56,7 @@ interface Protocolo {
   dataInicio?: string;
   dataFim?: string;
   ativo: boolean;
+  tokenPublico?: string | null;
   treinos: FichaTreino[];
 }
 
@@ -298,11 +299,12 @@ export const Treinos: React.FC = () => {
   }, []);
 
   const handleShare = () => {
-    if (aluno?.tokenAcesso) {
-      const url = `${window.location.origin}/v/${aluno.tokenAcesso}`;
+    const token = activeProtocol?.tokenPublico || aluno?.tokenAcesso;
+    if (token) {
+      const url = `${window.location.origin}/v/${token}`;
       navigator.clipboard.writeText(url);
       setShareCopied(true);
-      toast.success('Link do treino copiado!');
+      toast.success('Link desta periodização copiado!');
       setTimeout(() => setShareCopied(false), 2000);
     }
   };
@@ -1109,8 +1111,8 @@ export const Treinos: React.FC = () => {
           {/* Active Ficha Content */}
           {activeFicha ? (
             <>
-              {/* Active Ficha Toolbar (Renomear / Excluir Ficha) */}
-              <div className="flex-between" style={{ alignItems: 'center', marginBottom: '0.75rem', padding: '0.25rem 0' }}>
+              {/* Active Ficha Toolbar (Adicionar / Renomear / Excluir Ficha) */}
+              <div className="flex-between" style={{ alignItems: 'center', marginBottom: '0.75rem', padding: '0.25rem 0', flexWrap: 'wrap', rowGap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
                     {activeFicha.nome}
@@ -1121,7 +1123,16 @@ export const Treinos: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={openNewExerciseModal}
+                    title="Adicionar exercício à ficha"
+                  >
+                    <Plus size={13} />
+                    <span style={{ fontSize: '0.75rem' }}>Exercício</span>
+                  </button>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"

@@ -56,6 +56,7 @@ model ProtocoloTreino {
   dataInicio     DateTime?
   dataFim        DateTime?
   ativo          Boolean           @default(true)
+  tokenPublico   String?           @unique
 
   aluno          Aluno             @relation(fields: [idAluno], references: [idAluno])
   profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])

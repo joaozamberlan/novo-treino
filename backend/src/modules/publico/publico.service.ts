@@ -11,9 +11,20 @@ export class PublicoService {
   // se um recurso existe mas pertence a outro aluno, para não facilitar
   // enumeração de IDs sequenciais.
 
-  private async getAlunoPorToken(tokenAcesso: string) {
+  // Resolve o aluno tanto pelo tokenPublico de uma periodização específica
+  // quanto pelo tokenAcesso antigo (compatibilidade), para que interações
+  // (marcar série, nova sessão, etc.) funcionem em qualquer link válido.
+  private async getAlunoPorToken(token: string) {
+    const protocolo = await this.prisma.protocoloTreino.findUnique({
+      where: { tokenPublico: token },
+      select: { aluno: true },
+    });
+    if (protocolo) {
+      return protocolo.aluno;
+    }
+
     const aluno = await this.prisma.aluno.findUnique({
-      where: { tokenAcesso },
+      where: { tokenAcesso: token },
     });
     if (!aluno) {
       throw new NotFoundException('Ficha de treino não encontrada.');
@@ -54,21 +65,70 @@ export class PublicoService {
     return rel;
   }
 
-  async findActiveByToken(tokenAcesso: string) {
-    const aluno = await this.prisma.aluno.findUnique({
-      where: { tokenAcesso },
+  private static readonly ALUNO_PROFISSIONAL_SELECT = {
+    nome: true,
+    cref: true,
+    profissao: true,
+    telefone: true,
+    instagram: true,
+    logoUrl: true,
+  } as const;
+
+  private static readonly PROTOCOLO_TREINOS_INCLUDE = {
+    treinos: {
+      where: { ativo: true },
+      orderBy: { ordem: 'asc' as const },
       include: {
-        profissional: {
-          select: {
-            nome: true,
-            cref: true,
-            profissao: true,
-            telefone: true,
-            instagram: true,
-            logoUrl: true,
+        exercicios: {
+          orderBy: { ordem: 'asc' as const },
+          include: {
+            exercicio: { include: { grupoMuscular: true } },
+            tecnica: true,
           },
         },
       },
+    },
+  };
+
+  async findActiveByToken(token: string) {
+    // Primeiro tenta resolver como link de uma periodização específica
+    // (tokenPublico) — sempre mostra ESSA periodização, ativa ou não.
+    const protocoloPorToken = await this.prisma.protocoloTreino.findUnique({
+      where: { tokenPublico: token },
+      include: {
+        aluno: {
+          include: { profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT } },
+        },
+        ...PublicoService.PROTOCOLO_TREINOS_INCLUDE,
+      },
+    });
+
+    if (protocoloPorToken) {
+      const { aluno, ...protocolo } = protocoloPorToken;
+
+      let linkAtualToken: string | null = null;
+      if (!protocolo.ativo) {
+        const atual = await this.prisma.protocoloTreino.findFirst({
+          where: { idAluno: aluno.idAluno, ativo: true },
+          select: { tokenPublico: true },
+        });
+        linkAtualToken = atual?.tokenPublico || null;
+      }
+
+      return {
+        aluno: { nome: aluno.nome, idAluno: aluno.idAluno },
+        profissional: aluno.profissional,
+        protocolo,
+        isAtual: protocolo.ativo,
+        linkAtualToken,
+      };
+    }
+
+    // Compatibilidade com links antigos, gerados antes de existir um token
+    // por periodização: continuam mostrando a periodização ativa do aluno.
+    const aluno = await this.prisma.aluno.findUnique({
+      where: { tokenAcesso: token },
+      include: { profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT } },
     });
 
     if (!aluno) {
@@ -77,27 +137,15 @@ export class PublicoService {
 
     const protocolo = await this.prisma.protocoloTreino.findFirst({
       where: { idAluno: aluno.idAluno, ativo: true },
-      include: {
-        treinos: {
-          where: { ativo: true },
-          orderBy: { ordem: 'asc' },
-          include: {
-            exercicios: {
-              orderBy: { ordem: 'asc' },
-              include: {
-                exercicio: { include: { grupoMuscular: true } },
-                tecnica: true,
-              },
-            },
-          },
-        },
-      },
+      include: PublicoService.PROTOCOLO_TREINOS_INCLUDE,
     });
 
     return {
       aluno: { nome: aluno.nome, idAluno: aluno.idAluno },
       profissional: aluno.profissional,
       protocolo: protocolo || null,
+      isAtual: true,
+      linkAtualToken: null,
     };
   }
 
