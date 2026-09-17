@@ -413,20 +413,20 @@ export const Treinos: React.FC = () => {
       }
 
       const exercicios = [
-        { nome: 'Supino Reto', grupo: 'Peito' },
-        { nome: 'Supino Inclinado c/ Halteres', grupo: 'Peito' },
-        { nome: 'Crossover Polia Alta', grupo: 'Peito' },
-        { nome: 'Puxada Aberta na Frente', grupo: 'Costas' },
-        { nome: 'Remada Curvada', grupo: 'Costas' },
-        { nome: 'Agachamento Livre', grupo: 'Pernas' },
-        { nome: 'Leg Press 45', grupo: 'Pernas' },
-        { nome: 'Cadeira Extensora', grupo: 'Pernas' },
-        { nome: 'Desenvolvimento c/ Halteres', grupo: 'Ombros' },
-        { nome: 'Elevação Lateral', grupo: 'Ombros' },
-        { nome: 'Rosca Direta Polia', grupo: 'Braços' },
-        { nome: 'Tríceps Corda', grupo: 'Braços' },
-        { nome: 'Abdominal Supra', grupo: 'Core' },
-        { nome: 'Prancha Isométrica', grupo: 'Core' },
+        { nome: 'Supino reto', grupo: 'Peito' },
+        { nome: 'Supino inclinado c/ halteres', grupo: 'Peito' },
+        { nome: 'Crossover polia alta', grupo: 'Peito' },
+        { nome: 'Puxada aberta na frente', grupo: 'Costas' },
+        { nome: 'Remada curvada', grupo: 'Costas' },
+        { nome: 'Agachamento livre', grupo: 'Pernas' },
+        { nome: 'Leg press 45', grupo: 'Pernas' },
+        { nome: 'Cadeira extensora', grupo: 'Pernas' },
+        { nome: 'Desenvolvimento c/ halteres', grupo: 'Ombros' },
+        { nome: 'Elevação lateral', grupo: 'Ombros' },
+        { nome: 'Rosca direta polia', grupo: 'Braços' },
+        { nome: 'Tríceps corda', grupo: 'Braços' },
+        { nome: 'Abdominal supra', grupo: 'Core' },
+        { nome: 'Prancha isométrica', grupo: 'Core' },
       ];
 
       for (const ex of exercicios) {
@@ -438,8 +438,13 @@ export const Treinos: React.FC = () => {
 
       const tecnicas = [
         { nome: 'Drop-set', desc: 'Realiza falha, reduz carga 20-30%, falha novamente sem descanso.' },
-        { nome: 'Rest-Pause', desc: 'Falha, descansa 15s, realiza mais reps com mesma carga.' },
-        { nome: 'Bi-set', desc: 'Realizar dois exercícios seguidos sem descanso.' }
+        { nome: 'Rest-pause', desc: 'Descansar 10-20 segundos e continuar até a falha.' },
+        { nome: 'Bi-set', desc: 'Fazer dois exercícios conjugados' },
+        { nome: 'Super-set', desc: 'Dois exercícios para grupos musculares antagonistas, feitos em sequência, normalmente com pouco ou nenhum descanso entre eles.' },
+        { nome: 'Cluster set', desc: 'Divide a série em blocos menores com pausas mais longas entre eles, priorizando manter força e qualidade das repetições. Ex.: 2 + 2 + 2 + 2.' },
+        { nome: 'Myo-reps', desc: 'Série de ativação próxima da falha seguida de mini-séries curtas com pausas breves — alto estímulo com pouco volume e tempo.' },
+        { nome: 'Back-off set', desc: 'Depois de uma série pesada, reduz a carga e faz mais repetições. Ex.: 6 reps pesadas → reduz 15% → 10 reps.' },
+        { nome: 'Muscle rounds', desc: 'Divide uma série pesada em vários mini-blocos de repetições, com descansos de ~10-15s. Ex.: 4 + 4 + 4 + 4 + 4.' },
       ];
 
       for (const t of tecnicas) {

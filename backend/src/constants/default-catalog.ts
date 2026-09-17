@@ -1,70 +1,75 @@
 export const DEFAULT_CATALOG = {
   Peito: [
-    "Supino Reto", "Supino Reto Articulado", "Supino Inclinado Articulado", 
-    "Supino Declinado Articulado", "Mergulho / Paralela", "Cross-over Baixo", 
-    "Voador", "Supino Inclinado com Halteres", "Supino Inclinado na Barra", 
-    "Supino Reto com Halteres", "Supino Reto com Barra", "Crucifixo Inclinado", 
-    "Crucifixo Reto", "Supino máquina", "Cross-over Alto", "Supino Inclinado no Smith", 
-    "Supino Reto no Smith"
+    "Supino reto", "Supino reto articulado", "Supino inclinado articulado",
+    "Supino declinado articulado", "Mergulho / paralela", "Cross-over baixo",
+    "Voador", "Supino inclinado com halteres", "Supino inclinado na barra",
+    "Supino reto com halteres", "Supino reto com barra", "Crucifixo inclinado",
+    "Crucifixo reto", "Supino máquina", "Cross-over alto", "Supino inclinado no smith",
+    "Supino reto no smith"
   ],
   Costas: [
-    "Barra Fixa", "Remada Curvada", "Pulldown", "Remada Articulada", "Pull Around", 
-    "Puxador Frontal com Pegada Triângulo", "T-Bar Row", "Remada Baixa", 
-    "Remada Curvada com Peito Apoiado no Banco", "Remada Serrote", 
-    "Puxador Frontal com Pegada Pronada", "Puxador Frontal com Pegada Supinada", 
-    "High-row Supinado", "High-row Neutro", "Low-Row", "Puxada Alta Articulada", 
-    "Pullover Máquina"
+    "Barra fixa", "Remada curvada", "Pulldown", "Remada articulada", "Pull around",
+    "Puxador frontal com pegada triângulo", "T-bar row", "Remada baixa",
+    "Remada curvada com peito apoiado no banco", "Remada serrote",
+    "Puxador frontal com pegada pronada", "Puxador frontal com pegada supinada",
+    "High-row supinado", "High-row neutro", "Low-row", "Puxada alta articulada",
+    "Pullover máquina"
   ],
   Ombro: [
-    "Elevação Lateral com Halteres", "Elevação Lateral na Polia Baixa", 
-    "Elevação Lateral na Polia Média", "Elevação Frontal com Halteres", 
-    "Elevação Frontal na Polia Baixa", "Desenvolvimento com Halteres", 
-    "Desenvolvimento no Smith", "Desenvolvimento na Máquina", "Face Pull", 
-    "Crucifixo Invertido com Halteres", "Voador Invertido"
+    "Elevação lateral com halteres", "Elevação lateral na polia baixa",
+    "Elevação lateral na polia média", "Elevação frontal com halteres",
+    "Elevação frontal na polia baixa", "Desenvolvimento com halteres",
+    "Desenvolvimento no smith", "Desenvolvimento na máquina", "Face pull",
+    "Crucifixo invertido com halteres", "Voador invertido"
   ],
   Bíceps: [
-    "Rosca Scott", "Rosca Scott unilateral com halter", "Rosca Bayesian", 
-    "Rosca Banco 45°", "Rosca Direta com barra", "Rosca Martelo com Halteres", 
-    "Rosca Alternada", "Rosca Concentrada", "Rosca Martelo na Polia"
+    "Rosca scott", "Rosca scott unilateral com halter", "Rosca bayesian",
+    "Rosca banco 45°", "Rosca direta com barra", "Rosca martelo com halteres",
+    "Rosca alternada", "Rosca concentrada", "Rosca martelo na polia"
   ],
   Tríceps: [
-    "Tríceps Francês na Polia", "Tríceps Testa na Polia", "Tríceps Corda", 
-    "Tríceps Carter", "Tríceps Unilateral na Polia Alta", "Paralela"
+    "Tríceps francês na polia", "Tríceps testa na polia", "Tríceps corda",
+    "Tríceps carter", "Tríceps unilateral na polia alta", "Paralela"
   ],
   Quadríceps: [
-    "Hack 45°", "Leg Press 45°", "Agachamento Livre", "Agachamento no Smith", 
-    "Agachamento Máquina Articulada", "Cadeira Extensora", "Afundo", 
-    "Agachamento Búlgaro", "Leg Press Horizontal", "Flexão Nórdica Reversa", 
-    "Agachamento Pêndulo"
+    "Hack 45°", "Leg press 45°", "Agachamento livre", "Agachamento no smith",
+    "Agachamento máquina articulada", "Cadeira extensora", "Afundo",
+    "Agachamento búlgaro", "Leg press horizontal", "Flexão nórdica reversa",
+    "Agachamento pêndulo"
   ],
   Abdômen: [
-    "Prancha", "Elevação de Pernas", "Abdominal na Polia Alta", 
-    "Abdominal na Máquina", "Abdominal no banco romano"
+    "Prancha", "Elevação de pernas", "Abdominal na polia alta",
+    "Abdominal na máquina", "Abdominal no banco romano"
   ],
   Antebraço: [
     "Flexão de punho", "Rosca punho", "Rosca de punho inversa"
   ],
   Isquiotibiais: [
-    "Mesa Flexora", "Cadeira Flexora", "Stiff", "Levantamento Terra", 
-    "Agachamento Sumo", "Bom Dia"
+    "Mesa flexora", "Cadeira flexora", "Stiff", "Levantamento terra",
+    "Agachamento sumo", "Bom dia"
   ],
   Panturrilha: [
-    "Panturrilha em Pé na Máquina", "Panturrilha no Leg Press Horizontal", 
-    "Panturrilha Sentado na Máquina", "Panturrilha no Leg Press 45°", 
-    "Panturrilha em Pé no Smith"
+    "Panturrilha em pé na máquina", "Panturrilha no leg press horizontal",
+    "Panturrilha sentado na máquina", "Panturrilha no leg press 45°",
+    "Panturrilha em pé no smith"
   ],
   Adutores: [
-    "Adutor na Máquina", "Adutor na Polia Baixa", "Cadeira Adutora", 
-    "Adutor na Polia Alta", "Adutor na Polia Baixa em Pé", "Abdução de Quadril em Pé"
+    "Adutor na máquina", "Adutor na polia baixa", "Cadeira adutora",
+    "Adutor na polia alta", "Adutor na polia baixa em pé", "Abdução de quadril em pé"
   ],
   Glúteos: [
-    "Elevação Pélvica", "Agachamento Búlgaro", "Cadeira Abdutora", 
-    "Glúteo na Polia baixa"
+    "Elevação pélvica", "Agachamento búlgaro", "Cadeira abdutora",
+    "Glúteo na polia baixa"
   ]
 };
 
 export const DEFAULT_TECNICAS = [
   { nome: 'Drop-set', desc: 'Realiza falha, reduz carga 20-30%, falha novamente sem descanso.' },
-  { nome: 'Rest-Pause', desc: 'Falha, descansa 15s, realiza mais reps com mesma carga.' },
-  { nome: 'Bi-set', desc: 'Realizar dois exercícios seguidos sem descanso.' }
+  { nome: 'Rest-pause', desc: 'Descansar 10-20 segundos e continuar até a falha.' },
+  { nome: 'Bi-set', desc: 'Fazer dois exercícios conjugados' },
+  { nome: 'Super-set', desc: 'Dois exercícios para grupos musculares antagonistas, feitos em sequência, normalmente com pouco ou nenhum descanso entre eles.' },
+  { nome: 'Cluster set', desc: 'Divide a série em blocos menores com pausas mais longas entre eles, priorizando manter força e qualidade das repetições. Ex.: 2 + 2 + 2 + 2.' },
+  { nome: 'Myo-reps', desc: 'Série de ativação próxima da falha seguida de mini-séries curtas com pausas breves — alto estímulo com pouco volume e tempo.' },
+  { nome: 'Back-off set', desc: 'Depois de uma série pesada, reduz a carga e faz mais repetições. Ex.: 6 reps pesadas → reduz 15% → 10 reps.' },
+  { nome: 'Muscle rounds', desc: 'Divide uma série pesada em vários mini-blocos de repetições, com descansos de ~10-15s. Ex.: 4 + 4 + 4 + 4 + 4.' },
 ];
