@@ -46,6 +46,11 @@
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
 
+  /* On-screen keyboard height that the layout viewport doesn't already
+     account for (see useMobileViewportFix) — 0 unless iOS Safari has a
+     keyboard open, since Android/Chrome resizes the layout viewport itself. */
+  --keyboard-inset: 0px;
+
   /* Fallback aliases */
   --bg-tertiary: var(--bg-3);
   --text-primary: var(--text-0);
@@ -3199,13 +3204,14 @@ body.light-theme .mobile-tab-bar {
   .modal-backdrop {
     align-items: flex-end;
     padding: 0;
+    padding-bottom: var(--keyboard-inset);
     overscroll-behavior-y: contain;
   }
 
   .modal-content {
     position: relative;
     max-width: 100%;
-    max-height: calc(100dvh - 2rem);
+    max-height: calc(100dvh - 2rem - var(--keyboard-inset));
     overflow-y: auto;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
