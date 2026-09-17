@@ -172,7 +172,7 @@ export const Alunos: React.FC = () => {
     const nextList = alunos.filter(a => a.idAluno !== aluno.idAluno);
     setAlunos(nextList);
     memoryCache.set('alunos', nextList);
-    memoryCache.invalidate(`visao-geral-${aluno.idAluno}`);
+    memoryCache.invalidate(`periodizacoes-${aluno.idAluno}`);
 
     try {
       await api.delete(`/alunos/${aluno.idAluno}`);
@@ -259,7 +259,7 @@ export const Alunos: React.FC = () => {
               <div
                 key={aluno.idAluno}
                 className="student-item"
-                onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
+                onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem' }}
               >
                 {/* Avatar + info */}
@@ -311,8 +311,8 @@ export const Alunos: React.FC = () => {
                   <button
                     type="button"
                     className="exercise-action-btn"
-                    onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
-                    title="Abrir fichas de treino"
+                    onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
+                    title="Ver periodizações"
                   >
                     <ChevronRight size={16} />
                   </button>

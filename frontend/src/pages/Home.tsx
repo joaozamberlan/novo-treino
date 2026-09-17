@@ -81,7 +81,7 @@ export const Home: React.FC = () => {
 
   const handleSelectAluno = (idAluno: number) => {
     setIsSearchOpen(false);
-    navigate(`/alunos/${idAluno}/treinos`);
+    navigate(`/alunos/${idAluno}/periodizacoes`);
   };
 
   const getInitials = (name: string) => {
@@ -295,7 +295,7 @@ export const Home: React.FC = () => {
               <div
                 key={aluno.idAluno}
                 className="hub-recent-card"
-                onClick={() => navigate(`/alunos/${aluno.idAluno}/treinos`)}
+                onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
               >
                 <div className="hub-recent-card-left">
                   <div className="hub-recent-avatar">

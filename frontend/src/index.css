@@ -733,6 +733,17 @@ select.form-input {
   background: rgba(255, 255, 255, 0.015);
 }
 
+/* ── Breadcrumb ────────────────────────────────────────────────────────── */
+
+.breadcrumb-link {
+  text-decoration: none;
+  transition: color 120ms var(--ease-out);
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent);
+}
+
 /* ── Badges ────────────────────────────────────────────────────────────── */
 
 .badge {

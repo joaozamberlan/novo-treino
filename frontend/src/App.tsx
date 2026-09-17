@@ -10,6 +10,7 @@ import { PublicTreino } from './pages/PublicTreino';
 import { ExerciseCardPrototype } from './pages/prototypes/ExerciseCardPrototype';
 import { Alunos } from './pages/Alunos';
 import { Home } from './pages/Home';
+import { Periodizacoes } from './pages/Periodizacoes';
 import { Treinos } from './pages/Treinos';
 import { Catalog } from './pages/Catalog';
 import { Admin } from './pages/Admin';
@@ -58,6 +59,7 @@ function App() {
             >
               <Route index element={<Home />} />
               <Route path="alunos" element={<Alunos />} />
+              <Route path="alunos/:idAluno/periodizacoes" element={<Periodizacoes />} />
               <Route path="alunos/:idAluno/treinos" element={<Treinos />} />
               <Route path="exercicios" element={<Catalog />} />
               <Route path="admin" element={<Admin />} />

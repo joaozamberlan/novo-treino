@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Reorder, useDragControls } from 'motion/react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { Breadcrumb } from '../components/Breadcrumb';
 import {
-  ArrowLeft, Plus, Calendar,
+  ArrowLeft, Plus,
   Trash2, AlertCircle,
   ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical
 } from 'lucide-react';
@@ -134,13 +135,14 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
 
 export const Treinos: React.FC = () => {
   const { idAluno } = useParams<{ idAluno: string }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const idProtocolo = searchParams.get('periodizacao');
   const { user } = useAuth();
-  
+
   const [aluno, setAluno] = useState<Aluno | null>(null);
-  const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
   const [activeProtocol, setActiveProtocol] = useState<Protocolo | null>(null);
-  const [volume, setVolume] = useState<Record<string, number>>({});
-  
+
   // Catalogs
   const [catalogExercicios, setCatalogExercicios] = useState<Exercicio[]>(cachedCatalogs?.exercicios || []);
   const [catalogTecnicas, setCatalogTecnicas] = useState<TecnicaTreino[]>(cachedCatalogs?.tecnicas || []);
@@ -151,7 +153,6 @@ export const Treinos: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
 
   // --- MODAL STATES ---
-  const [showProtocolModal, setShowProtocolModal] = useState(false);
   const [showTreinoModal, setShowTreinoModal] = useState(false);
   const [showEditFichaModal, setShowEditFichaModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
@@ -166,13 +167,6 @@ export const Treinos: React.FC = () => {
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
   const [editFichaNome, setEditFichaNome] = useState('');
   const [editFichaObs, setEditFichaObs] = useState('');
-
-  // New/Edit Protocol inputs
-  const [editingProtocoloId, setEditingProtocoloId] = useState<number | null>(null);
-  const [protoNome, setProtoNome] = useState('');
-  const [protoObjetivo, setProtoObjetivo] = useState('');
-  const [protoInicio, setProtoInicio] = useState('');
-  const [protoFim, setProtoFim] = useState('');
 
   // New Ficha (Treino) inputs
   const [treinoNome, setTreinoNome] = useState('');
@@ -205,24 +199,6 @@ export const Treinos: React.FC = () => {
   };
 
   // Modal helpers
-  const resetProtocoloForm = () => {
-    setEditingProtocoloId(null);
-    setProtoNome('');
-    setProtoObjetivo('');
-    setProtoInicio('');
-    setProtoFim('');
-  };
-  const closeProtocolModal = () => {
-    setShowProtocolModal(false);
-    resetProtocoloForm();
-  };
-  const startEditProtocolo = (proto: Protocolo) => {
-    setEditingProtocoloId(proto.idProtocolo);
-    setProtoNome(proto.nome);
-    setProtoObjetivo(proto.objetivo || '');
-    setProtoInicio(proto.dataInicio ? proto.dataInicio.split('T')[0] : '');
-    setProtoFim(proto.dataFim ? proto.dataFim.split('T')[0] : '');
-  };
   const closeTreinoModal = () => {
     setShowTreinoModal(false);
     setTreinoNome('');
@@ -305,7 +281,6 @@ export const Treinos: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setShowProtocolModal(false);
         setShowTreinoModal(false);
         setShowEditFichaModal(false);
         setShowExerciseModal(false);
@@ -367,82 +342,53 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  // Carregamento consolidado rápido em 1 requisição (com fallback resiliente)
-  const loadOverview = async (showGlobalLoading = false) => {
+  // Carrega o aluno + a periodização específica indicada em ?periodizacao=
+  const loadTreino = async (showGlobalLoading = false) => {
     try {
       if (showGlobalLoading) setLoading(true);
       else setRefreshing(true);
       setError('');
 
-      try {
-        const [overviewRes] = await Promise.all([
-          api.get(`/treinos/visao-geral/${idAluno}`),
-          loadCatalogs(),
-        ]);
+      const [alunoRes, protocoloRes] = await Promise.all([
+        api.get(`/alunos/${idAluno}`),
+        api.get(`/treinos/protocolos/detalhes/${idProtocolo}`),
+        loadCatalogs(),
+      ]);
 
-        const { aluno: stAluno, protocolos: stProtocolos, activeProtocol: stActive, volume: stVolume } = overviewRes.data;
-        setAluno(stAluno);
-        setProtocolos(stProtocolos);
-        setActiveProtocol(stActive);
-        setVolume(stVolume || {});
-        if (idAluno) {
-          memoryCache.set(`visao-geral-${idAluno}`, overviewRes.data);
-        }
-      } catch (fastErr) {
-        console.warn('Fallback para carregamento tradicional enquanto deploy finaliza:', fastErr);
-        const [studentRes, protocolsRes] = await Promise.all([
-          api.get(`/alunos/${idAluno}`),
-          api.get(`/treinos/protocolos/${idAluno}`),
-          loadCatalogs(),
-        ]);
-        setAluno(studentRes.data);
-        setProtocolos(protocolsRes.data);
-
-        const active = protocolsRes.data.find((p: any) => p.ativo === true);
-        if (active) {
-          const [detailsRes, volumeRes] = await Promise.all([
-            api.get(`/treinos/protocolos/detalhes/${active.idProtocolo}`),
-            api.get(`/treinos/volume/${idAluno}`)
-          ]);
-          setActiveProtocol(detailsRes.data);
-          setVolume(volumeRes.data);
-          if (idAluno) {
-            memoryCache.set(`visao-geral-${idAluno}`, {
-              aluno: studentRes.data,
-              protocolos: protocolsRes.data,
-              activeProtocol: detailsRes.data,
-              volume: volumeRes.data,
-            });
-          }
-        } else {
-          setActiveProtocol(null);
-          setVolume({});
-        }
+      setAluno(alunoRes.data);
+      setActiveProtocol(protocoloRes.data);
+      if (idAluno && idProtocolo) {
+        memoryCache.set(`treino-detalhe-${idProtocolo}`, { aluno: alunoRes.data, protocolo: protocoloRes.data });
       }
     } catch (err) {
-      console.error('Erro ao carregar dados do aluno:', err);
-      setError('Erro ao carregar dados do aluno.');
+      console.error('Erro ao carregar dados da periodização:', err);
+      setError('Erro ao carregar dados da periodização.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
+  // Toda visita a um aluno passa pela lista de periodizações primeiro —
+  // sem o id da periodização na URL não há o que exibir aqui.
   useEffect(() => {
-    const cached = idAluno ? memoryCache.get<any>(`visao-geral-${idAluno}`) : null;
+    if (!idProtocolo) {
+      navigate(`/alunos/${idAluno}/periodizacoes`, { replace: true });
+      return;
+    }
+
+    const cached = memoryCache.get<any>(`treino-detalhe-${idProtocolo}`);
     if (cached) {
       setAluno(cached.aluno);
-      setProtocolos(cached.protocolos);
-      setActiveProtocol(cached.activeProtocol);
-      setVolume(cached.volume || {});
+      setActiveProtocol(cached.protocolo);
       setLoading(false);
       // Revalida em segundo plano sem travar o usuário
-      loadOverview(false);
+      loadTreino(false);
     } else {
       setLoading(true);
-      loadOverview(true);
+      loadTreino(true);
     }
-  }, [idAluno]);
+  }, [idAluno, idProtocolo]);
 
   useEffect(() => {
     if (aluno) {
@@ -501,86 +447,12 @@ export const Treinos: React.FC = () => {
       }
 
       cachedCatalogs = null; // Invalida cache
-      await loadOverview(true);
+      await loadTreino(true);
     } catch (err: any) {
       console.error(err);
       setError('Erro ao gerar catálogo padrão. Talvez alguns nomes já existam.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Protocols operations
-  const handleCreateProtocolo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!protoNome.trim()) {
-      toast.error('Informe o nome do protocolo.');
-      return;
-    }
-
-    if (editingProtocoloId) {
-      await handleUpdateProtocolo(editingProtocoloId);
-      return;
-    }
-
-    try {
-      await api.post(`/treinos/protocolos/${idAluno}`, {
-        nome: protoNome.trim(),
-        objetivo: protoObjetivo.trim() || undefined,
-        dataInicio: protoInicio || undefined,
-        dataFim: protoFim || undefined
-      });
-
-      resetProtocoloForm();
-      toast.success('Protocolo criado com sucesso!');
-      loadOverview(false);
-    } catch (err) {
-      console.error(err);
-      toast.error('Erro ao criar protocolo de treino.');
-    }
-  };
-
-  const handleUpdateProtocolo = async (idProtocolo: number) => {
-    const newNome = protoNome.trim();
-    const newObjetivo = protoObjetivo.trim();
-
-    try {
-      await api.patch(`/treinos/protocolos/${idProtocolo}`, {
-        nome: newNome,
-        objetivo: newObjetivo || null,
-        dataInicio: protoInicio || null,
-        dataFim: protoFim || null,
-      });
-
-      setProtocolos(prev => prev.map(p =>
-        p.idProtocolo === idProtocolo
-          ? { ...p, nome: newNome, objetivo: newObjetivo || undefined, dataInicio: protoInicio || undefined, dataFim: protoFim || undefined }
-          : p
-      ));
-      setActiveProtocol(prev =>
-        prev && prev.idProtocolo === idProtocolo
-          ? { ...prev, nome: newNome, objetivo: newObjetivo || undefined, dataInicio: protoInicio || undefined, dataFim: protoFim || undefined }
-          : prev
-      );
-
-      resetProtocoloForm();
-      toast.success('Protocolo atualizado com sucesso!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Erro ao atualizar protocolo de treino.');
-    }
-  };
-
-  // Marca uma periodização como a atual (o backend já desativa as outras)
-  const handleActivateProtocolo = async (proto: Protocolo) => {
-    try {
-      await api.patch(`/treinos/protocolos/${proto.idProtocolo}`, { ativo: true });
-      setProtocolos(prev => prev.map(p => ({ ...p, ativo: p.idProtocolo === proto.idProtocolo })));
-      setActiveProtocol({ ...proto, ativo: true });
-      toast.success(`"${proto.nome}" agora é a periodização atual.`);
-    } catch (err) {
-      console.error(err);
-      toast.error('Erro ao marcar periodização como atual.');
     }
   };
 
@@ -660,7 +532,7 @@ export const Treinos: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.error('Erro ao salvar alterações da ficha.');
-      loadOverview(false);
+      loadTreino(false);
     }
   };
 
@@ -688,35 +560,11 @@ export const Treinos: React.FC = () => {
 
     try {
       await api.delete(`/treinos/fichas/${idTreino}`);
-      loadOverview(false);
+      loadTreino(false);
     } catch (err) {
       console.error(err);
       toast.error('Erro ao excluir ficha no servidor.');
-      loadOverview(false);
-    }
-  };
-
-  // Protocol delete
-  const handleDeleteProtocolo = async (idProtocolo: number, nome: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm(`Deseja excluir o protocolo "${nome}" e todas as suas fichas?`)) return;
-
-    // Optimistic UI
-    setProtocolos(prev => prev.filter(p => p.idProtocolo !== idProtocolo));
-    if (activeProtocol?.idProtocolo === idProtocolo) {
-      setActiveProtocol(null);
-      setActiveTabId(null);
-    }
-
-    toast.success('Protocolo excluído.');
-
-    try {
-      await api.delete(`/treinos/protocolos/${idProtocolo}`);
-      loadOverview(false);
-    } catch (err) {
-      console.error(err);
-      toast.error('Erro ao excluir protocolo no servidor.');
-      loadOverview(false);
+      loadTreino(false);
     }
   };
 
@@ -738,8 +586,6 @@ export const Treinos: React.FC = () => {
       // --- EDIÇÃO OTIMISTA INSTANTÂNEA ---
       const editId = editingExercisePrescriptionId;
       const oldItem = currentFicha?.exercicios.find(x => x.idTreinoExercicio === editId);
-      const oldSeries = oldItem?.series || 0;
-      const oldGroup = oldItem?.exercicio.grupoMuscular.nome;
 
       const updatedItem: PrescribedExercise = {
         idTreinoExercicio: editId,
@@ -767,14 +613,6 @@ export const Treinos: React.FC = () => {
         };
       });
 
-      // Atualiza volume imediatamente (0ms)
-      setVolume(prev => {
-        const next = { ...prev };
-        if (oldGroup) next[oldGroup] = Math.max(0, (next[oldGroup] || 0) - oldSeries);
-        next[exObj.grupoMuscular.nome] = (next[exObj.grupoMuscular.nome] || 0) + Number(exSeries);
-        return next;
-      });
-
       closeExerciseModal();
       toast.success('Exercício atualizado!');
 
@@ -791,7 +629,7 @@ export const Treinos: React.FC = () => {
       } catch (err) {
         console.error('Erro ao salvar edição:', err);
         toast.error('Erro ao salvar no servidor.');
-        loadOverview(false);
+        loadTreino(false);
       }
     } else {
       // --- ADIÇÃO OTIMISTA INSTANTÂNEA ---
@@ -822,12 +660,6 @@ export const Treinos: React.FC = () => {
           }),
         };
       });
-
-      // Atualiza volume imediatamente (0ms)
-      setVolume(prev => ({
-        ...prev,
-        [exObj.grupoMuscular.nome]: (prev[exObj.grupoMuscular.nome] || 0) + Number(exSeries),
-      }));
 
       closeExerciseModal();
       toast.success('Exercício adicionado!');
@@ -861,7 +693,7 @@ export const Treinos: React.FC = () => {
       } catch (err) {
         console.error('Erro ao adicionar exercício:', err);
         toast.error('Erro ao salvar no servidor.');
-        loadOverview(false);
+        loadTreino(false);
       }
     }
   };
@@ -914,7 +746,7 @@ export const Treinos: React.FC = () => {
       ]);
     } catch (err) {
       console.error('Erro ao reordenar:', err);
-      loadOverview(false);
+      loadTreino(false);
     }
   };
 
@@ -940,7 +772,7 @@ export const Treinos: React.FC = () => {
       );
     } catch (err) {
       console.error('Erro ao reordenar:', err);
-      loadOverview(false);
+      loadTreino(false);
     }
   };
 
@@ -948,9 +780,6 @@ export const Treinos: React.FC = () => {
   const handleRemoveExercise = async (idTreinoExercicio: number) => {
     if (!confirm('Deseja excluir esta prescrição?')) return;
     if (!activeProtocol || !activeTabId) return;
-
-    const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
-    const removed = currentFicha?.exercicios.find(x => x.idTreinoExercicio === idTreinoExercicio);
 
     // Remove da tela imediatamente (0ms)
     setActiveProtocol(prev => {
@@ -967,21 +796,11 @@ export const Treinos: React.FC = () => {
       };
     });
 
-    if (removed) {
-      setVolume(prev => {
-        const group = removed.exercicio.grupoMuscular.nome;
-        return {
-          ...prev,
-          [group]: Math.max(0, (prev[group] || 0) - removed.series),
-        };
-      });
-    }
-
     try {
       await api.delete(`/treinos/exercicios/${idTreinoExercicio}`);
     } catch (err) {
       console.error('Erro ao remover no servidor:', err);
-      loadOverview(false);
+      loadTreino(false);
     }
   };
 
@@ -1082,41 +901,45 @@ export const Treinos: React.FC = () => {
       {/* Screen Interactive UI Wrapper (Hidden during print) */}
       <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Header Section */}
-        <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', rowGap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link to="/" className="btn btn-ghost btn-icon">
-              <ArrowLeft size={18} />
-            </Link>
-            <div>
-              <h1>{aluno?.nome}</h1>
-              <p>
-                {activeProtocol?.nome || 'Sem protocolo ativo'}
-                {activeProtocol?.objetivo && (
-                  <span style={{ color: 'var(--text-2)', margin: '0 0.35rem' }}>|</span>
-                )}{activeProtocol?.objetivo}
-                {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
-              </p>
+        <div>
+          <Breadcrumb items={[
+            { label: 'Alunos', to: '/alunos' },
+            { label: aluno?.nome || '...', to: `/alunos/${idAluno}/periodizacoes` },
+            { label: 'Periodizações', to: `/alunos/${idAluno}/periodizacoes` },
+            { label: activeProtocol?.nome || '...' },
+          ]} />
+          <div className="flex-between" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Link to={`/alunos/${idAluno}/periodizacoes`} className="btn btn-ghost btn-icon">
+                <ArrowLeft size={18} />
+              </Link>
+              <div>
+                <h1>{aluno?.nome}</h1>
+                <p>
+                  {activeProtocol?.nome || 'Carregando periodização...'}
+                  {activeProtocol?.objetivo && (
+                    <span style={{ color: 'var(--text-2)', margin: '0 0.35rem' }}>|</span>
+                  )}{activeProtocol?.objetivo}
+                  {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {(activeProtocol?.tokenPublico || aluno?.tokenAcesso) && (
+                <button className="btn btn-secondary btn-sm" onClick={handleShare}>
+                  <Share2 size={14} />
+                  {shareCopied ? 'Copiado!' : 'Compartilhar'}
+                </button>
+              )}
+              {activeProtocol && (
+                <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
+                  <FileText size={14} />
+                  Gerar PDF
+                </button>
+              )}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {aluno?.tokenAcesso && (
-              <button className="btn btn-secondary btn-sm" onClick={handleShare}>
-                <Share2 size={14} />
-                {shareCopied ? 'Copiado!' : 'Compartilhar'}
-              </button>
-            )}
-            {activeProtocol && (
-              <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
-                <FileText size={14} />
-                Gerar PDF
-              </button>
-            )}
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowProtocolModal(true)}>
-              <Calendar size={14} />
-            Periodizações
-          </button>
         </div>
-      </div>
 
       {/* Error display */}
       {error && (
@@ -1285,13 +1108,13 @@ export const Treinos: React.FC = () => {
               </button>
 
               {/* Volume Footer */}
-              {Object.keys(volume).length > 0 && (
+              {volumeSemanalPorGrupo.length > 0 && (
                 <div className="volume-footer" style={{ alignItems: 'center' }}>
                   <span style={{ color: 'var(--text-1)', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.25rem' }}>
                     Volume semanal:
                   </span>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {Object.entries(volume).map(([grupo, series]) => (
+                    {volumeSemanalPorGrupo.map(([grupo, series]) => (
                       <span 
                         key={grupo} 
                         className="badge" 
@@ -1323,16 +1146,16 @@ export const Treinos: React.FC = () => {
         </>
       )}
 
-      {/* No active protocol state */}
-      {!activeProtocol && (
+      {/* Periodização não encontrada (ex: link antigo, ou excluída por outra aba) */}
+      {!activeProtocol && !loading && (
         <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <AlertCircle size={32} style={{ color: 'var(--text-2)', opacity: 0.6 }} />
           <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-1)' }}>
-            Nenhum protocolo ativo para este aluno.
+            Esta periodização não foi encontrada.
           </p>
-          <button type="button" className="btn btn-primary" onClick={() => setShowProtocolModal(true)}>
-            <Calendar size={16} />
-            Gerenciar Periodizações / Novo Ciclo
-          </button>
+          <Link to={`/alunos/${idAluno}/periodizacoes`} className="btn btn-primary btn-sm">
+            Voltar às periodizações
+          </Link>
         </div>
       )}
 
@@ -1575,218 +1398,6 @@ export const Treinos: React.FC = () => {
                 <span className="print-footer-badge">VERSÃO OFFLINE // BACKUP</span>
               </div>
             </footer>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 1: PERIODIZAÇÕES & PROTOCOLOS */}
-      {/* ========================================================================= */}
-      {showProtocolModal && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeProtocolModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalProtocolTitle"
-        >
-          <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '560px' }}
-          >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    PLANEJAMENTO // PERIODIZAÇÕES & PROTOCOLOS
-                  </span>
-                </div>
-                <h3 id="modalProtocolTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  Periodizações de {aluno?.nome}
-                </h3>
-              </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeProtocolModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Lista de Protocolos Existentes */}
-              <div>
-                <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block', fontWeight: 600 }}>
-                  Ciclos Cadastrados
-                </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
-                  {protocolos.length > 0 ? (
-                    protocolos.map((proto) => {
-                      const isActive = activeProtocol?.idProtocolo === proto.idProtocolo;
-                      return (
-                        <div
-                          key={proto.idProtocolo}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '0.6rem 0.85rem',
-                            borderRadius: 'var(--radius-m)',
-                            border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
-                            backgroundColor: isActive ? 'var(--accent-dim)' : 'var(--bg-1)',
-                            gap: '0.75rem'
-                          }}
-                        >
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-0)' }}>
-                                {proto.nome}
-                              </span>
-                              {proto.ativo && (
-                                <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
-                                  Ativo
-                                </span>
-                              )}
-                              {isActive && !proto.ativo && (
-                                <span className="badge badge-accent" style={{ fontSize: '0.65rem' }}>
-                                  Em visualização
-                                </span>
-                              )}
-                            </div>
-                            {(proto.objetivo || proto.dataInicio) && (
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                                {proto.objetivo}
-                                {proto.dataInicio && ` • ${proto.dataInicio}`}
-                                {proto.dataFim && ` até ${proto.dataFim}`}
-                              </div>
-                            )}
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            {!isActive && (
-                              <button
-                                type="button"
-                                className="btn btn-secondary btn-sm"
-                                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', minHeight: 'unset' }}
-                                onClick={async () => {
-                                  const res = await api.get(`/treinos/protocolos/detalhes/${proto.idProtocolo}`);
-                                  setActiveProtocol(res.data);
-                                  toast.success(`Protocolo "${proto.nome}" selecionado.`);
-                                  closeProtocolModal();
-                                }}
-                              >
-                                Visualizar
-                              </button>
-                            )}
-                            {!isActive && (
-                              <button
-                                type="button"
-                                className="btn btn-primary btn-sm"
-                                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', minHeight: 'unset' }}
-                                onClick={() => handleActivateProtocolo(proto)}
-                                title="Marcar esta periodização como a atual"
-                              >
-                                Marcar como Atual
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              className="exercise-action-btn accent"
-                              style={{ width: '26px', height: '26px' }}
-                              onClick={() => startEditProtocolo(proto)}
-                              title="Editar protocolo"
-                            >
-                              <Edit2 size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              className="exercise-action-btn danger"
-                              style={{ width: '26px', height: '26px' }}
-                              onClick={(e) => handleDeleteProtocolo(proto.idProtocolo, proto.nome, e)}
-                              title="Excluir protocolo"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>Nenhum protocolo cadastrado ainda.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Formulário Novo Protocolo / Edição */}
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block', fontWeight: 600 }}>
-                  {editingProtocoloId ? 'Editar Ciclo / Protocolo' : 'Criar Novo Ciclo / Protocolo'}
-                </label>
-                <form onSubmit={handleCreateProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Nome do Protocolo *</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Ex: Hipertrofia 12 sem."
-                        value={protoNome}
-                        onChange={(e) => setProtoNome(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Objetivo</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Ex: Ganho de massa magra"
-                        value={protoObjetivo}
-                        onChange={(e) => setProtoObjetivo(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Data Início</label>
-                      <input
-                        type="date"
-                        className="form-input"
-                        value={protoInicio}
-                        onChange={(e) => setProtoInicio(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Data Fim</label>
-                      <input
-                        type="date"
-                        className="form-input"
-                        value={protoFim}
-                        onChange={(e) => setProtoFim(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
-                    {editingProtocoloId && (
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={resetProtocoloForm}>
-                        Cancelar Edição
-                      </button>
-                    )}
-                    <button type="submit" className="btn btn-primary btn-sm">
-                      {editingProtocoloId ? <Save size={14} /> : <Plus size={14} />}
-                      <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Protocolo'}</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
           </div>
         </div>
       )}
