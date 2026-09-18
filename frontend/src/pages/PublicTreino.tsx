@@ -5,9 +5,11 @@ import api from '../services/api';
 import {
   Award, Phone, Video, FileText,
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
-  History, RotateCcw, TrendingUp, Flag, CheckCircle2
+  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download, Smartphone
 } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { LAST_PUBLIC_TOKEN_KEY } from '../constants/storageKeys';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -373,6 +375,12 @@ export const PublicTreino: React.FC = () => {
     });
   };
 
+  const { canInstall, install } = usePWAInstall();
+  const [showIosInstallHint, setShowIosInstallHint] = useState(false);
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandaloneApp = (window.navigator as any).standalone === true;
+  const showIosInstall = isIos && !isStandaloneApp;
+
   const handleDownloadPdf = () => {
     setTimeout(async () => {
       const element = document.getElementById('print-section');
@@ -438,6 +446,7 @@ export const PublicTreino: React.FC = () => {
         setError('');
         const res = await api.get(`/publico/treinos/${token}`);
         setData(res.data);
+        if (token) localStorage.setItem(LAST_PUBLIC_TOKEN_KEY, token);
 
         const alunoNome = res.data.aluno?.nome ? res.data.aluno.nome.split(' ')[0] : 'Aluno';
         const protocoloNome = res.data.protocolo?.nome || 'Treino';
@@ -720,6 +729,30 @@ export const PublicTreino: React.FC = () => {
   return (
     <div className="animate-in" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-0)', color: 'var(--text-0)', paddingBottom: '5rem' }}>
 
+      {/* iOS install hint */}
+      {showIosInstallHint && (
+        <div className="modal-backdrop" onClick={() => setShowIosInstallHint(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '12px',
+              backgroundColor: 'var(--accent-dim)', color: 'var(--accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem auto'
+            }}>
+              <Smartphone size={24} />
+            </div>
+            <h3 style={{ marginBottom: '0.5rem' }}>Instalar na Tela de Início</h3>
+            <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+              Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
+              <strong>"Adicionar à Tela de Início"</strong> para acessar seu treino direto do celular.
+            </p>
+            <button className="btn btn-primary" onClick={() => setShowIosInstallHint(false)} style={{ width: '100%' }}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Print-only PDF export (hidden on screen, captured by html2pdf on demand) */}
       {protocolo && (
         <div id="print-section" className="print-only">
@@ -909,6 +942,28 @@ export const PublicTreino: React.FC = () => {
           
           {/* Contact shortcuts */}
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {canInstall && (
+              <button
+                onClick={install}
+                className="topbar-btn"
+                title="Instalar app"
+                aria-label="Instalar aplicativo no dispositivo"
+                style={{ color: 'var(--accent)' }}
+              >
+                <Download size={16} aria-hidden="true" />
+              </button>
+            )}
+            {showIosInstall && !canInstall && (
+              <button
+                onClick={() => setShowIosInstallHint(true)}
+                className="topbar-btn"
+                title="Instalar app no iPhone"
+                aria-label="Instruções para instalar no iPhone"
+                style={{ color: 'var(--accent)' }}
+              >
+                <Download size={16} aria-hidden="true" />
+              </button>
+            )}
             <button
               onClick={toggleTheme}
               className="topbar-btn"

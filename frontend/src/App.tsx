@@ -16,6 +16,7 @@ import { Catalog } from './pages/Catalog';
 import { Admin } from './pages/Admin';
 import { Configuracoes } from './pages/Configuracoes';
 import { useMobileViewportFix } from './hooks/useMobileViewportFix';
+import { LAST_PUBLIC_TOKEN_KEY } from './constants/storageKeys';
 import './App.css';
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,6 +31,14 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (!signed) {
+    // A PWA instalado a partir do link público de um aluno tem start_url "/",
+    // que exige login do treinador — algo que o aluno não tem. Se este
+    // navegador já visitou um link público antes, manda de volta pra lá em
+    // vez da tela de login.
+    const lastPublicToken = localStorage.getItem(LAST_PUBLIC_TOKEN_KEY);
+    if (lastPublicToken) {
+      return <Navigate to={`/v/${lastPublicToken}`} replace />;
+    }
     return <Navigate to="/login" replace />;
   }
 
