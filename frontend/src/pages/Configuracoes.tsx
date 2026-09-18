@@ -230,6 +230,7 @@ export const Configuracoes: React.FC = () => {
                 id="crefProf"
                 type="text"
                 className="form-input"
+                maxLength={20}
                 value={cref}
                 onChange={(e) => setCref(e.target.value)}
                 required

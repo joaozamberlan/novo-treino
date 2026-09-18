@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
@@ -22,6 +23,7 @@ export class RegisterDto {
 
   @IsString({ message: 'O CREF deve ser uma string' })
   @IsNotEmpty({ message: 'O CREF é obrigatório' })
+  @MaxLength(20, { message: 'O CREF deve ter no máximo 20 caracteres' })
   cref: string;
 
   @IsString()
