@@ -18,13 +18,13 @@ export class PaginationQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(1000)
   @IsOptional()
   limit?: number;
 }
 
-export const DEFAULT_PAGE_LIMIT = 50;
-export const MAX_PAGE_LIMIT = 100;
+export const DEFAULT_PAGE_LIMIT = 1000;
+export const MAX_PAGE_LIMIT = 1000;
 
 export function toSkipTake(query?: PaginationQueryDto): {
   skip: number;
