@@ -36,6 +36,31 @@ export class PublicoService {
     return aluno;
   }
 
+  // Manifest PWA específico do link do aluno. É servido no mesmo domínio do
+  // frontend em /v/:token/manifest.webmanifest (rewrite no vercel.json), então os
+  // caminhos relativos resolvem para o próprio link e o app instalado abre o
+  // treino em vez da tela de login do treinador.
+  async getManifest(token: string) {
+    const aluno = await this.getAlunoPorToken(token);
+    const primeiroNome = aluno.nome.split(' ')[0];
+    return {
+      id: './',
+      name: `Treino de ${primeiroNome}`,
+      short_name: 'Meu treino',
+      description: 'Seu treino prescrito pelo seu personal',
+      start_url: './',
+      scope: './',
+      display: 'standalone',
+      orientation: 'portrait',
+      theme_color: '#0d0d0d',
+      background_color: '#0d0d0d',
+      icons: [
+        { src: '/pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+        { src: '/pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
+    };
+  }
+
   private async getTreinoDoAluno(idTreino: number, idAluno: number) {
     const treino = await this.prisma.treino.findFirst({
       where: { idTreino, protocolo: { idAluno } },

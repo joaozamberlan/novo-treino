@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Header,
   Post,
   Delete,
   Param,
@@ -17,6 +18,13 @@ import { PublicoService } from './publico.service';
 @Controller('publico')
 export class PublicoController {
   constructor(private readonly publicoService: PublicoService) {}
+
+  @Get('manifest/:token')
+  @Header('Content-Type', 'application/manifest+json')
+  @Header('Cache-Control', 'public, max-age=300')
+  async getManifest(@Param('token') token: string) {
+    return this.publicoService.getManifest(token);
+  }
 
   @Get('treinos/:token')
   async findActiveByToken(@Param('token') token: string) {

@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/v/:token/manifest.webmanifest",
+      "destination": "https://novo-treino-production-3354.up.railway.app/publico/manifest/:token"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

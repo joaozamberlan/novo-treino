@@ -461,40 +461,20 @@ export const PublicTreino: React.FC = () => {
   const [timerRunning, setTimerRunning] = useState(false);
 
   // O manifest global tem start_url "/" (área do treinador, exige login). Nesta página
-  // trocamos por um manifest próprio deste link, para o app instalado abrir o treino do aluno.
-  const alunoPrimeiroNome = data?.aluno?.nome ? data.aluno.nome.split(' ')[0] : '';
+  // apontamos para o manifest deste link (servido pelo backend via rewrite do Vercel),
+  // para o app instalado abrir o treino do aluno.
   useEffect(() => {
     if (!token) return;
-    const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
-    const originalHref = link?.getAttribute('href') ?? null;
-    const origin = window.location.origin;
-    const startUrl = `${origin}/v/${token}`;
-    const manifest = {
-      id: startUrl,
-      name: alunoPrimeiroNome ? `Treino de ${alunoPrimeiroNome}` : 'Meu treino',
-      short_name: 'Meu treino',
-      description: 'Seu treino prescrito pelo seu personal',
-      start_url: startUrl,
-      scope: startUrl,
-      display: 'standalone',
-      orientation: 'portrait',
-      theme_color: '#0d0d0d',
-      background_color: '#0d0d0d',
-      icons: [
-        { src: `${origin}/pwa-icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-        { src: `${origin}/pwa-icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-      ],
-    };
-    const blobUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
-    const target = link ?? document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'manifest' }));
-    target.setAttribute('href', blobUrl);
+    const existing = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const originalHref = existing?.getAttribute('href') ?? null;
+    const target = existing ?? document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'manifest' }));
+    target.setAttribute('href', `/v/${token}/manifest.webmanifest`);
 
     return () => {
       if (originalHref !== null) target.setAttribute('href', originalHref);
       else target.remove();
-      URL.revokeObjectURL(blobUrl);
     };
-  }, [token, alunoPrimeiroNome]);
+  }, [token]);
 
   useEffect(() => {
     const fetchPublicData = async () => {
