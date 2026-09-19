@@ -354,6 +354,27 @@ export const PublicTreino: React.FC = () => {
     });
   };
 
+  // Remove apenas a última série, e só se for extra (acima do prescrito pelo treinador).
+  const removeExtraSet = async (item: PrescribedExercise, allSets: ExerciseSetEntry[]) => {
+    const current = setsProgressMapRef.current[item.idTreinoExercicio] || allSets;
+    const last = current[current.length - 1];
+    if (!last || last.setNumber <= (item.series || 3)) return;
+
+    const remaining = current.slice(0, -1);
+    const newMap = { ...setsProgressMapRef.current, [item.idTreinoExercicio]: remaining };
+    setSetsProgressMap(newMap);
+    saveLocalSets(newMap);
+
+    if (sessaoId && token) {
+      try {
+        await api.delete(`/publico/sessao/${token}/${sessaoId}/exercicio/${item.idTreinoExercicio}/series/${last.setNumber}`);
+        syncSetsToServer(item.idTreinoExercicio, remaining);
+      } catch (err) {
+        console.error('Erro ao remover série extra:', err);
+      }
+    }
+  };
+
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
@@ -1396,6 +1417,26 @@ export const PublicTreino: React.FC = () => {
                           >
                             <span>+ Adicionar série</span>
                           </button>
+
+                          {sets.length > (item.series || 3) && (
+                            <button
+                              type="button"
+                              onClick={() => removeExtraSet(item, sets)}
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                border: '1px dashed var(--border-strong)',
+                                borderRadius: 'var(--radius-s)',
+                                background: 'transparent',
+                                color: 'var(--text-2)',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                              aria-label="Remover última série adicionada"
+                            >
+                              <span>− Remover série</span>
+                            </button>
+                          )}
 
                           {historicoAnterior?.exercicios?.[item.idTreinoExercicio]?.length ? (
                             <button

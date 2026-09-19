@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Param,
   ParseIntPipe,
   Body,
@@ -66,6 +67,24 @@ export class PublicoController {
       idSessao,
       idTreinoExercicio,
       body.series || [],
+    );
+  }
+
+  // DELETE /publico/sessao/:token/:idSessao/exercicio/:idTreinoExercicio/series/:numeroSerie — remove uma série extra adicionada pelo aluno
+  @Delete(
+    'sessao/:token/:idSessao/exercicio/:idTreinoExercicio/series/:numeroSerie',
+  )
+  async removerSerieExtra(
+    @Param('token') token: string,
+    @Param('idSessao', ParseIntPipe) idSessao: number,
+    @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
+    @Param('numeroSerie', ParseIntPipe) numeroSerie: number,
+  ) {
+    return this.publicoService.removerSerieExtra(
+      token,
+      idSessao,
+      idTreinoExercicio,
+      numeroSerie,
     );
   }
 

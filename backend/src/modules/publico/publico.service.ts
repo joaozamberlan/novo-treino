@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -457,6 +461,33 @@ export class PublicoService {
       idTreinoExercicio,
       series,
     );
+  }
+
+  // O aluno só pode remover séries que ele mesmo acrescentou (numeroSerie acima
+  // das séries prescritas pelo profissional), nunca as da ficha.
+  async removerSerieExtra(
+    tokenAcesso: string,
+    idSessao: number,
+    idTreinoExercicio: number,
+    numeroSerie: number,
+  ) {
+    const aluno = await this.getAlunoPorToken(tokenAcesso);
+    const sessao = await this.getSessaoDoAluno(idSessao, aluno.idAluno);
+    const rel = await this.getTreinoExercicioDaSessao(
+      idTreinoExercicio,
+      sessao.idTreino,
+    );
+
+    if (numeroSerie <= rel.series) {
+      throw new BadRequestException(
+        'Só é possível remover séries adicionadas por você.',
+      );
+    }
+
+    await this.prisma.sessaoExercicioSerie.deleteMany({
+      where: { idSessao: sessao.idSessao, idTreinoExercicio, numeroSerie },
+    });
+    return { removida: true, idTreinoExercicio, numeroSerie };
   }
 
   // Assume que a posse da sessão (tokenAcesso → aluno → sessão) já foi validada pelo chamador.
