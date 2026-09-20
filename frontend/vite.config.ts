@@ -1,11 +1,29 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// O Safari do iPhone lê o <link rel="manifest"> do HTML inicial ao adicionar à tela de
+// início; o manifest global tem start_url "/" (área do treinador, exige login). Para as
+// rotas /v/:token geramos aluno.html: o mesmo index.html, só que sem o manifest.
+const alunoHtmlPlugin = (): Plugin => ({
+  name: 'aluno-html-without-manifest',
+  apply: 'build',
+  enforce: 'post',
+  closeBundle() {
+    const indexPath = resolve(__dirname, 'dist/index.html')
+    if (!existsSync(indexPath)) return
+    const html = readFileSync(indexPath, 'utf-8').replace(/<link rel="manifest"[^>]*>/g, '')
+    writeFileSync(resolve(__dirname, 'dist/aluno.html'), html)
+  },
+})
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    alunoHtmlPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
@@ -37,6 +55,9 @@ export default defineConfig({
       workbox: {
         // Cache estáticos (JS, CSS, fontes) — cache-first
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // /v/:token é servido como aluno.html (sem manifest) pelo Vercel; o fallback
+        // do SW devolveria o index.html, com o manifest global.
+        navigateFallbackDenylist: [/^\/v\//],
         runtimeCaching: [
           {
             // Rotas públicas do aluno — network-first (progresso sempre atualizado)
