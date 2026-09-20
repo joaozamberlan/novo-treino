@@ -460,13 +460,22 @@ export const PublicTreino: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState(false);
 
-  // O manifest global tem start_url "/" (área do treinador, exige login). Nesta página
-  // apontamos para o manifest deste link (servido pelo backend via rewrite do Vercel),
-  // para o app instalado abrir o treino do aluno.
+  // O manifest global tem start_url "/" (área do treinador, exige login).
+  // - iOS/Safari: sem manifest, "Adicionar à Tela de Início" guarda a URL exata aberta
+  //   (com o token). Com manifest o Safari abria a raiz do site e caía no login.
+  // - Demais navegadores: manifest deste link, servido pelo backend via rewrite do Vercel.
   useEffect(() => {
     if (!token) return;
     const existing = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     const originalHref = existing?.getAttribute('href') ?? null;
+
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      existing?.remove();
+      return () => {
+        if (existing) document.head.appendChild(existing);
+      };
+    }
+
     const target = existing ?? document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'manifest' }));
     target.setAttribute('href', `/v/${token}/manifest.webmanifest`);
 
