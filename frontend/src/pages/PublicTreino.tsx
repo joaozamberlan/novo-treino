@@ -5,7 +5,7 @@ import api from '../services/api';
 import {
   Award, Phone, Video, FileText,
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
-  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download, Smartphone
+  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download
 } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -129,6 +129,11 @@ const getDiasAtras = (dateStr: string) => {
     return '';
   }
 };
+
+// iPadOS 13+ se identifica como Mac; o toque múltiplo o distingue de um Mac de verdade.
+const isIosDevice = () =>
+  /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+  (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
 export const PublicTreino: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -397,10 +402,6 @@ export const PublicTreino: React.FC = () => {
   };
 
   const { canInstall, install } = usePWAInstall();
-  const [showIosInstallHint, setShowIosInstallHint] = useState(false);
-  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandaloneApp = (window.navigator as any).standalone === true;
-  const showIosInstall = isIos && !isStandaloneApp;
 
   const handleDownloadPdf = () => {
     setTimeout(async () => {
@@ -461,15 +462,15 @@ export const PublicTreino: React.FC = () => {
   const [timerRunning, setTimerRunning] = useState(false);
 
   // O manifest global tem start_url "/" (área do treinador, exige login).
-  // - iOS/Safari: sem manifest, "Adicionar à Tela de Início" guarda a URL exata aberta
-  //   (com o token). Com manifest o Safari abria a raiz do site e caía no login.
+  // - iOS: o aluno não tem PWA (o atalho do Safari abria a raiz e caía no login), então
+  //   ficam sem manifest e sem botão de instalar.
   // - Demais navegadores: manifest deste link, servido pelo backend via rewrite do Vercel.
   useEffect(() => {
     if (!token) return;
     const existing = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     const originalHref = existing?.getAttribute('href') ?? null;
 
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    if (isIosDevice()) {
       existing?.remove();
       return () => {
         if (existing) document.head.appendChild(existing);
@@ -775,29 +776,6 @@ export const PublicTreino: React.FC = () => {
   return (
     <div className="animate-in" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-0)', color: 'var(--text-0)', paddingBottom: '5rem' }}>
 
-      {/* iOS install hint */}
-      {showIosInstallHint && (
-        <div className="modal-backdrop" onClick={() => setShowIosInstallHint(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '12px',
-              backgroundColor: 'var(--accent-dim)', color: 'var(--accent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 1rem auto'
-            }}>
-              <Smartphone size={24} />
-            </div>
-            <h3 style={{ marginBottom: '0.5rem' }}>Instalar na Tela de Início</h3>
-            <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-              Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
-              <strong>"Adicionar à Tela de Início"</strong> para acessar seu treino direto do celular.
-            </p>
-            <button className="btn btn-primary" onClick={() => setShowIosInstallHint(false)} style={{ width: '100%' }}>
-              Entendido
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Print-only PDF export (hidden on screen, captured by html2pdf on demand) */}
       {protocolo && (
@@ -994,17 +972,6 @@ export const PublicTreino: React.FC = () => {
                 className="topbar-btn"
                 title="Instalar app"
                 aria-label="Instalar aplicativo no dispositivo"
-                style={{ color: 'var(--accent)' }}
-              >
-                <Download size={16} aria-hidden="true" />
-              </button>
-            )}
-            {showIosInstall && !canInstall && (
-              <button
-                onClick={() => setShowIosInstallHint(true)}
-                className="topbar-btn"
-                title="Instalar app no iPhone"
-                aria-label="Instruções para instalar no iPhone"
                 style={{ color: 'var(--accent)' }}
               >
                 <Download size={16} aria-hidden="true" />

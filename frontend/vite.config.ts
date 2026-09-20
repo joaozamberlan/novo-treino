@@ -6,7 +6,8 @@ import { resolve } from 'node:path'
 
 // O Safari do iPhone lê o <link rel="manifest"> do HTML inicial ao adicionar à tela de
 // início; o manifest global tem start_url "/" (área do treinador, exige login). Para as
-// rotas /v/:token geramos aluno.html: o mesmo index.html, só que sem o manifest.
+// rotas /v/:token geramos aluno.html: o mesmo index.html, sem o manifest e sem as metas
+// que fazem o iOS tratar o atalho como app (o aluno não tem PWA no iPhone).
 const alunoHtmlPlugin = (): Plugin => ({
   name: 'aluno-html-without-manifest',
   apply: 'build',
@@ -14,7 +15,9 @@ const alunoHtmlPlugin = (): Plugin => ({
   closeBundle() {
     const indexPath = resolve(__dirname, 'dist/index.html')
     if (!existsSync(indexPath)) return
-    const html = readFileSync(indexPath, 'utf-8').replace(/<link rel="manifest"[^>]*>/g, '')
+    const html = readFileSync(indexPath, 'utf-8')
+      .replace(/<link rel="manifest"[^>]*>/g, '')
+      .replace(/<meta name="apple-mobile-web-app-(capable|status-bar-style)"[^>]*>/g, '')
     writeFileSync(resolve(__dirname, 'dist/aluno.html'), html)
   },
 })
