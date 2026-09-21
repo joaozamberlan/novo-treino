@@ -28,6 +28,10 @@ export class UpdateTreinoExercicioDto {
   @IsOptional()
   descansoSegundos?: number | null;
 
+  @IsInt()
+  @IsOptional()
+  descansoMaxSegundos?: number | null;
+
   @IsString()
   @IsOptional()
   observacao?: string | null;

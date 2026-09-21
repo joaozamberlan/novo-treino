@@ -133,6 +133,7 @@ model TreinoExercicio {
   repeticoes        String         @default("10")
   carga             String?
   descansoSegundos  Int?           @default(60)
+  descansoMaxSegundos Int?
   observacao        String?
   ordem             Int            // Controla a sequencia do exercicio na ficha (ex: 1, 2, 3...)
 

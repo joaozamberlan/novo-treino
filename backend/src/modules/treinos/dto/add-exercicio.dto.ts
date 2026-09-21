@@ -25,6 +25,10 @@ export class AddExercicioDto {
   @IsOptional()
   descansoSegundos?: number;
 
+  @IsInt()
+  @IsOptional()
+  descansoMaxSegundos?: number;
+
   @IsString()
   @IsOptional()
   observacao?: string;

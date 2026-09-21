@@ -11,6 +11,7 @@ import {
   ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
+import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 
 interface GrupoMuscular {
   idGrupoMuscular: number;
@@ -36,6 +37,7 @@ interface PrescribedExercise {
   repeticoes: string;
   carga?: string;
   descansoSegundos?: number;
+  descansoMaxSegundos?: number;
   observacao?: string;
   ordem: number;
   exercicio: Exercicio;
@@ -117,7 +119,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         </span>
         {item.descansoSegundos && (
           <span className="exercise-block-stat">
-            {item.descansoSegundos}<span className="exercise-block-stat-label">s</span>
+            {formatDescanso(item.descansoSegundos, item.descansoMaxSegundos)}
           </span>
         )}
       </div>
@@ -180,7 +182,7 @@ export const Treinos: React.FC = () => {
   const [selectedTecnica, setSelectedTecnica] = useState<number | undefined>(undefined);
   const [exSeries, setExSeries] = useState(3);
   const [exReps, setExReps] = useState('10');
-  const [exDescanso, setExDescanso] = useState(60);
+  const [exDescanso, setExDescanso] = useState('60');
   const [exObs, setExObs] = useState('');
 
   const [error, setError] = useState('');
@@ -194,7 +196,7 @@ export const Treinos: React.FC = () => {
     setSelectedTecnica(undefined);
     setExSeries(3);
     setExReps('10');
-    setExDescanso(60);
+    setExDescanso('60');
     setExObs('');
   };
 
@@ -585,6 +587,12 @@ export const Treinos: React.FC = () => {
       return;
     }
 
+    const descanso = exDescanso.trim() ? parseDescanso(exDescanso) : null;
+    if (exDescanso.trim() && !descanso) {
+      toast.error('Descanso inválido. Use por exemplo 60, 60-90 ou 1-3 min.');
+      return;
+    }
+
     const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
 
     if (editingExercisePrescriptionId) {
@@ -596,7 +604,8 @@ export const Treinos: React.FC = () => {
         idTreinoExercicio: editId,
         series: Number(exSeries),
         repeticoes: String(exReps),
-        descansoSegundos: Number(exDescanso) || 60,
+        descansoSegundos: descanso?.min ?? 60,
+        descansoMaxSegundos: descanso?.max,
         observacao: exObs || undefined,
         ordem: oldItem?.ordem || 1,
         exercicio: exObj,
@@ -628,7 +637,8 @@ export const Treinos: React.FC = () => {
           idTecnica: selectedTecnica ? Number(selectedTecnica) : null,
           series: Number(exSeries),
           repeticoes: exReps,
-          descansoSegundos: Number(exDescanso) || null,
+          descansoSegundos: descanso?.min ?? null,
+          descansoMaxSegundos: descanso?.max ?? null,
           observacao: exObs || null,
         });
       } catch (err) {
@@ -644,7 +654,8 @@ export const Treinos: React.FC = () => {
         idTreinoExercicio: tempId,
         series: Number(exSeries),
         repeticoes: String(exReps),
-        descansoSegundos: Number(exDescanso) || 60,
+        descansoSegundos: descanso?.min ?? 60,
+        descansoMaxSegundos: descanso?.max,
         observacao: exObs || undefined,
         ordem: newOrder,
         exercicio: exObj,
@@ -676,7 +687,8 @@ export const Treinos: React.FC = () => {
           idTecnica: selectedTecnica ? Number(selectedTecnica) : undefined,
           series: Number(exSeries),
           repeticoes: exReps,
-          descansoSegundos: Number(exDescanso) || undefined,
+          descansoSegundos: descanso?.min,
+          descansoMaxSegundos: descanso?.max,
           observacao: exObs || undefined,
           ordem: newOrder,
         });
@@ -710,7 +722,7 @@ export const Treinos: React.FC = () => {
     setSelectedTecnica(item.tecnica?.idTecnica);
     setExSeries(item.series);
     setExReps(item.repeticoes);
-    setExDescanso(item.descansoSegundos || 60);
+    setExDescanso(descansoParaInput(item.descansoSegundos, item.descansoMaxSegundos) || '60');
     setExObs(item.observacao || '');
     setActiveTabId(idTreino);
     setShowExerciseModal(true);
@@ -1314,7 +1326,7 @@ export const Treinos: React.FC = () => {
                             <td className="print-td-series">{item.series}</td>
                             <td className="print-td-reps">{item.repeticoes}</td>
                             <td className="print-td-descanso">
-                              {item.descansoSegundos ? `${item.descansoSegundos}s` : '60s'}
+                              {formatDescanso(item.descansoSegundos || 60, item.descansoMaxSegundos)}
                             </td>
                             <td>
                               {item.tecnica && (
@@ -1675,15 +1687,14 @@ export const Treinos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Descanso (s)</label>
+                  <label className="form-label">Descanso</label>
                   <input
-                    type="number"
-                    min={0}
-                    step={5}
+                    type="text"
+                    inputMode="text"
                     className="form-input"
                     value={exDescanso}
-                    onChange={(e) => setExDescanso(Number(e.target.value))}
-                    placeholder="60"
+                    onChange={(e) => setExDescanso(e.target.value)}
+                    placeholder="Ex: 60, 60-90 ou 1-3 min"
                   />
                 </div>
               </div>

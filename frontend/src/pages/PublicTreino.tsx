@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
+import { formatDescanso } from '../utils/descanso';
 import {
   Award, Phone, Video, FileText,
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
@@ -51,6 +52,7 @@ interface PrescribedExercise {
   repeticoes: string;
   carga?: string;
   descansoSegundos?: number;
+  descansoMaxSegundos?: number;
   observacao?: string;
   exercicio: Exercicio;
   tecnica?: TecnicaTreino;
@@ -870,7 +872,7 @@ export const PublicTreino: React.FC = () => {
                           <td className="print-td-series">{item.series}</td>
                           <td className="print-td-reps">{item.repeticoes}</td>
                           <td className="print-td-descanso">
-                            {item.descansoSegundos ? `${item.descansoSegundos}s` : '60s'}
+                            {formatDescanso(item.descansoSegundos || 60, item.descansoMaxSegundos)}
                           </td>
                           <td>
                             {item.tecnica && (
@@ -1217,11 +1219,11 @@ export const PublicTreino: React.FC = () => {
                                 }
                                 startTimer(item.descansoSegundos!);
                               }}
-                              aria-label={`Iniciar tempo de descanso de ${item.descansoSegundos} segundos`}
+                              aria-label={`Iniciar tempo de descanso de ${formatDescanso(item.descansoSegundos, item.descansoMaxSegundos)}`}
                               title="Iniciar descanso manual"
                             >
                               <Timer size={12} aria-hidden="true" />
-                              <span>{item.descansoSegundos}s</span>
+                              <span>{formatDescanso(item.descansoSegundos, item.descansoMaxSegundos)}</span>
                             </button>
                           )}
 
