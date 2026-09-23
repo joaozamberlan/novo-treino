@@ -3,7 +3,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
   Plus, Layers, Sparkles, Edit, Trash2, 
-  Video, Save, FolderPlus, X
+  Video, Save, FolderPlus, X, MessageSquareText
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { toast } from 'sonner';
@@ -28,19 +28,25 @@ interface TecnicaTreino {
   descricao?: string;
 }
 
+interface Instrucao {
+  idInstrucao: number;
+  texto: string;
+}
+
 export const Catalog: React.FC = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlTab = searchParams.get('tab') as 'exercicios' | 'tecnicas' | 'grupos' | null;
+  const urlTab = searchParams.get('tab') as 'exercicios' | 'tecnicas' | 'grupos' | 'instrucoes' | null;
 
   const cached = memoryCache.get<any>('catalogo');
-  const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos'>(() => {
-    if (urlTab === 'grupos' || urlTab === 'tecnicas') return urlTab;
+  const [activeTab, setActiveTab] = useState<'exercicios' | 'tecnicas' | 'grupos' | 'instrucoes'>(() => {
+    if (urlTab === 'grupos' || urlTab === 'tecnicas' || urlTab === 'instrucoes') return urlTab;
     return 'exercicios';
   });
   const [exercicios, setExercicios] = useState<Exercicio[]>(cached?.exercicios || []);
   const [tecnicas, setTecnicas] = useState<TecnicaTreino[]>(cached?.tecnicas || []);
   const [grupos, setGrupos] = useState<GrupoMuscular[]>(cached?.grupos || []);
+  const [instrucoes, setInstrucoes] = useState<Instrucao[]>(cached?.instrucoes || []);
   const [search, setSearch] = useState('');
   const [selectedGrupoFilter, setSelectedGrupoFilter] = useState<number>(0);
   
@@ -65,6 +71,11 @@ export const Catalog: React.FC = () => {
   const [tecNome, setTecNome] = useState('');
   const [tecDesc, setTecDesc] = useState('');
 
+  // Instruction modal
+  const [showInsForm, setShowInsForm] = useState(false);
+  const [editingInsId, setEditingInsId] = useState<number | null>(null);
+  const [insTexto, setInsTexto] = useState('');
+
   // Muscle group tab modal
   const [showGrupoTabForm, setShowGrupoTabForm] = useState(false);
   const [editingGrupoId, setEditingGrupoId] = useState<number | null>(null);
@@ -88,6 +99,12 @@ export const Catalog: React.FC = () => {
     setTecDesc('');
   };
 
+  const closeInsModal = () => {
+    setShowInsForm(false);
+    setEditingInsId(null);
+    setInsTexto('');
+  };
+
   const closeGrupoTabModal = () => {
     setShowGrupoTabForm(false);
     setEditingGrupoId(null);
@@ -100,16 +117,17 @@ export const Catalog: React.FC = () => {
       if (e.key === 'Escape') {
         if (showExForm) closeExModal();
         if (showTecForm) closeTecModal();
+        if (showInsForm) closeInsModal();
         if (showGrupoTabForm) closeGrupoTabModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showExForm, showTecForm, showGrupoTabForm]);
+  }, [showExForm, showTecForm, showInsForm, showGrupoTabForm]);
 
   // Sync tab with URL search param
   useEffect(() => {
-    if (urlTab === 'grupos' || urlTab === 'tecnicas' || urlTab === 'exercicios') {
+    if (urlTab === 'grupos' || urlTab === 'tecnicas' || urlTab === 'instrucoes' || urlTab === 'exercicios') {
       setActiveTab(urlTab);
       setSearch('');
       setSelectedGrupoFilter(0);
@@ -123,7 +141,7 @@ export const Catalog: React.FC = () => {
     }
   }, [location.state]);
 
-  const handleTabChange = (tab: 'exercicios' | 'tecnicas' | 'grupos') => {
+  const handleTabChange = (tab: 'exercicios' | 'tecnicas' | 'grupos' | 'instrucoes') => {
     setActiveTab(tab);
     setSearch('');
     setSelectedGrupoFilter(0);
@@ -134,18 +152,21 @@ export const Catalog: React.FC = () => {
     try {
       if (!cached) setLoading(true);
       
-      const [exRes, tecRes, grpRes] = await Promise.all([
+      const [exRes, tecRes, grpRes, insRes] = await Promise.all([
         api.get('/exercicios'),
         api.get('/exercicios/tecnicas'),
-        api.get('/exercicios/grupos')
+        api.get('/exercicios/grupos'),
+        api.get('/exercicios/instrucoes')
       ]);
       setExercicios(exRes.data);
       setTecnicas(tecRes.data);
       setGrupos(grpRes.data);
+      setInstrucoes(insRes.data);
       memoryCache.set('catalogo', {
         exercicios: exRes.data,
         tecnicas: tecRes.data,
-        grupos: grpRes.data
+        grupos: grpRes.data,
+        instrucoes: insRes.data
       });
     } catch (err) {
       console.error(err);
@@ -298,6 +319,51 @@ export const Catalog: React.FC = () => {
     }
   };
 
+  // --- INSTRUCTION CRUD ---
+  const handleSaveInstrucao = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!insTexto.trim()) {
+      toast.error('Informe o texto da instrução.');
+      return;
+    }
+
+    try {
+      if (editingInsId) {
+        await api.patch(`/exercicios/instrucoes/${editingInsId}`, { texto: insTexto.trim() });
+        toast.success('Instrução atualizada!');
+      } else {
+        await api.post('/exercicios/instrucoes', { texto: insTexto.trim() });
+        toast.success('Instrução cadastrada com sucesso!');
+      }
+
+      closeInsModal();
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Erro ao salvar instrução.');
+    }
+  };
+
+  const handleEditInstrucao = (ins: Instrucao) => {
+    setEditingInsId(ins.idInstrucao);
+    setInsTexto(ins.texto);
+    setShowInsForm(true);
+  };
+
+  const handleDeleteInstrucao = async (id: number) => {
+    if (!confirm('Deseja realmente remover esta instrução?')) return;
+
+    try {
+      await api.delete(`/exercicios/instrucoes/${id}`);
+      toast.success('Instrução removida.');
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao excluir instrução.');
+    }
+  };
+
   // --- MUSCLE GROUP TAB CRUD ---
   const handleSaveGrupoTab = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,6 +417,10 @@ export const Catalog: React.FC = () => {
 
   const filteredTecnicas = tecnicas.filter((tec) =>
     tec.nome.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredInstrucoes = instrucoes.filter((ins) =>
+    ins.texto.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredGrupos = grupos.filter((g) =>
@@ -413,9 +483,20 @@ export const Catalog: React.FC = () => {
             <Plus size={18} />
             <span>Nova técnica</span>
           </button>
+        ) : activeTab === 'instrucoes' ? (
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              closeInsModal();
+              setShowInsForm(true);
+            }}
+          >
+            <Plus size={18} />
+            <span>Nova instrução</span>
+          </button>
         ) : (
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             onClick={() => {
               closeGrupoTabModal();
               setShowGrupoTabForm(true);
@@ -482,6 +563,23 @@ export const Catalog: React.FC = () => {
           >
             <Sparkles size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
             Técnicas de Treino
+          </button>
+          <button
+            className={`btn`}
+            style={{
+              minHeight: 'unset',
+              padding: '0.5rem 1.25rem',
+              borderRadius: '6px',
+              fontSize: '0.9rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              backgroundColor: activeTab === 'instrucoes' ? 'var(--bg-tertiary)' : 'transparent',
+              color: activeTab === 'instrucoes' ? 'var(--accent)' : 'var(--text-1)'
+            }}
+            onClick={() => handleTabChange('instrucoes')}
+          >
+            <MessageSquareText size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            Instruções
           </button>
         </div>
 
@@ -619,6 +717,47 @@ export const Catalog: React.FC = () => {
                   <tr>
                     <td colSpan={3} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                       Nenhuma técnica de treino encontrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* --- INSTRUCTIONS TAB TABLE --- */}
+      {activeTab === 'instrucoes' && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="table-container table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Instrução de Execução</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInstrucoes.length > 0 ? (
+                  filteredInstrucoes.map((ins) => (
+                    <tr key={ins.idInstrucao}>
+                      <td data-label="Instrução" style={{ fontWeight: '600', color: 'var(--text-0)' }}>{ins.texto}</td>
+                      <td data-label="Ações" style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                          <button className="btn btn-secondary" title="Editar instrução" aria-label={`Editar ${ins.texto}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditInstrucao(ins)}>
+                            <Edit size={14} />
+                          </button>
+                          <button className="btn btn-danger" title="Excluir instrução" aria-label={`Excluir ${ins.texto}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteInstrucao(ins.idInstrucao)}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                      Nenhuma instrução encontrada.
                     </td>
                   </tr>
                 )}
@@ -908,6 +1047,64 @@ export const Catalog: React.FC = () => {
                 <button type="submit" className="btn btn-primary">
                   <Save size={16} />
                   <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showInsForm && (
+        <div
+          className="modal-backdrop"
+          onClick={closeInsModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalInstrucaoTitle"
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <h3 id="modalInstrucaoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                {editingInsId ? 'Editar Instrução' : 'Nova Instrução'}
+              </h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={closeInsModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveInstrucao} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="insTexto">Instrução *</label>
+                <input
+                  id="insTexto"
+                  type="text"
+                  className="form-input"
+                  placeholder="Ex: Buscar a falha"
+                  value={insTexto}
+                  maxLength={200}
+                  onChange={(e) => setInsTexto(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeInsModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} />
+                  <span>{editingInsId ? 'Atualizar Instrução' : 'Salvar Instrução'}</span>
                 </button>
               </div>
             </form>

@@ -11,6 +11,7 @@ import {
   ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
+import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 
 interface GrupoMuscular {
@@ -148,6 +149,7 @@ export const Treinos: React.FC = () => {
   // Catalogs
   const [catalogExercicios, setCatalogExercicios] = useState<Exercicio[]>(cachedCatalogs?.exercicios || []);
   const [catalogTecnicas, setCatalogTecnicas] = useState<TecnicaTreino[]>(cachedCatalogs?.tecnicas || []);
+  const [catalogInstrucoes, setCatalogInstrucoes] = useState<Instrucao[]>([]);
   const [catalogGrupos, setCatalogGrupos] = useState<GrupoMuscular[]>(cachedCatalogs?.grupos || []);
 
   // UI state
@@ -319,6 +321,10 @@ export const Treinos: React.FC = () => {
 
   // Carrega catálogos (com cache instantâneo)
   const loadCatalogs = async () => {
+    // Instruções mudam com frequência na biblioteca; busca sempre (payload pequeno)
+    api.get('/exercicios/instrucoes')
+      .then((res) => setCatalogInstrucoes(res.data))
+      .catch((err) => console.error('Erro ao carregar instruções:', err));
     if (cachedCatalogs) {
       setCatalogExercicios(cachedCatalogs.exercicios);
       setCatalogTecnicas(cachedCatalogs.tecnicas);
@@ -572,6 +578,16 @@ export const Treinos: React.FC = () => {
       console.error(err);
       toast.error('Erro ao excluir ficha no servidor.');
       loadTreino(false);
+    }
+  };
+
+  const handleSaveInstrucao = async (texto: string) => {
+    try {
+      const res = await api.post('/exercicios/instrucoes', { texto });
+      setCatalogInstrucoes((prev) => [...prev, res.data].sort((a, b) => a.texto.localeCompare(b.texto)));
+      toast.success('Instrução salva na biblioteca!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao salvar instrução.');
     }
   };
 
@@ -1715,12 +1731,12 @@ export const Treinos: React.FC = () => {
 
               <div className="form-group">
                 <label className="form-label">Instruções / Anotações de Execução</label>
-                <input
-                  type="text"
-                  className="form-input"
+                <InstrucaoAutocomplete
                   value={exObs}
-                  placeholder="Ex: Cadência 3010, foco no pico de contração"
-                  onChange={(e) => setExObs(e.target.value)}
+                  onChange={setExObs}
+                  instrucoes={catalogInstrucoes}
+                  onSave={handleSaveInstrucao}
+                  placeholder="Ex: Buscar a falha (comece a digitar para ver sugestões)"
                 />
               </div>
 

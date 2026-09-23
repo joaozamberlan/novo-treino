@@ -10,6 +10,7 @@ import { UpdateTecnicaDto } from './dto/update-tecnica.dto';
 import {
   DEFAULT_CATALOG,
   DEFAULT_TECNICAS,
+  DEFAULT_INSTRUCOES,
 } from '../../constants/default-catalog';
 import {
   PaginationQueryDto,
@@ -250,6 +251,70 @@ export class ExerciciosService {
     });
   }
 
+  // --- INSTRUCOES DE EXECUCAO ---
+  async createInstrucao(texto: string, idProfissional: number) {
+    texto = texto.trim();
+    const exists = await this.prisma.instrucaoTreino.findUnique({
+      where: { texto_idProfissional: { texto, idProfissional } },
+    });
+    if (exists?.ativo) {
+      throw new ConflictException('Instrução já cadastrada');
+    }
+    if (exists) {
+      return this.prisma.instrucaoTreino.update({
+        where: { idInstrucao: exists.idInstrucao },
+        data: { ativo: true },
+      });
+    }
+    return this.prisma.instrucaoTreino.create({
+      data: { texto, idProfissional },
+    });
+  }
+
+  async findAllInstrucoes(idProfissional: number) {
+    return this.prisma.instrucaoTreino.findMany({
+      where: { idProfissional, ativo: true },
+      orderBy: { texto: 'asc' },
+    });
+  }
+
+  async updateInstrucao(
+    idInstrucao: number,
+    texto: string,
+    idProfissional: number,
+  ) {
+    texto = texto.trim();
+    const exists = await this.prisma.instrucaoTreino.findFirst({
+      where: { idInstrucao, idProfissional },
+    });
+    if (!exists) {
+      throw new NotFoundException('Instrução não encontrada');
+    }
+    const dup = await this.prisma.instrucaoTreino.findUnique({
+      where: { texto_idProfissional: { texto, idProfissional } },
+    });
+    if (dup && dup.idInstrucao !== idInstrucao) {
+      throw new ConflictException('Você já possui esta instrução');
+    }
+    return this.prisma.instrucaoTreino.update({
+      where: { idInstrucao },
+      data: { texto },
+    });
+  }
+
+  async removeInstrucao(idInstrucao: number, idProfissional: number) {
+    const exists = await this.prisma.instrucaoTreino.findFirst({
+      where: { idInstrucao, idProfissional },
+    });
+    if (!exists) {
+      throw new NotFoundException('Instrução não encontrada');
+    }
+    return this.prisma.instrucaoTreino.update({
+      where: { idInstrucao },
+      data: { ativo: false },
+    });
+  }
+
   // --- SEED CATALOG METHOD FOR INDIVIDUAL PROFESSIONAL ---
   async seedCatalogForProfessional(idProfissional: number) {
     // Check if professional already has any groups to prevent duplicate seeding
@@ -291,6 +356,13 @@ export class ExerciciosService {
           descricao: tech.desc,
           idProfissional,
         },
+      });
+    }
+
+    // 3. Seed default execution instructions
+    for (const texto of DEFAULT_INSTRUCOES) {
+      await this.prisma.instrucaoTreino.create({
+        data: { texto, idProfissional },
       });
     }
 

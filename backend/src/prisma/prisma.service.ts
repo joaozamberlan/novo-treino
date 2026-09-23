@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import {
   DEFAULT_CATALOG,
   DEFAULT_TECNICAS,
+  DEFAULT_INSTRUCOES,
 } from '../constants/default-catalog';
 
 @Injectable()
@@ -115,6 +116,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
             descricao: tech.desc,
             idProfissional,
           },
+        });
+      }
+      for (const texto of DEFAULT_INSTRUCOES) {
+        await this.instrucaoTreino.create({
+          data: { texto, idProfissional },
         });
       }
       console.log('--- ADMIN CATALOG SEEDED AUTOMATICALLY ---');

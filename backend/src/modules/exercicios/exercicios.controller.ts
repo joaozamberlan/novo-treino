@@ -18,6 +18,7 @@ import { UpdateExercicioDto } from './dto/update-exercicio.dto';
 import { GrupoMuscularDto } from './dto/grupo-muscular.dto';
 import { CreateTecnicaDto } from './dto/create-tecnica.dto';
 import { UpdateTecnicaDto } from './dto/update-tecnica.dto';
+import { CreateInstrucaoDto } from './dto/create-instrucao.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetProfissional } from '../auth/get-profissional.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -114,6 +115,51 @@ export class ExerciciosController {
     @GetProfissional() profissional: Profissional,
   ) {
     return this.exerciciosService.removeTecnicaTreino(
+      id,
+      profissional.idProfissional,
+    );
+  }
+
+  // --- INSTRUCOES DE EXECUCAO ---
+  @Post('instrucoes')
+  @UsePipes(VALIDATE)
+  async createInstrucao(
+    @Body() dto: CreateInstrucaoDto,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.exerciciosService.createInstrucao(
+      dto.texto,
+      profissional.idProfissional,
+    );
+  }
+
+  @Get('instrucoes')
+  async findAllInstrucoes(@GetProfissional() profissional: Profissional) {
+    return this.exerciciosService.findAllInstrucoes(
+      profissional.idProfissional,
+    );
+  }
+
+  @Patch('instrucoes/:id')
+  @UsePipes(VALIDATE)
+  async updateInstrucao(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateInstrucaoDto,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.exerciciosService.updateInstrucao(
+      id,
+      dto.texto,
+      profissional.idProfissional,
+    );
+  }
+
+  @Delete('instrucoes/:id')
+  async removeInstrucao(
+    @Param('id', ParseIntPipe) id: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.exerciciosService.removeInstrucao(
       id,
       profissional.idProfissional,
     );

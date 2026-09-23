@@ -28,6 +28,7 @@ model Profissional {
   gruposMusculares GrupoMuscular[]
   exercicios       Exercicio[]
   tecnicas         TecnicaTreino[]
+  instrucoes       InstrucaoTreino[]
 }
 
 model Aluno {
@@ -188,4 +189,16 @@ model SessaoExercicioSerie {
   treinoExercicio   TreinoExercicio @relation(fields: [idTreinoExercicio], references: [idTreinoExercicio], onDelete: Cascade)
 
   @@unique([idSessao, idTreinoExercicio, numeroSerie])
+}
+
+model InstrucaoTreino {
+  idInstrucao    Int          @id @default(autoincrement())
+  idProfissional Int
+  texto          String
+  ativo          Boolean      @default(true)
+
+  profissional   Profissional @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
+
+  @@unique([texto, idProfissional])
+  @@index([idProfissional])
 }

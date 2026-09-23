@@ -73,3 +73,12 @@ export const DEFAULT_TECNICAS = [
   { nome: 'Back-off set', desc: 'Depois de uma série pesada, reduz a carga e faz mais repetições. Ex.: 6 reps pesadas → reduz 15% → 10 reps.' },
   { nome: 'Muscle rounds', desc: 'Divide uma série pesada em vários mini-blocos de repetições, com descansos de ~10-15s. Ex.: 4 + 4 + 4 + 4 + 4.' },
 ];
+
+export const DEFAULT_INSTRUCOES = [
+  'Buscar a falha',
+  'Manter boa carga com boa execução',
+  'Se não tiver 2 polias livres, fazer unilateral',
+  'Controlar a descida (excêntrica)',
+  'Segurar 1 segundo na contração máxima',
+  'Amplitude completa do movimento',
+];

@@ -17,6 +17,7 @@ describe('AuthService — autenticação', () => {
     grupoMuscular: { create: jest.Mock };
     exercicio: { create: jest.Mock };
     tecnicaTreino: { create: jest.Mock };
+    instrucaoTreino: { create: jest.Mock };
   };
   let jwtService: { sign: jest.Mock };
 
@@ -28,6 +29,7 @@ describe('AuthService — autenticação', () => {
       },
       exercicio: { create: jest.fn() },
       tecnicaTreino: { create: jest.fn() },
+      instrucaoTreino: { create: jest.fn() },
     };
     jwtService = { sign: jest.fn().mockReturnValue('fake.jwt.token') };
 

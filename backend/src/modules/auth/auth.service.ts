@@ -12,6 +12,7 @@ import { LoginDto } from './dto/login.dto';
 import {
   DEFAULT_CATALOG,
   DEFAULT_TECNICAS,
+  DEFAULT_INSTRUCOES,
 } from '../../constants/default-catalog';
 
 // Hash "dummy" comparado quando o e-mail não existe, para que bcrypt.compare()
@@ -94,6 +95,13 @@ export class AuthService {
             descricao: tech.desc,
             idProfissional,
           },
+        });
+      }
+
+      // 3. Seed default execution instructions
+      for (const texto of DEFAULT_INSTRUCOES) {
+        await this.prisma.instrucaoTreino.create({
+          data: { texto, idProfissional },
         });
       }
     } catch (err) {
