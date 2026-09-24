@@ -457,7 +457,16 @@ export const Catalog: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1>Biblioteca & Catálogo</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+            <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              {activeTab === 'exercicios' && `BIBLIOTECA // ${exercicios.length} EXERCÍCIOS`}
+              {activeTab === 'grupos' && `BIBLIOTECA // ${grupos.length} GRUPOS`}
+              {activeTab === 'tecnicas' && `BIBLIOTECA // ${tecnicas.length} TÉCNICAS`}
+              {activeTab === 'instrucoes' && `BIBLIOTECA // ${instrucoes.length} INSTRUÇÕES`}
+            </span>
+          </div>
+          <h1 style={{ margin: 0 }}>Biblioteca & Catálogo</h1>
           <p>Gerencie seus exercícios, grupos musculares e técnicas de treinamento.</p>
         </div>
         
@@ -603,7 +612,7 @@ export const Catalog: React.FC = () => {
         )}
 
         {/* Search Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', flex: 1, maxWidth: '300px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', flex: '1 1 220px', minWidth: '200px', maxWidth: '360px' }}>
           <input
             type="text"
             className="form-control"
@@ -626,8 +635,7 @@ export const Catalog: React.FC = () => {
                 <tr>
                   <th>Exercício</th>
                   <th>Grupo Muscular</th>
-                  <th>Descrição</th>
-                  <th>Vídeo</th>
+                  <th>Detalhes</th>
                   <th style={{ textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
@@ -641,27 +649,32 @@ export const Catalog: React.FC = () => {
                           {ex.grupoMuscular.nome}
                         </span>
                       </td>
-                      <td data-label="Descrição" style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
-                        <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {ex.descricao || '-'}
+                      <td data-label="Detalhes">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
+                          {ex.videoUrl && (
+                            <a
+                              href={ex.videoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="exercise-action-btn accent"
+                              title="Ver vídeo de execução"
+                              aria-label={`Ver vídeo de ${ex.nome}`}
+                              style={{ flexShrink: 0 }}
+                            >
+                              <Video size={14} />
+                            </a>
+                          )}
+                          <span style={{ color: ex.descricao ? 'var(--text-1)' : 'var(--text-2)', fontSize: '0.875rem', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {ex.descricao || (ex.videoUrl ? '' : '—')}
+                          </span>
                         </div>
                       </td>
-                      <td data-label="Vídeo">
-                        {ex.videoUrl ? (
-                          <a href={ex.videoUrl} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ minHeight: 'unset', padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'inline-flex', gap: '0.25rem' }}>
-                            <Video size={14} />
-                            <span>Ver Vídeo</span>
-                          </a>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum</span>
-                        )}
-                      </td>
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" title="Editar exercício" aria-label={`Editar ${ex.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditExercicio(ex)}>
+                        <div className="table-actions">
+                          <button className="exercise-action-btn accent" title="Editar exercício" aria-label={`Editar ${ex.nome}`} onClick={() => handleEditExercicio(ex)}>
                             <Edit size={14} />
                           </button>
-                          <button className="btn btn-danger" title="Excluir exercício" aria-label={`Excluir ${ex.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
+                          <button className="exercise-action-btn danger" title="Excluir exercício" aria-label={`Excluir ${ex.nome}`} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -670,7 +683,7 @@ export const Catalog: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                    <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                       Nenhum exercício encontrado.
                     </td>
                   </tr>
@@ -702,11 +715,11 @@ export const Catalog: React.FC = () => {
                         {tec.descricao || '-'}
                       </td>
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" title="Editar técnica" aria-label={`Editar ${tec.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditTecnica(tec)}>
+                        <div className="table-actions">
+                          <button className="exercise-action-btn accent" title="Editar técnica" aria-label={`Editar ${tec.nome}`} onClick={() => handleEditTecnica(tec)}>
                             <Edit size={14} />
                           </button>
-                          <button className="btn btn-danger" title="Excluir técnica" aria-label={`Excluir ${tec.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
+                          <button className="exercise-action-btn danger" title="Excluir técnica" aria-label={`Excluir ${tec.nome}`} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -743,11 +756,11 @@ export const Catalog: React.FC = () => {
                     <tr key={ins.idInstrucao}>
                       <td data-label="Instrução" style={{ fontWeight: '600', color: 'var(--text-0)' }}>{ins.texto}</td>
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" title="Editar instrução" aria-label={`Editar ${ins.texto}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditInstrucao(ins)}>
+                        <div className="table-actions">
+                          <button className="exercise-action-btn accent" title="Editar instrução" aria-label={`Editar ${ins.texto}`} onClick={() => handleEditInstrucao(ins)}>
                             <Edit size={14} />
                           </button>
-                          <button className="btn btn-danger" title="Excluir instrução" aria-label={`Excluir ${ins.texto}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteInstrucao(ins.idInstrucao)}>
+                          <button className="exercise-action-btn danger" title="Excluir instrução" aria-label={`Excluir ${ins.texto}`} onClick={() => handleDeleteInstrucao(ins.idInstrucao)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -792,11 +805,11 @@ export const Catalog: React.FC = () => {
                           </span>
                         </td>
                         <td data-label="Ações" style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                            <button className="btn btn-secondary" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleEditGrupoTab(g)}>
+                          <div className="table-actions">
+                            <button className="exercise-action-btn accent" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} onClick={() => handleEditGrupoTab(g)}>
                               <Edit size={14} />
                             </button>
-                            <button className="btn btn-danger" title="Excluir grupo muscular" aria-label={`Excluir ${g.nome}`} style={{ minHeight: 'unset', padding: '0.25rem 0.5rem' }} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
+                            <button className="exercise-action-btn danger" title="Excluir grupo muscular" aria-label={`Excluir ${g.nome}`} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
                               <Trash2 size={14} />
                             </button>
                           </div>

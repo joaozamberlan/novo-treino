@@ -195,8 +195,16 @@ export const Configuracoes: React.FC = () => {
   }
 
   return (
-    <div className="animate-in">
-      <h1 style={{ marginBottom: '1.5rem' }}>Configurações</h1>
+    <div className="animate-in settings-page">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+          <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            CONTA // PERFIL E SEGURANÇA
+          </span>
+        </div>
+        <h1 style={{ margin: 0 }}>Configurações</h1>
+      </div>
 
       {/* Inline message */}
       {message.text && (
@@ -264,7 +272,7 @@ export const Configuracoes: React.FC = () => {
           </div>
 
           <div className="form-row">
-            <div className="form-group" style={{ maxWidth: '400px' }}>
+            <div className="form-group">
               <label className="form-label" htmlFor="igProf">Instagram</label>
               <input
                 id="igProf"
@@ -277,63 +285,48 @@ export const Configuracoes: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={saving}
-            style={{ marginTop: '0.5rem' }}
-          >
-            <Save size={14} />
-            <span>{saving ? 'Salvando...' : 'Salvar'}</span>
-          </button>
+          <div className="settings-actions">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={saving}
+            >
+              <Save size={14} />
+              <span>{saving ? 'Salvando...' : 'Salvar alterações'}</span>
+            </button>
+          </div>
         </form>
       </div>
 
       {/* Group 2: Visual Identity */}
       <div className="settings-group">
         <div className="settings-group-title">Identidade visual (PDF e Compartilhamento)</div>
-        <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p className="settings-desc">
           Estas informações aparecem no cabeçalho do PDF e nos links compartilhados com os alunos.
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {logoUrl && (
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px',
-              backgroundColor: 'var(--bg-2)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              flexShrink: 0,
-            }}>
-              <img
-                src={logoUrl}
-                alt="Logo atual"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            </div>
-          )}
+        <div className="logo-upload">
+          <div className="logo-upload-preview">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo atual" />
+            ) : (
+              <span>Sem logo</span>
+            )}
+          </div>
 
-          <div>
-            <input
-              type="file"
-              accept="image/png,image/jpeg"
-              className="form-input"
-              onChange={handleLogoUpload}
-              disabled={uploadingLogo}
-              style={{ padding: '0.4rem 0.75rem', height: 'auto' }}
-            />
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              {uploadingLogo ? (
-                <span><Upload size={12} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />Enviando arquivo...</span>
-              ) : (
-                'Escolha um arquivo PNG ou JPG'
-              )}
-            </div>
+          <div className="logo-upload-body">
+            <label className={`btn btn-secondary btn-sm logo-upload-btn${uploadingLogo ? ' is-disabled' : ''}`}>
+              <Upload size={14} />
+              <span>{uploadingLogo ? 'Enviando...' : logoUrl ? 'Trocar logo' : 'Enviar logo'}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={handleLogoUpload}
+                disabled={uploadingLogo}
+                className="visually-hidden"
+              />
+            </label>
+            <div className="settings-hint">PNG ou JPG. Aparece no cabeçalho do PDF e nos links dos alunos.</div>
           </div>
         </div>
       </div>
@@ -341,7 +334,7 @@ export const Configuracoes: React.FC = () => {
       {/* Group 3: Exercise Library */}
       <div className="settings-group">
         <div className="settings-group-title">Biblioteca de exercícios</div>
-        <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p className="settings-desc">
           {exerciciosCount} exercícios · {tecnicasCount} técnicas cadastradas
         </p>
 
@@ -371,7 +364,7 @@ export const Configuracoes: React.FC = () => {
           <Lock size={15} color="var(--accent)" />
           <span>Segurança e Senha de Acesso</span>
         </div>
-        <p style={{ color: 'var(--text-1)', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
+        <p className="settings-desc">
           Altere sua senha de acesso à plataforma. Caso tenha recebido uma senha temporária da administração, cadastre sua senha definitiva pessoal abaixo.
         </p>
 
@@ -464,7 +457,7 @@ export const Configuracoes: React.FC = () => {
             <Shield size={15} color="var(--accent)" />
             <span>Administração</span>
           </div>
-          <p style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+          <p className="settings-desc">
             Gerencie contas de treinadores, aprovações de acesso e permissões de SuperAdmin.
           </p>
           <Link to="/admin" className="btn btn-secondary btn-sm">

@@ -186,8 +186,10 @@ export const Home: React.FC = () => {
             <button
               className="btn-hub-subtle"
               onClick={() => navigate('/alunos', { state: { openAdd: true } })}
+              aria-label="Cadastrar novo aluno"
+              title="Cadastrar novo aluno"
             >
-              <span>+ Novo Aluno</span>
+              <span aria-hidden="true" style={{ fontSize: '1rem', lineHeight: 1 }}>+</span>
             </button>
           </div>
         </div>
@@ -207,15 +209,17 @@ export const Home: React.FC = () => {
             </p>
           </div>
           <div className="hub-card-actions">
-            <button className="btn-hub-primary" onClick={() => navigate('/exercicios')}>
+            <button className="btn-hub-outline" onClick={() => navigate('/exercicios')}>
               <span>Explorar Catálogo</span>
               <ArrowRight size={15} strokeWidth={2.5} />
             </button>
             <button
               className="btn-hub-subtle"
               onClick={() => navigate('/exercicios', { state: { openAdd: true } })}
+              aria-label="Cadastrar novo exercício"
+              title="Cadastrar novo exercício"
             >
-              <span>+ Novo Exercício</span>
+              <span aria-hidden="true" style={{ fontSize: '1rem', lineHeight: 1 }}>+</span>
             </button>
           </div>
         </div>
@@ -235,7 +239,7 @@ export const Home: React.FC = () => {
             </p>
           </div>
           <div className="hub-card-actions">
-            <button className="btn-hub-primary" onClick={() => navigate('/configuracoes')}>
+            <button className="btn-hub-outline" onClick={() => navigate('/configuracoes')}>
               <span>Ajustar Perfil</span>
               <ArrowRight size={15} strokeWidth={2.5} />
             </button>
@@ -244,7 +248,7 @@ export const Home: React.FC = () => {
 
         {/* Card 04: Superadmin if applicable */}
         {user?.role === 'SUPERADMIN' && (
-          <div className="hub-card" style={{ borderColor: 'rgba(240, 68, 56, 0.3)' }}>
+          <div className="hub-card hub-card--wide" style={{ borderColor: 'rgba(240, 68, 56, 0.3)' }}>
             <div>
               <div className="hub-card-header">
                 <span className="hub-card-tag" style={{ color: 'var(--danger)' }}>Admin</span>
