@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import api from '../services/api';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { memoryCache } from '../services/cache';
+import { ActionMenu } from '../components/ActionMenu';
+import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import {
   ArrowLeft, Plus, Calendar, AlertCircle,
   Edit2, Trash2, Share2, X, Save, Copy,
@@ -24,14 +26,9 @@ interface Protocolo {
   dataFim?: string;
   ativo: boolean;
   tokenPublico?: string | null;
+  totalFichas?: number;
+  totalExercicios?: number;
 }
-
-const formatDate = (dateStr?: string | null) => {
-  if (!dateStr) return null;
-  const parts = dateStr.split('T')[0].split('-');
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return dateStr;
-};
 
 export const Periodizacoes: React.FC = () => {
   const { idAluno } = useParams<{ idAluno: string }>();
@@ -68,8 +65,7 @@ export const Periodizacoes: React.FC = () => {
     setIdAlunoDestino(0);
   };
 
-  const startCopyProtocolo = async (proto: Protocolo, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const startCopyProtocolo = async (proto: Protocolo) => {
     setCopiando(proto);
     setIdAlunoDestino(Number(idAluno) || 0);
     try {
@@ -190,8 +186,7 @@ export const Periodizacoes: React.FC = () => {
     setShowFormModal(true);
   };
 
-  const startEditProtocolo = (proto: Protocolo, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const startEditProtocolo = (proto: Protocolo) => {
     setEditingProtocoloId(proto.idProtocolo);
     setProtoNome(proto.nome);
     setProtoObjetivo(proto.objetivo || '');
@@ -328,8 +323,7 @@ export const Periodizacoes: React.FC = () => {
     }
   };
 
-  const handleDeleteProtocolo = async (proto: Protocolo, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteProtocolo = async (proto: Protocolo) => {
     if (!confirm(`Deseja excluir a periodização "${proto.nome}" e todas as suas fichas?`)) return;
 
     const remaining = protocolos.filter(p => p.idProtocolo !== proto.idProtocolo);
@@ -346,8 +340,7 @@ export const Periodizacoes: React.FC = () => {
     }
   };
 
-  const handleShare = (proto: Protocolo, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleShare = (proto: Protocolo) => {
     const token = proto.tokenPublico || aluno?.tokenAcesso;
     if (!token) return;
     const url = `${window.location.origin}/v/${token}`;
@@ -403,9 +396,15 @@ export const Periodizacoes: React.FC = () => {
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1>{aluno?.nome}</h1>
-              <p>
-                {aluno?.email || 'Periodizações cadastradas'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem' }}>
+                <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  PERIODIZAÇÕES{protocolos.length > 0 ? ` // ${protocolos.length}` : ''}
+                </span>
+              </div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem' }}>{aluno?.nome}</h1>
+              <p style={{ margin: '0.15rem 0 0' }}>
+                {aluno?.email || 'Aluno'}
                 {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
               </p>
             </div>
@@ -430,93 +429,90 @@ export const Periodizacoes: React.FC = () => {
       )}
 
       {protocolos.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-          {protocolos.map((proto) => (
-            <div
-              key={proto.idProtocolo}
-              className="card"
-              onClick={() => navigate(`/alunos/${idAluno}/treinos?periodizacao=${proto.idProtocolo}`)}
-              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Calendar size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-0)' }}>
-                  {proto.nome}
-                </span>
-                {proto.ativo && (
-                  <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
-                    Ativo
-                  </span>
-                )}
-              </div>
-
-              {(proto.objetivo || proto.dataInicio) && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>
-                  {proto.objetivo}
-                  {proto.dataInicio && ` • ${formatDate(proto.dataInicio)}`}
-                  {proto.dataFim && ` até ${formatDate(proto.dataFim)}`}
-                </div>
-              )}
-
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+          {protocolos.map((proto) => {
+            const estado = estadoPeriodo(proto.dataInicio, proto.dataFim);
+            const inicio = formatarDia(proto.dataInicio);
+            const fim = formatarDia(proto.dataFim);
+            const abrir = () => navigate(`/alunos/${idAluno}/treinos?periodizacao=${proto.idProtocolo}`);
+            return (
               <div
-                style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: 'auto', paddingTop: '0.6rem', borderTop: '1px solid var(--border)' }}
-                onClick={(e) => e.stopPropagation()}
+                key={proto.idProtocolo}
+                className={`proto-card${proto.ativo ? ' is-current' : ''}`}
+                onClick={abrir}
               >
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem', minHeight: 'unset' }}
-                  onClick={() => navigate(`/alunos/${idAluno}/treinos?periodizacao=${proto.idProtocolo}`)}
-                >
-                  Ver Treino
-                </button>
-                {!proto.ativo && (
+                <div className="proto-card-head">
+                  <div style={{ minWidth: 0 }}>
+                    <h3 className="proto-card-title">{proto.nome}</h3>
+                    {proto.objetivo && <p className="proto-card-goal">{proto.objetivo}</p>}
+                  </div>
+                  <ActionMenu
+                    label={`Ações de ${proto.nome}`}
+                    items={[
+                      { label: 'Compartilhar link', icon: <Share2 size={14} />, onClick: () => handleShare(proto) },
+                      { label: 'Copiar para um aluno', icon: <Copy size={14} />, onClick: () => startCopyProtocolo(proto) },
+                      { label: 'Editar', icon: <Edit2 size={14} />, onClick: () => startEditProtocolo(proto) },
+                      { label: 'Excluir', icon: <Trash2 size={14} />, onClick: () => handleDeleteProtocolo(proto), danger: true },
+                    ]}
+                  />
+                </div>
+
+                {(proto.ativo || estado) && (
+                  <div className="proto-badges">
+                    {proto.ativo && <span className="proto-badge current">Atual</span>}
+                    {estado && (
+                      <span className={`proto-badge ${estado === 'encerrada' ? 'expired' : estado === 'andamento' ? 'running' : ''}`}>
+                        {ROTULO_ESTADO[estado]}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="proto-card-stats">
+                  {proto.totalFichas !== undefined && (
+                    <span><strong>{proto.totalFichas}</strong> {proto.totalFichas === 1 ? 'ficha' : 'fichas'}</span>
+                  )}
+                  {proto.totalExercicios !== undefined && (
+                    <span><strong>{proto.totalExercicios}</strong> {proto.totalExercicios === 1 ? 'exercício' : 'exercícios'}</span>
+                  )}
+                  {(inicio || fim) && (
+                    <span>
+                      <Calendar size={12} style={{ verticalAlign: '-1px', marginRight: '0.25rem' }} />
+                      {inicio || '...'}{fim ? ` até ${fim}` : ''}
+                    </span>
+                  )}
+                </div>
+
+                {proto.ativo && estado === 'encerrada' && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--warning)' }}>
+                    O período desta periodização já terminou. Ela continua como a atual do aluno até você mudar.
+                  </div>
+                )}
+
+                <div className="proto-card-foot">
                   <button
                     type="button"
-                    className="btn btn-secondary btn-sm"
-                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem', minHeight: 'unset' }}
-                    onClick={(e) => handleActivateProtocolo(proto, e)}
-                    title="Marcar esta periodização como a atual"
+                    className="btn btn-primary btn-sm"
+                    style={{ fontSize: '0.8rem', padding: '0.3rem 0.9rem', minHeight: 'unset' }}
+                    onClick={(e) => { e.stopPropagation(); abrir(); }}
                   >
-                    Marcar como Atual
+                    Ver Treino
                   </button>
-                )}
-                <button
-                  type="button"
-                  className="exercise-action-btn"
-                  onClick={(e) => handleShare(proto, e)}
-                  title="Compartilhar link público"
-                >
-                  <Share2 size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="exercise-action-btn"
-                  onClick={(e) => startCopyProtocolo(proto, e)}
-                  title="Copiar para um aluno"
-                  aria-label={`Copiar ${proto.nome} para um aluno`}
-                >
-                  <Copy size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="exercise-action-btn accent"
-                  onClick={(e) => startEditProtocolo(proto, e)}
-                  title="Editar periodização"
-                >
-                  <Edit2 size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="exercise-action-btn danger"
-                  onClick={(e) => handleDeleteProtocolo(proto, e)}
-                  title="Excluir periodização"
-                >
-                  <Trash2 size={13} />
-                </button>
+                  {!proto.ativo && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: '0.8rem', padding: '0.3rem 0.9rem', minHeight: 'unset' }}
+                      onClick={(e) => handleActivateProtocolo(proto, e)}
+                      title="Marcar esta periodização como a atual"
+                    >
+                      Marcar como Atual
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import api from '../services/api';
 import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
 import { memoryCache } from '../services/cache';
+import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 
 interface Aluno {
   idAluno: number;
@@ -12,6 +13,7 @@ interface Aluno {
   telefone?: string | null;
   ativo: boolean;
   dataCadastro: string;
+  protocolos?: { idProtocolo: number; nome: string; dataFim?: string | null }[];
 }
 
 export const Alunos: React.FC = () => {
@@ -219,6 +221,9 @@ export const Alunos: React.FC = () => {
             </span>
           </div>
           <h1 style={{ margin: 0 }}>Alunos</h1>
+          <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: 'var(--text-1)' }}>
+            {alunos.length} {alunos.length === 1 ? 'aluno cadastrado' : 'alunos cadastrados'}
+          </p>
         </div>
         <button
           className="btn btn-primary btn-sm"
@@ -243,8 +248,9 @@ export const Alunos: React.FC = () => {
       {/* Search */}
       <div style={{ marginBottom: '0.75rem' }}>
         <input
-          type="text"
-          className="topbar-search"
+          type="search"
+          className="list-search"
+          aria-label="Buscar aluno por nome"
           placeholder="Buscar aluno por nome..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -280,18 +286,32 @@ export const Alunos: React.FC = () => {
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div className="student-item-name" style={{ fontWeight: 600, marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{aluno.nome}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-1)' }}>
-                      {aluno.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{aluno.email}</span>}
-                      {aluno.telefone && <span>· {aluno.telefone}</span>}
-                      <span className={`badge ${aluno.ativo ? 'badge-success' : 'badge-danger'}`}>
-                        {aluno.ativo ? 'Ativo' : 'Inativo'}
-                      </span>
+                    <div className="student-item-sub">
+                      {(() => {
+                        const atual = aluno.protocolos?.[0];
+                        if (!atual) return <span style={{ color: 'var(--text-2)' }}>Sem periodização atual</span>;
+                        const estado = estadoPeriodo(null, atual.dataFim);
+                        const fim = formatarDia(atual.dataFim);
+                        return (
+                          <span className="student-item-plan">
+                            {atual.nome}
+                            {fim && (
+                              <span style={{ fontWeight: 400, color: estado === 'encerrada' ? 'var(--warning)' : 'var(--text-1)' }}>
+                                {estado === 'encerrada' ? `· ${ROTULO_ESTADO.encerrada.toLowerCase()} em ${fim}` : `· até ${fim}`}
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })()}
+                      {aluno.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{aluno.email}</span>}
+                      {aluno.telefone && <span>{aluno.telefone}</span>}
+                      {!aluno.ativo && <span className="badge badge-danger">Inativo</span>}
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+                <div className="student-item-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     className="exercise-action-btn accent"

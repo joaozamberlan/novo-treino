@@ -26,6 +26,14 @@ export class AlunosService {
     return this.prisma.aluno.findMany({
       where: { idProfissional },
       orderBy: { nome: 'asc' },
+      // Periodização atual: a lista de alunos mostra qual é e quando termina
+      include: {
+        protocolos: {
+          where: { ativo: true },
+          take: 1,
+          select: { idProtocolo: true, nome: true, dataFim: true },
+        },
+      },
       ...toSkipTake(pagination),
     });
   }

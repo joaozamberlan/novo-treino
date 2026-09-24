@@ -49,10 +49,23 @@ export class TreinosService {
   }
 
   async findAllProtocolos(idAluno: number, idProfissional: number) {
-    return this.prisma.protocoloTreino.findMany({
+    const protocolos = await this.prisma.protocoloTreino.findMany({
       where: { idAluno, idProfissional },
       orderBy: { dataInicio: 'desc' },
+      include: {
+        treinos: {
+          where: { ativo: true },
+          select: { _count: { select: { exercicios: true } } },
+        },
+      },
     });
+
+    // Resumo para o cartão da periodização (sem devolver as fichas inteiras)
+    return protocolos.map(({ treinos, ...protocolo }) => ({
+      ...protocolo,
+      totalFichas: treinos.length,
+      totalExercicios: treinos.reduce((n, t) => n + t._count.exercicios, 0),
+    }));
   }
 
   async findOneProtocolo(idProtocolo: number, idProfissional: number) {
