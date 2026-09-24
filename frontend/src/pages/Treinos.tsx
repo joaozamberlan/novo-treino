@@ -8,7 +8,7 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import {
   ArrowLeft, Plus,
   Trash2, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical, Timer, MessageSquareText
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
@@ -92,7 +92,16 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
   const dragControls = useDragControls();
 
   return (
-    <Reorder.Item value={item} as="div" dragListener={false} dragControls={dragControls} className="exercise-block">
+    <Reorder.Item
+      value={item}
+      as="div"
+      dragListener={false}
+      dragControls={dragControls}
+      className="exercise-block"
+      // Ao arrastar o cartão "levanta": escala leve + sombra, com mola sem quique
+      whileDrag={{ scale: 1.015, boxShadow: '0 14px 36px rgba(0, 0, 0, 0.22)', zIndex: 5 }}
+      transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+    >
       <div
         className="exercise-block-handle"
         onPointerDown={(e) => dragControls.start(e)}
@@ -106,12 +115,20 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
           <ArrowDown size={14} />
         </button>
       </div>
+      <span className="exercise-block-index" aria-hidden="true">
+        {String(index + 1).padStart(2, '0')}
+      </span>
       <div className="exercise-block-info">
         <div className="exercise-block-name">{item.exercicio.nome}</div>
         <div className="exercise-block-detail">
           <span className="exercise-block-tag">{item.exercicio.grupoMuscular.nome}</span>
-          {item.tecnica && <span className="exercise-block-tag">{item.tecnica.nome}</span>}
-          {item.observacao && <span>{item.observacao}</span>}
+          {item.tecnica && <span className="exercise-block-tag tecnica">{item.tecnica.nome}</span>}
+          {item.observacao && (
+            <span className="exercise-block-note">
+              <MessageSquareText size={12} aria-hidden="true" />
+              {item.observacao}
+            </span>
+          )}
         </div>
       </div>
       <div className="exercise-block-stats">
@@ -119,7 +136,8 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
           {item.series}<span className="exercise-block-stat-label">×</span>{item.repeticoes}
         </span>
         {item.descansoSegundos && (
-          <span className="exercise-block-stat">
+          <span className="exercise-block-rest">
+            <Timer size={12} aria-hidden="true" />
             {formatDescanso(item.descansoSegundos, item.descansoMaxSegundos)}
           </span>
         )}
