@@ -100,6 +100,73 @@ export const Periodizacoes: React.FC = () => {
     }
   };
 
+  // --- COPIAR DE OUTRO ALUNO (este aluno é o destino) ---
+  const [showImport, setShowImport] = useState(false);
+  const [alunosOrigem, setAlunosOrigem] = useState<Aluno[]>([]);
+  const [idAlunoOrigem, setIdAlunoOrigem] = useState<number>(0);
+  const [protocolosOrigem, setProtocolosOrigem] = useState<Protocolo[]>([]);
+  const [idProtocoloOrigem, setIdProtocoloOrigem] = useState<number>(0);
+  const [carregandoOrigem, setCarregandoOrigem] = useState(false);
+  const [importando, setImportando] = useState(false);
+
+  const closeImportModal = () => {
+    setShowImport(false);
+    setIdAlunoOrigem(0);
+    setProtocolosOrigem([]);
+    setIdProtocoloOrigem(0);
+  };
+
+  const openImportModal = async () => {
+    setShowImport(true);
+    try {
+      const res = await api.get('/alunos');
+      setAlunosOrigem(res.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao carregar lista de alunos.');
+      setShowImport(false);
+    }
+  };
+
+  const handleSelectAlunoOrigem = async (id: number) => {
+    setIdAlunoOrigem(id);
+    setIdProtocoloOrigem(0);
+    setProtocolosOrigem([]);
+    if (!id) return;
+    try {
+      setCarregandoOrigem(true);
+      const res = await api.get(`/treinos/protocolos/${id}`);
+      setProtocolosOrigem(res.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao carregar periodizações do aluno.');
+    } finally {
+      setCarregandoOrigem(false);
+    }
+  };
+
+  const handleImportarProtocolo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!idProtocoloOrigem || !idAluno || importando) return;
+
+    try {
+      setImportando(true);
+      await api.post(`/treinos/protocolos/${idProtocoloOrigem}/duplicar`, {
+        idAlunoDestino: Number(idAluno),
+      });
+      const nome = protocolosOrigem.find((pr) => pr.idProtocolo === idProtocoloOrigem)?.nome;
+      toast.success(`"${nome}" copiada para ${aluno?.nome || 'este aluno'}!`);
+      memoryCache.invalidate(`periodizacoes-${idAluno}`);
+      closeImportModal();
+      loadData(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Erro ao copiar periodização.');
+    } finally {
+      setImportando(false);
+    }
+  };
+
   const resetForm = () => {
     setEditingProtocoloId(null);
     setProtoNome('');
@@ -133,6 +200,7 @@ export const Periodizacoes: React.FC = () => {
       if (e.key === 'Escape') {
         closeFormModal();
         closeCopyModal();
+        closeImportModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -326,10 +394,16 @@ export const Periodizacoes: React.FC = () => {
               </p>
             </div>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={openNewForm}>
-            <Plus size={16} />
-            <span>Nova Periodização</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary btn-sm" onClick={openImportModal}>
+              <Copy size={16} />
+              <span>Copiar de outro aluno</span>
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={openNewForm}>
+              <Plus size={16} />
+              <span>Nova Periodização</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -437,6 +511,98 @@ export const Periodizacoes: React.FC = () => {
             <Plus size={16} />
             Criar primeira periodização
           </button>
+        </div>
+      )}
+
+      {/* MODAL: COPIAR PERIODIZAÇÃO DE OUTRO ALUNO PARA ESTE */}
+      {showImport && (
+        <div
+          className="modal-backdrop"
+          onClick={closeImportModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalImportarTitle"
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <h3 id="modalImportarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                Copiar de outro aluno
+              </h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={closeImportModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleImportarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
+                Copia todas as fichas e exercícios da periodização escolhida para <strong>{aluno?.nome}</strong>.
+                A cópia mantém o nome, vira a periodização atual e pode ser editada depois.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="alunoOrigem">Aluno de origem *</label>
+                <select
+                  id="alunoOrigem"
+                  className="form-input"
+                  value={idAlunoOrigem}
+                  onChange={(e) => handleSelectAlunoOrigem(Number(e.target.value))}
+                  required
+                >
+                  <option value={0} disabled>Selecione um aluno</option>
+                  {alunosOrigem.map((a) => (
+                    <option key={a.idAluno} value={a.idAluno}>
+                      {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="protocoloOrigem">Periodização *</label>
+                <select
+                  id="protocoloOrigem"
+                  className="form-input"
+                  value={idProtocoloOrigem}
+                  onChange={(e) => setIdProtocoloOrigem(Number(e.target.value))}
+                  disabled={!idAlunoOrigem || carregandoOrigem}
+                  required
+                >
+                  <option value={0} disabled>
+                    {carregandoOrigem
+                      ? 'Carregando...'
+                      : idAlunoOrigem && protocolosOrigem.length === 0
+                        ? 'Este aluno não tem periodizações'
+                        : 'Selecione uma periodização'}
+                  </option>
+                  {protocolosOrigem.map((pr) => (
+                    <option key={pr.idProtocolo} value={pr.idProtocolo}>
+                      {pr.nome}{pr.ativo ? ' (atual)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeImportModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={!idProtocoloOrigem || importando}>
+                  <Copy size={16} />
+                  <span>{importando ? 'Copiando...' : 'Copiar'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
