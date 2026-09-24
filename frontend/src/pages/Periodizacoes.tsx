@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -36,6 +36,11 @@ const formatDate = (dateStr?: string | null) => {
 export const Periodizacoes: React.FC = () => {
   const { idAluno } = useParams<{ idAluno: string }>();
   const navigate = useNavigate();
+
+  // Aluno exibido agora: respostas de requisições de OUTRO aluno (troca de rota
+  // sem desmontar a página) não podem sobrescrever a lista atual.
+  const alunoAtualRef = useRef(idAluno);
+  alunoAtualRef.current = idAluno;
 
   const cached = idAluno ? memoryCache.get<any>(`periodizacoes-${idAluno}`) : null;
   const [aluno, setAluno] = useState<Aluno | null>(cached?.aluno || null);
@@ -213,16 +218,20 @@ export const Periodizacoes: React.FC = () => {
       else setRefreshing(true);
       setError('');
 
+      const alvo = idAluno;
       const [alunoRes, protocolosRes] = await Promise.all([
-        api.get(`/alunos/${idAluno}`),
-        api.get(`/treinos/protocolos/${idAluno}`),
+        api.get(`/alunos/${alvo}`),
+        api.get(`/treinos/protocolos/${alvo}`),
       ]);
+
+      if (alvo) {
+        memoryCache.set(`periodizacoes-${alvo}`, { aluno: alunoRes.data, protocolos: protocolosRes.data });
+      }
+      // Usuário já trocou de aluno enquanto isso: só o cache (chave correta) é atualizado
+      if (alunoAtualRef.current !== alvo) return;
 
       setAluno(alunoRes.data);
       setProtocolos(protocolosRes.data);
-      if (idAluno) {
-        memoryCache.set(`periodizacoes-${idAluno}`, { aluno: alunoRes.data, protocolos: protocolosRes.data });
-      }
     } catch (err) {
       console.error('Erro ao carregar periodizações do aluno:', err);
       setError('Erro ao carregar periodizações do aluno.');
@@ -240,6 +249,10 @@ export const Periodizacoes: React.FC = () => {
       setLoading(false);
       loadData(false);
     } else {
+      // Sem cache deste aluno: limpa o que era do aluno anterior para não
+      // exibir (nem operar sobre) periodizações de outro aluno.
+      setAluno(null);
+      setProtocolos([]);
       setLoading(true);
       loadData(true);
     }
@@ -274,6 +287,7 @@ export const Periodizacoes: React.FC = () => {
             ? { ...p, nome, objetivo: objetivo || undefined, dataInicio: protoInicio || undefined, dataFim: protoFim || undefined }
             : p
         ));
+        if (idAluno) memoryCache.invalidate(`periodizacoes-${idAluno}`);
         toast.success('Periodização atualizada com sucesso!');
         closeFormModal();
       } catch (err) {
@@ -289,6 +303,7 @@ export const Periodizacoes: React.FC = () => {
           dataFim: protoFim || undefined,
         });
 
+        if (idAluno) memoryCache.invalidate(`periodizacoes-${idAluno}`);
         // O backend desativa as demais periodizações ao criar uma nova ativa
         setProtocolos(prev => [res.data, ...prev.map(p => ({ ...p, ativo: false }))]);
         toast.success('Periodização criada com sucesso!');
@@ -305,6 +320,7 @@ export const Periodizacoes: React.FC = () => {
     try {
       await api.patch(`/treinos/protocolos/${proto.idProtocolo}`, { ativo: true });
       setProtocolos(prev => prev.map(p => ({ ...p, ativo: p.idProtocolo === proto.idProtocolo })));
+      if (idAluno) memoryCache.invalidate(`periodizacoes-${idAluno}`);
       toast.success(`"${proto.nome}" agora é a periodização atual.`);
     } catch (err) {
       console.error(err);
