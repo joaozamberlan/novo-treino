@@ -6,7 +6,7 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import { memoryCache } from '../services/cache';
 import {
   ArrowLeft, Plus, Calendar, AlertCircle,
-  Edit2, Trash2, Share2, X, Save,
+  Edit2, Trash2, Share2, X, Save, Copy,
 } from 'lucide-react';
 
 interface Aluno {
@@ -52,6 +52,54 @@ export const Periodizacoes: React.FC = () => {
   const [protoInicio, setProtoInicio] = useState('');
   const [protoFim, setProtoFim] = useState('');
 
+  // --- DUPLICAR PARA OUTRO ALUNO ---
+  const [copiando, setCopiando] = useState<Protocolo | null>(null);
+  const [alunosDestino, setAlunosDestino] = useState<Aluno[]>([]);
+  const [idAlunoDestino, setIdAlunoDestino] = useState<number>(0);
+  const [duplicando, setDuplicando] = useState(false);
+
+  const closeCopyModal = () => {
+    setCopiando(null);
+    setIdAlunoDestino(0);
+  };
+
+  const startCopyProtocolo = async (proto: Protocolo, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCopiando(proto);
+    setIdAlunoDestino(Number(idAluno) || 0);
+    try {
+      const res = await api.get('/alunos');
+      setAlunosDestino(res.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao carregar lista de alunos.');
+      setCopiando(null);
+    }
+  };
+
+  const handleDuplicarProtocolo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!copiando || !idAlunoDestino || duplicando) return;
+
+    try {
+      setDuplicando(true);
+      await api.post(`/treinos/protocolos/${copiando.idProtocolo}/duplicar`, {
+        idAlunoDestino,
+      });
+      memoryCache.invalidate(`periodizacoes-${idAlunoDestino}`);
+      const nomeAluno = alunosDestino.find((a) => a.idAluno === idAlunoDestino)?.nome;
+      toast.success(`"${copiando.nome}" copiada${nomeAluno ? ` para ${nomeAluno}` : ''}!`);
+      closeCopyModal();
+      if (idAlunoDestino === Number(idAluno)) loadData(false);
+      else navigate(`/alunos/${idAlunoDestino}/periodizacoes`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Erro ao copiar periodização.');
+    } finally {
+      setDuplicando(false);
+    }
+  };
+
   const resetForm = () => {
     setEditingProtocoloId(null);
     setProtoNome('');
@@ -82,7 +130,10 @@ export const Periodizacoes: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeFormModal();
+      if (e.key === 'Escape') {
+        closeFormModal();
+        closeCopyModal();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -350,6 +401,15 @@ export const Periodizacoes: React.FC = () => {
                 </button>
                 <button
                   type="button"
+                  className="exercise-action-btn"
+                  onClick={(e) => startCopyProtocolo(proto, e)}
+                  title="Copiar para um aluno"
+                  aria-label={`Copiar ${proto.nome} para um aluno`}
+                >
+                  <Copy size={13} />
+                </button>
+                <button
+                  type="button"
                   className="exercise-action-btn accent"
                   onClick={(e) => startEditProtocolo(proto, e)}
                   title="Editar periodização"
@@ -377,6 +437,73 @@ export const Periodizacoes: React.FC = () => {
             <Plus size={16} />
             Criar primeira periodização
           </button>
+        </div>
+      )}
+
+      {/* MODAL: COPIAR PERIODIZAÇÃO PARA UM ALUNO */}
+      {copiando && (
+        <div
+          className="modal-backdrop"
+          onClick={closeCopyModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalCopiarTitle"
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '460px' }}
+          >
+            <div className="modal-header">
+              <h3 id="modalCopiarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                Copiar Periodização
+              </h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={closeCopyModal}
+                title="Fechar"
+                aria-label="Fechar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleDuplicarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
+                Copia todas as fichas e exercícios de <strong>{copiando.nome}</strong> para o aluno escolhido.
+                A cópia mantém o nome, vira a periodização atual do aluno e pode ser editada depois.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="alunoDestino">Copiar para *</label>
+                <select
+                  id="alunoDestino"
+                  className="form-input"
+                  value={idAlunoDestino}
+                  onChange={(e) => setIdAlunoDestino(Number(e.target.value))}
+                  required
+                >
+                  <option value={0} disabled>Selecione um aluno</option>
+                  {alunosDestino.map((a) => (
+                    <option key={a.idAluno} value={a.idAluno}>
+                      {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={closeCopyModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={!idAlunoDestino || duplicando}>
+                  <Copy size={16} />
+                  <span>{duplicando ? 'Copiando...' : 'Copiar'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

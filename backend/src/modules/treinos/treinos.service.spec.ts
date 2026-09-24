@@ -157,3 +157,116 @@ describe('TreinosService — isolamento entre treinadores (multi-tenancy)', () =
     expect(prisma.treinoExercicio.update).not.toHaveBeenCalled();
   });
 });
+
+describe('TreinosService — duplicarProtocolo', () => {
+  let service: TreinosService;
+  let tx: {
+    protocoloTreino: { updateMany: jest.Mock; create: jest.Mock };
+  };
+  let prisma: {
+    protocoloTreino: { findFirst: jest.Mock };
+    aluno: { findFirst: jest.Mock };
+    $transaction: jest.Mock;
+  };
+
+  const ORIGEM = {
+    idProtocolo: 10,
+    nome: 'Hipertrofia 12 sem.',
+    objetivo: 'Massa',
+    treinos: [
+      {
+        nome: 'Treino A',
+        observacao: null,
+        ordem: 1,
+        exercicios: [
+          {
+            idExercicio: 300,
+            idTecnica: 5,
+            series: 3,
+            repeticoes: '8-12',
+            carga: '20kg',
+            descansoSegundos: 60,
+            descansoMaxSegundos: 180,
+            observacao: 'Buscar a falha',
+            ordem: 1,
+          },
+        ],
+      },
+    ],
+  };
+
+  beforeEach(async () => {
+    tx = {
+      protocoloTreino: {
+        updateMany: jest.fn(),
+        create: jest.fn().mockResolvedValue({ idProtocolo: 99 }),
+      },
+    };
+    prisma = {
+      protocoloTreino: { findFirst: jest.fn() },
+      aluno: { findFirst: jest.fn() },
+      $transaction: jest.fn((fn: (t: typeof tx) => unknown) => fn(tx)),
+    };
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [TreinosService, { provide: PrismaService, useValue: prisma }],
+    }).compile();
+    service = module.get<TreinosService>(TreinosService);
+  });
+
+  it('copia fichas e exercícios mantendo o nome, sem carga, datas ou sessões', async () => {
+    prisma.protocoloTreino.findFirst.mockResolvedValue(ORIGEM);
+    prisma.aluno.findFirst.mockResolvedValue({ idAluno: 2 });
+
+    await service.duplicarProtocolo(10, 2, ID_PROFISSIONAL_A);
+
+    expect(prisma.protocoloTreino.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { idProtocolo: 10, idProfissional: ID_PROFISSIONAL_A },
+      }),
+    );
+    expect(prisma.aluno.findFirst).toHaveBeenCalledWith({
+      where: { idAluno: 2, idProfissional: ID_PROFISSIONAL_A },
+    });
+    expect(tx.protocoloTreino.updateMany).toHaveBeenCalledWith({
+      where: { idAluno: 2, ativo: true },
+      data: { ativo: false },
+    });
+
+    const { data } = tx.protocoloTreino.create.mock.calls[0][0];
+    expect(data).toMatchObject({
+      nome: 'Hipertrofia 12 sem.',
+      idAluno: 2,
+      idProfissional: ID_PROFISSIONAL_A,
+      ativo: true,
+    });
+    expect(data.tokenPublico).toEqual(expect.any(String));
+    expect(data).not.toHaveProperty('dataInicio');
+    const ex = data.treinos.create[0].exercicios.create[0];
+    expect(ex).toMatchObject({
+      idExercicio: 300,
+      descansoSegundos: 60,
+      descansoMaxSegundos: 180,
+      observacao: 'Buscar a falha',
+    });
+    expect(ex).not.toHaveProperty('carga');
+  });
+
+  it('não duplica protocolo de outro treinador', async () => {
+    prisma.protocoloTreino.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.duplicarProtocolo(10, 2, ID_PROFISSIONAL_A),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('não copia para aluno de outro treinador', async () => {
+    prisma.protocoloTreino.findFirst.mockResolvedValue(ORIGEM);
+    prisma.aluno.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.duplicarProtocolo(10, 999, ID_PROFISSIONAL_A),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});

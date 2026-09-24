@@ -15,6 +15,7 @@ import { TreinosService } from './treinos.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
 import { CreateTreinoDto } from './dto/create-treino.dto';
 import { AddExercicioDto } from './dto/add-exercicio.dto';
+import { DuplicarProtocoloDto } from './dto/duplicar-protocolo.dto';
 import { UpdateProtocoloDto } from './dto/update-protocolo.dto';
 import { UpdateTreinoDto } from './dto/update-treino.dto';
 import { UpdateTreinoExercicioDto } from './dto/update-treino-exercicio.dto';
@@ -94,6 +95,20 @@ export class TreinosController {
       idProtocolo,
       profissional.idProfissional,
       updateDto,
+    );
+  }
+
+  @Post('protocolos/:idProtocolo/duplicar')
+  @UsePipes(STRICT_VALIDATION)
+  async duplicarProtocolo(
+    @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
+    @GetProfissional() profissional: Profissional,
+    @Body() dto: DuplicarProtocoloDto,
+  ) {
+    return this.treinosService.duplicarProtocolo(
+      idProtocolo,
+      dto.idAlunoDestino,
+      profissional.idProfissional,
     );
   }
 

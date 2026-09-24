@@ -84,6 +84,73 @@ export class TreinosService {
     return protocolo;
   }
 
+  // Copia profunda de uma periodização (fichas + exercícios) para um aluno do
+  // mesmo profissional. Mantém o nome; não copia datas, link público, carga,
+  // sessões nem histórico. A cópia vira a periodização atual do aluno destino.
+  async duplicarProtocolo(
+    idProtocolo: number,
+    idAlunoDestino: number,
+    idProfissional: number,
+  ) {
+    const origem = await this.prisma.protocoloTreino.findFirst({
+      where: { idProtocolo, idProfissional },
+      include: {
+        treinos: {
+          where: { ativo: true },
+          orderBy: { ordem: 'asc' },
+          include: { exercicios: { orderBy: { ordem: 'asc' } } },
+        },
+      },
+    });
+    if (!origem) {
+      throw new NotFoundException('Protocolo não encontrado');
+    }
+
+    const destino = await this.prisma.aluno.findFirst({
+      where: { idAluno: idAlunoDestino, idProfissional },
+    });
+    if (!destino) {
+      throw new NotFoundException('Aluno não encontrado');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.protocoloTreino.updateMany({
+        where: { idAluno: idAlunoDestino, ativo: true },
+        data: { ativo: false },
+      });
+
+      return tx.protocoloTreino.create({
+        data: {
+          nome: origem.nome,
+          objetivo: origem.objetivo,
+          idAluno: idAlunoDestino,
+          idProfissional,
+          ativo: true,
+          tokenPublico: randomUUID(),
+          treinos: {
+            create: origem.treinos.map((t) => ({
+              nome: t.nome,
+              observacao: t.observacao,
+              ordem: t.ordem,
+              exercicios: {
+                create: t.exercicios.map((e) => ({
+                  idExercicio: e.idExercicio,
+                  idTecnica: e.idTecnica,
+                  series: e.series,
+                  repeticoes: e.repeticoes,
+                  descansoSegundos: e.descansoSegundos,
+                  descansoMaxSegundos: e.descansoMaxSegundos,
+                  observacao: e.observacao,
+                  ordem: e.ordem,
+                })),
+              },
+            })),
+          },
+        },
+      });
+    });
+  }
+
   async updateProtocolo(
     idProtocolo: number,
     idProfissional: number,
