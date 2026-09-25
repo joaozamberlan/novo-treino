@@ -25,4 +25,9 @@ export class UpdateProfissionalDto {
   @IsString()
   @IsOptional()
   logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(1000, { message: 'O rodapé deve ter no máximo 1000 caracteres' })
+  rodapeTreino?: string | null;
 }

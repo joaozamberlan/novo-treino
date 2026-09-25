@@ -152,6 +152,7 @@ export class AuthService {
         cref: profesional.cref,
         profissao: profesional.profissao,
         logoUrl: profesional.logoUrl,
+        rodapeTreino: profesional.rodapeTreino,
         role: profesional.role,
       },
     };

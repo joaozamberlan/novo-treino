@@ -574,6 +574,14 @@ select.form-input {
   outline: none;
 }
 
+/* Textarea: altura definida por rows, não pelos 36px do input */
+textarea.form-input {
+  height: auto;
+  padding: 0.5rem 0.75rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
 .form-input:focus,
 select.form-input:focus {
   border-color: var(--border-focus);
@@ -2411,6 +2419,29 @@ body.light-theme .floating-rest-timer {
   .print-obs-text {
     font-size: 8.5px;
     color: #374151;
+  }
+
+  /* Rodapé de cada treino */
+  .print-treino-rodape {
+    border-left: 2px solid #ba281a;
+    background: #fbfbfa !important;
+    padding: 5px 8px;
+    margin-top: 6px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-treino-rodape p {
+    font-size: 8px;
+    line-height: 1.35;
+    color: #374151 !important;
+    margin: 0 0 3px 0;
+  }
+
+  .print-treino-rodape p:last-child {
+    margin-bottom: 0;
   }
 
   /* Guidelines Box */
@@ -4486,6 +4517,10 @@ body.light-theme .mobile-tab-bar {
 
 .settings-page .form-input {
   height: 40px;
+}
+
+.settings-page textarea.form-input {
+  height: auto;
 }
 
 .settings-actions {

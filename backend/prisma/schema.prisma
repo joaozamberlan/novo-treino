@@ -18,6 +18,7 @@ model Profissional {
   profissao      String            @default("Personal Trainer")
   telefone       String?
   instagram      String?
+  rodapeTreino   String?           // Texto padrão do rodapé de cada treino (link público e PDF)
   logoUrl        String?           // Link público da imagem (atualmente /uploads local, migrar futuramente para Cloudflare R2)
   dataCadastro   DateTime          @default(now())
   ativo          Boolean           @default(false) // Pendente de aprovação por padrão
@@ -71,6 +72,7 @@ model Treino {
   idProtocolo Int
   nome        String
   observacao  String?
+  rodape      String?              // null = usa o padrão do treinador; "" = sem rodapé nesta ficha
   ordem       Int                  // Controla a ordem (ex: 1 = Treino A, 2 = Treino B)
   ativo       Boolean              @default(true)
 

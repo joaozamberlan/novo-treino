@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { RODAPE_SUGERIDO } from '../utils/rodape';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -15,6 +16,7 @@ export const Configuracoes: React.FC = () => {
   const [profissao, setProfissao] = useState('');
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [rodapeTreino, setRodapeTreino] = useState('');
 
   // Password form — inline validation
   const novaSenhaField = useFieldValidation('', (v) => {
@@ -69,6 +71,7 @@ export const Configuracoes: React.FC = () => {
       setProfissao(user.profissao);
       setTelefone(user.telefone || '');
       setInstagram(user.instagram || '');
+      setRodapeTreino(user.rodapeTreino || '');
       setLogoUrl(user.logoUrl || '');
     }
 
@@ -88,6 +91,7 @@ export const Configuracoes: React.FC = () => {
         telefone: telefone || null,
         instagram: instagram || null,
         logoUrl: logoUrl || null,
+        rodapeTreino: rodapeTreino.trim() || null,
       });
 
       updateUser(response.data);
@@ -283,6 +287,32 @@ export const Configuracoes: React.FC = () => {
                 onChange={(e) => setInstagram(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="rodapeProf">Rodapé dos treinos (link público e PDF)</label>
+            <textarea
+              id="rodapeProf"
+              className="form-input"
+              rows={5}
+              maxLength={1000}
+              placeholder="Deixe em branco para não exibir rodapé. Separe parágrafos com uma linha em branco."
+              value={rodapeTreino}
+              onChange={(e) => setRodapeTreino(e.target.value)}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRodapeTreino(RODAPE_SUGERIDO)}>
+                Usar texto sugerido
+              </button>
+              {rodapeTreino && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRodapeTreino('')}>
+                  Limpar
+                </button>
+              )}
+            </div>
+            <p className="settings-desc" style={{ marginTop: '0.4rem' }}>
+              Aparece no fim de cada treino. Dá para abrir exceção em uma ficha específica, ao editar a ficha dentro da periodização.
+            </p>
           </div>
 
           <div className="settings-actions">

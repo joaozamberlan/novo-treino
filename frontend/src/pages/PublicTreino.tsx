@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { RodapeTreino } from '../components/RodapeTreino';
+import { rodapeEfetivo } from '../utils/rodape';
+import { TabelaProgressao } from '../components/TabelaProgressao';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -62,6 +65,7 @@ interface FichaTreino {
   idTreino: number;
   nome: string;
   observacao?: string;
+  rodape?: string | null;
   ordem: number;
   exercicios: PrescribedExercise[];
 }
@@ -79,6 +83,7 @@ interface Profissional {
   telefone?: string;
   instagram?: string;
   logoUrl?: string;
+  rodapeTreino?: string | null;
 }
 
 interface PublicData {
@@ -891,9 +896,12 @@ export const PublicTreino: React.FC = () => {
                     )}
                   </tbody>
                 </table>
+                <RodapeTreino texto={rodapeEfetivo(treino.rodape, profissional.rodapeTreino)} variant="print" />
               </div>
             );
           })}
+
+          <TabelaProgressao variant="print" />
 
           {Object.keys(volume).length > 0 && (
             <div className="print-volume-page">
@@ -1456,6 +1464,8 @@ export const PublicTreino: React.FC = () => {
               )}
             </div>
 
+            <RodapeTreino texto={rodapeEfetivo(activeFicha?.rodape, profissional.rodapeTreino)} variant="screen" />
+
             {/* Action Bar: Encerrar Treino / Treino Finalizado */}
             {sortedExercicios.length > 0 && (
               sessaoConcluida ? (
@@ -1551,6 +1561,7 @@ export const PublicTreino: React.FC = () => {
                 </div>
               </div>
             )}
+          <TabelaProgressao variant="screen" />
           </>
         ) : (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-2)' }}>

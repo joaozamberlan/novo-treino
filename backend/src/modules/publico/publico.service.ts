@@ -101,6 +101,7 @@ export class PublicoService {
     telefone: true,
     instagram: true,
     logoUrl: true,
+    rodapeTreino: true,
   } as const;
 
   private static readonly PROTOCOLO_TREINOS_INCLUDE = {

@@ -144,6 +144,7 @@ export class TreinosService {
             create: origem.treinos.map((t) => ({
               nome: t.nome,
               observacao: t.observacao,
+              rodape: t.rodape,
               ordem: t.ordem,
               exercicios: {
                 create: t.exercicios.map((e) => ({

@@ -128,6 +128,7 @@ describe('PublicoService — cadeia de posse do link público', () => {
             telefone: true,
             instagram: true,
             logoUrl: true,
+            rodapeTreino: true,
           },
         },
       },

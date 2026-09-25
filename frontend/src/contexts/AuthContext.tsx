@@ -10,6 +10,7 @@ interface Profissional {
   logoUrl?: string;
   telefone?: string;
   instagram?: string;
+  rodapeTreino?: string | null;
   role: string;
 }
 

@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { RodapeTreino } from '../components/RodapeTreino';
+import { rodapeEfetivo } from '../utils/rodape';
+import { TabelaProgressao } from '../components/TabelaProgressao';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Reorder, useDragControls } from 'motion/react';
@@ -49,6 +52,7 @@ interface FichaTreino {
   idTreino: number;
   nome: string;
   observacao?: string;
+  rodape?: string | null;
   ordem: number;
   exercicios: PrescribedExercise[];
 }
@@ -189,6 +193,8 @@ export const Treinos: React.FC = () => {
   const [editingFichaId, setEditingFichaId] = useState<number | null>(null);
   const [editFichaNome, setEditFichaNome] = useState('');
   const [editFichaObs, setEditFichaObs] = useState('');
+  const [editFichaRodape, setEditFichaRodape] = useState('');
+  const [editFichaSemRodape, setEditFichaSemRodape] = useState(false);
 
   // New Ficha (Treino) inputs
   const [treinoNome, setTreinoNome] = useState('');
@@ -540,6 +546,8 @@ export const Treinos: React.FC = () => {
     const targetId = editingFichaId;
     const newNome = editFichaNome.trim();
     const newObs = editFichaObs.trim();
+    // null = herda o padrão do treinador; "" = sem rodapé nesta ficha
+    const newRodape = editFichaSemRodape ? '' : editFichaRodape.trim() || null;
 
     // Optimistic UI
     setActiveProtocol(prev => {
@@ -547,7 +555,7 @@ export const Treinos: React.FC = () => {
       return {
         ...prev,
         treinos: prev.treinos.map(t =>
-          t.idTreino === targetId ? { ...t, nome: newNome, observacao: newObs || undefined } : t
+          t.idTreino === targetId ? { ...t, nome: newNome, observacao: newObs || undefined, rodape: newRodape } : t
         ),
       };
     });
@@ -559,6 +567,7 @@ export const Treinos: React.FC = () => {
       await api.patch(`/treinos/fichas/${targetId}`, {
         nome: newNome,
         observacao: newObs || null,
+        rodape: newRodape,
       });
     } catch (err) {
       console.error(err);
@@ -1078,6 +1087,8 @@ export const Treinos: React.FC = () => {
                       setEditingFichaId(activeFicha.idTreino);
                       setEditFichaNome(activeFicha.nome);
                       setEditFichaObs(activeFicha.observacao || '');
+                      setEditFichaRodape(activeFicha.rodape || '');
+                      setEditFichaSemRodape(activeFicha.rodape === '');
                       setShowEditFichaModal(true);
                     }}
                     title="Renomear / Editar ficha"
@@ -1379,9 +1390,14 @@ export const Treinos: React.FC = () => {
                       )}
                     </tbody>
                   </table>
+                  {printGuidelines && (
+                    <RodapeTreino texto={rodapeEfetivo(treino.rodape, user?.rodapeTreino)} variant="print" />
+                  )}
                 </div>
               );
             })}
+
+            <TabelaProgressao variant="print" />
 
             {/* Weekly volume by muscle group — extra summary page */}
             {volumeSemanalPorGrupo.length > 0 && (
@@ -1409,27 +1425,6 @@ export const Treinos: React.FC = () => {
                       </div>
                     );
                   })}
-                </div>
-              </div>
-            )}
-
-            {/* General safety & performance guidelines */}
-            {printGuidelines && (
-              <div className="print-guidelines-box">
-                <div className="print-guidelines-title">DIRETRIZES TÉCNICAS DE SEGURANÇA E PERFORMANCE</div>
-                <div className="print-guidelines-grid">
-                  <div className="print-guideline-item">
-                    <strong>01. AQUECIMENTO ESPECÍFICO</strong>
-                    <p>Realize 1 a 2 séries de aquecimento com 50% da carga antes do primeiro exercício do grupamento.</p>
-                  </div>
-                  <div className="print-guideline-item">
-                    <strong>02. CONTROLE DA CADÊNCIA</strong>
-                    <p>Priorize a fase excêntrica controlada (2-3s). Mantenha a postura e a amplitude completa do movimento.</p>
-                  </div>
-                  <div className="print-guideline-item">
-                    <strong>03. INTERVALOS E CARGAS</strong>
-                    <p>Respeite a pausa estipulada. Progrida as cargas mantendo uma boa execução técnica.</p>
-                  </div>
                 </div>
               </div>
             )}
@@ -1596,6 +1591,28 @@ export const Treinos: React.FC = () => {
                   value={editFichaObs}
                   onChange={(e) => setEditFichaObs(e.target.value)}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="editFichaRodapeInput">Rodapé desta ficha (exceção)</label>
+                <textarea
+                  id="editFichaRodapeInput"
+                  className="form-input"
+                  rows={4}
+                  maxLength={1000}
+                  disabled={editFichaSemRodape}
+                  placeholder={user?.rodapeTreino ? `Em branco = usa o padrão: ${user.rodapeTreino}` : 'Em branco = usa o rodapé padrão das Configurações'}
+                  value={editFichaRodape}
+                  onChange={(e) => setEditFichaRodape(e.target.value)}
+                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', marginTop: '0.4rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={editFichaSemRodape}
+                    onChange={(e) => setEditFichaSemRodape(e.target.checked)}
+                  />
+                  Não exibir rodapé nesta ficha
+                </label>
               </div>
 
               <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
@@ -1903,7 +1920,7 @@ export const Treinos: React.FC = () => {
                       onChange={e => setPrintGuidelines(e.target.checked)} 
                       style={{ accentColor: 'var(--accent)' }}
                     />
-                    <span><strong>Diretrizes técnicas & segurança</strong> (Recomendações de aquecimento e cadência)</span>
+                    <span><strong>Rodapé de cada treino</strong> (instruções do treinador, definidas em Configurações)</span>
                   </label>
                 </div>
               </div>
