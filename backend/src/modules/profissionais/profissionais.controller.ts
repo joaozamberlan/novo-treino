@@ -18,18 +18,31 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetProfissional } from '../auth/get-profissional.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import type { Request } from 'express';
-import { join } from 'path';
 import type { Profissional } from '@prisma/client';
 
 // Só imagens — SVG fica de fora de propósito (pode carregar <script>).
-const ALLOWED_LOGO_MIME_TYPES: Record<string, string> = {
-  'image/png': '.png',
-  'image/jpeg': '.jpg',
-  'image/webp': '.webp',
-};
+const ALLOWED_LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+
+// O mimetype vem do cliente; a assinatura dos primeiros bytes confirma que o
+// conteúdo é mesmo a imagem declarada.
+function assinaturaConfere(buffer: Buffer, mime: string): boolean {
+  if (mime === 'image/png') {
+    return buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+  if (mime === 'image/jpeg') {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+  if (mime === 'image/webp') {
+    return (
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    );
+  }
+  return false;
+}
 
 @Controller('profissionais')
 @UseGuards(JwtAuthGuard)
@@ -66,24 +79,14 @@ export class ProfissionaisController {
     );
   }
 
-  /**
-   * NOTA PARA MIGRAÇÃO FUTURA (CLOUDFLARE R2):
-   * Atualmente os arquivos são salvos no disco efêmero do container (pasta /uploads).
-   * Para deploy estável em produção no Railway sem perder arquivos em redeploys,
-   * migrar este upload para o Cloudflare R2 (gratuito até 10GB, compatível com S3 API):
-   *
-   * 1. Instalar: npm install @aws-sdk/client-s3
-   * 2. Configurar S3Client com as credenciais do Cloudflare R2 (Endpoint, AccessKeyId, SecretAccessKey)
-   * 3. Trocar diskStorage por memoryStorage() no Multer
-   * 4. Fazer PutObjectCommand enviando file.buffer para o Bucket R2
-   * 5. Salvar a URL pública do R2 (ex: https://pub-xxxx.r2.dev/logos/logo-id.ext ou seu domínio customizado)
-   */
+  // A logo vai para o banco (tabela LogoProfissional), não para o disco:
+  // o container do Railway perde os arquivos locais a cada deploy.
   @Post('me/logo')
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_LOGO_SIZE_BYTES },
       fileFilter: (_req, file, callback) => {
-        if (!ALLOWED_LOGO_MIME_TYPES[file.mimetype]) {
+        if (!ALLOWED_LOGO_MIME_TYPES.includes(file.mimetype)) {
           callback(
             new UnsupportedMediaTypeException(
               'Envie uma imagem PNG, JPEG ou WEBP.',
@@ -94,22 +97,6 @@ export class ProfissionaisController {
         }
         callback(null, true);
       },
-      storage: diskStorage({
-        destination: join(process.cwd(), 'uploads'),
-        filename: (req: Request, file, callback) => {
-          // idProfissional vem do usuário autenticado (JwtStrategy.validate),
-          // nunca de dado enviado pelo cliente no upload.
-          const profId =
-            (req.user as Profissional | undefined)?.idProfissional ?? 'anon';
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          // Extensão derivada do mimetype já validado pelo fileFilter — nunca do
-          // nome de arquivo enviado pelo cliente, para evitar path traversal ou
-          // uma extensão que não bate com o conteúdo real.
-          const ext = ALLOWED_LOGO_MIME_TYPES[file.mimetype] ?? '';
-          callback(null, `logo-${profId}-${uniqueSuffix}${ext}`);
-        },
-      }),
     }),
   )
   async uploadLogo(
@@ -120,12 +107,17 @@ export class ProfissionaisController {
       throw new BadRequestException('Nenhum arquivo enviado.');
     }
 
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-    const logoUrl = `${baseUrl}/uploads/${file.filename}`;
+    if (!assinaturaConfere(file.buffer, file.mimetype)) {
+      throw new UnsupportedMediaTypeException(
+        'O arquivo não é uma imagem PNG, JPEG ou WEBP válida.',
+      );
+    }
 
-    await this.profissionaisService.updateProfile(profissional.idProfissional, {
-      logoUrl,
-    });
+    const logoUrl = await this.profissionaisService.salvarLogo(
+      profissional.idProfissional,
+      file.buffer,
+      file.mimetype,
+    );
 
     return { logoUrl };
   }

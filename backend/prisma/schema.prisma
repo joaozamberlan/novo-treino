@@ -30,6 +30,19 @@ model Profissional {
   exercicios       Exercicio[]
   tecnicas         TecnicaTreino[]
   instrucoes       InstrucaoTreino[]
+  logo             LogoProfissional?
+}
+
+// Logo guardada no banco: o disco do container no Railway é apagado a cada
+// deploy. Tabela separada para os bytes nunca virem junto nas consultas de
+// Profissional (login, JWT, perfil).
+model LogoProfissional {
+  idProfissional Int          @id
+  dados          Bytes
+  mime           String
+  atualizadoEm   DateTime     @default(now()) @updatedAt
+
+  profissional   Profissional @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
 }
 
 model Aluno {

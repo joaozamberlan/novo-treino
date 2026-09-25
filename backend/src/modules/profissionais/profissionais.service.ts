@@ -7,6 +7,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
+import { apiBaseUrl } from '../../common/utils/base-url';
 import {
   PaginationQueryDto,
   toSkipTake,
@@ -25,6 +26,23 @@ export class ProfissionaisService {
     }
     const { senhaHash: _, ...result } = profissional;
     return result;
+  }
+
+  // Grava a logo no banco e aponta logoUrl para o endpoint público que a
+  // serve. O ?v= muda a cada envio, então a URL pode ficar em cache longo.
+  async salvarLogo(idProfissional: number, dados: Buffer, mime: string) {
+    await this.getProfile(idProfissional);
+    await this.prisma.logoProfissional.upsert({
+      where: { idProfissional },
+      create: { idProfissional, dados: new Uint8Array(dados), mime },
+      update: { dados: new Uint8Array(dados), mime },
+    });
+    const logoUrl = `${apiBaseUrl()}/publico/logo/${idProfissional}?v=${Date.now()}`;
+    await this.prisma.profissional.update({
+      where: { idProfissional },
+      data: { logoUrl },
+    });
+    return logoUrl;
   }
 
   async updateProfile(

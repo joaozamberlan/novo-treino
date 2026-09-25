@@ -180,6 +180,18 @@ export class PublicoService {
     };
   }
 
+  // Logo do treinador (pública: aparece no link do aluno e no PDF)
+  async getLogo(idProfissional: number) {
+    const logo = await this.prisma.logoProfissional.findUnique({
+      where: { idProfissional },
+      select: { dados: true, mime: true },
+    });
+    if (!logo) {
+      throw new NotFoundException('Logo não encontrada.');
+    }
+    return logo;
+  }
+
   // Progresso de cargas da periodização do link (tokenPublico) ou, em links
   // antigos (tokenAcesso), da periodização ativa do aluno.
   async getProgresso(token: string) {
