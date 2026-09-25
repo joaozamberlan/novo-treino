@@ -50,7 +50,7 @@ describe('PublicoService — cadeia de posse do link público', () => {
   let service: PublicoService;
   let prisma: {
     aluno: { findUnique: jest.Mock };
-    protocoloTreino: { findFirst: jest.Mock };
+    protocoloTreino: { findFirst: jest.Mock; findUnique: jest.Mock };
     treino: { findFirst: jest.Mock };
     sessaoTreino: {
       findFirst: jest.Mock;
@@ -71,7 +71,12 @@ describe('PublicoService — cadeia de posse do link público', () => {
   beforeEach(async () => {
     prisma = {
       aluno: { findUnique: jest.fn() },
-      protocoloTreino: { findFirst: jest.fn() },
+      // Padrão: o token não é um tokenPublico de periodização, então a
+      // resolução cai no tokenAcesso do aluno (links antigos).
+      protocoloTreino: {
+        findFirst: jest.fn(),
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
       treino: { findFirst: jest.fn() },
       sessaoTreino: {
         findFirst: jest.fn(),
@@ -347,5 +352,52 @@ describe('PublicoService — cadeia de posse do link público', () => {
       service.getOuCriarSessao('token-a', 999),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.sessaoTreino.create).not.toHaveBeenCalled();
+  });
+  // Links atuais usam o tokenPublico da periodização: ele também precisa
+  // resolver para o dono da periodização e isolar os dados dos outros alunos.
+  describe('link por periodização (tokenPublico)', () => {
+    it('resolve o aluno pelo tokenPublico sem consultar o tokenAcesso', async () => {
+      prisma.protocoloTreino.findUnique.mockResolvedValue({ aluno: ALUNO_A });
+      prisma.sessaoTreino.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.toggleExercicio(
+          'periodizacao-a',
+          SESSAO_DO_ALUNO_B.idSessao,
+          700,
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+
+      expect(prisma.protocoloTreino.findUnique).toHaveBeenCalledWith({
+        where: { tokenPublico: 'periodizacao-a' },
+        select: { aluno: true },
+      });
+      expect(prisma.aluno.findUnique).not.toHaveBeenCalled();
+      // a sessão é sempre buscada com o idAluno do dono do token
+      expect(prisma.sessaoTreino.findFirst).toHaveBeenCalledWith({
+        where: {
+          idSessao: SESSAO_DO_ALUNO_B.idSessao,
+          idAluno: ALUNO_A.idAluno,
+        },
+      });
+      expect(prisma.exercicioConcluido.create).not.toHaveBeenCalled();
+    });
+
+    it('rejeita token que não é tokenPublico nem tokenAcesso', async () => {
+      prisma.protocoloTreino.findUnique.mockResolvedValue(null);
+      prisma.aluno.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.salvarSeriesExercicio(
+          'token-inexistente',
+          SESSAO_DO_ALUNO_A.idSessao,
+          700,
+          [{ numeroSerie: 1 }],
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+
+      expect(prisma.sessaoTreino.findFirst).not.toHaveBeenCalled();
+      expect(prisma.sessaoExercicioSerie.upsert).not.toHaveBeenCalled();
+    });
   });
 });
