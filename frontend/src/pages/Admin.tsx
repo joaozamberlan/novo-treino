@@ -21,19 +21,22 @@ interface Professional {
   dataCadastro: string;
 }
 
+// A checagem de permissão fica fora do painel: um return antes dos hooks
+// quebraria a ordem de hooks do React quando o usuário muda entre renders.
 export const Admin: React.FC = () => {
   const { user } = useAuth();
-  
+  if (!user || user.role !== 'SUPERADMIN') {
+    return <Navigate to="/" replace />;
+  }
+  return <AdminPanel />;
+};
+
+const AdminPanel: React.FC = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Safeguard: Redirect non-admins
-  if (!user || user.role !== 'SUPERADMIN') {
-    return <Navigate to="/" replace />;
-  }
 
   const loadProfessionals = async () => {
     try {
@@ -110,8 +113,10 @@ export const Admin: React.FC = () => {
   const generateRandomPassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
     let res = '';
-    for (let i = 0; i < 10; i++) {
-      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    // crypto.getRandomValues: Math.random não é seguro para gerar senha
+    const bytes = crypto.getRandomValues(new Uint32Array(10));
+    for (const b of bytes) {
+      res += chars.charAt(b % chars.length);
     }
     setNewTempPassword(res);
     setCopiedPassword(false);
