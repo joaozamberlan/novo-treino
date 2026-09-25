@@ -203,6 +203,18 @@ export class TreinosController {
     );
   }
 
+  // --- PROGRESSO DE CARGAS ---
+  @Get('progresso/:idProtocolo')
+  async getProgresso(
+    @Param('idProtocolo', ParseIntPipe) idProtocolo: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.treinosService.getProgresso(
+      idProtocolo,
+      profissional.idProfissional,
+    );
+  }
+
   // --- VOLUME SEMANAL ---
   @Get('volume/:idAluno')
   async getVolumeSemanal(

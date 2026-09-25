@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { MeuProgresso } from '../components/Progresso';
+import type { Progresso } from '../utils/progresso';
 import { RodapeTreino } from '../components/RodapeTreino';
 import { rodapeEfetivo } from '../utils/rodape';
 import { TabelaProgressao } from '../components/TabelaProgressao';
@@ -628,6 +630,17 @@ export const PublicTreino: React.FC = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]);
+
+  // Progresso de cargas: recarrega ao trocar de ficha e ao encerrar o treino
+  const [progresso, setProgresso] = useState<Progresso | null>(null);
+  useEffect(() => {
+    if (!token) return;
+    let cancelado = false;
+    api.get(`/publico/progresso/${token}`)
+      .then((res) => { if (!cancelado) setProgresso(res.data); })
+      .catch((err) => console.error('Erro ao carregar progresso:', err));
+    return () => { cancelado = true; };
+  }, [token, activeTabId, sessaoConcluida]);
 
   // Toggle com optimistic update + persistência no servidor
   const toggleExerciseCompleted = async (id: number) => {
@@ -1532,6 +1545,8 @@ export const PublicTreino: React.FC = () => {
                 </div>
               )
             )}
+
+            <MeuProgresso progresso={progresso} idTreino={activeTabId} />
 
             {/* Volume Summary */}
             {Object.keys(volume).length > 0 && (

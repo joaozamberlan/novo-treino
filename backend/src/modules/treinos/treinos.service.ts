@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { buildProgresso } from './progresso';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
 import { CreateTreinoDto } from './dto/create-treino.dto';
@@ -467,6 +468,18 @@ export class TreinosService {
     return this.prisma.treinoExercicio.delete({
       where: { idTreinoExercicio },
     });
+  }
+
+  // --- PROGRESSO DE CARGAS ---
+  async getProgresso(idProtocolo: number, idProfissional: number) {
+    const protocolo = await this.prisma.protocoloTreino.findFirst({
+      where: { idProtocolo, idProfissional },
+      select: { idAluno: true },
+    });
+    if (!protocolo) {
+      throw new NotFoundException('Protocolo não encontrado');
+    }
+    return buildProgresso(this.prisma, protocolo.idAluno, idProtocolo);
   }
 
   // --- CALCULO DE VOLUME SEMANAL ---

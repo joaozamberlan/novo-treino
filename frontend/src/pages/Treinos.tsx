@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { PainelProgresso } from '../components/Progresso';
+import type { Progresso } from '../utils/progresso';
 import { RodapeTreino } from '../components/RodapeTreino';
 import { rodapeEfetivo } from '../utils/rodape';
 import { TabelaProgressao } from '../components/TabelaProgressao';
@@ -185,6 +187,8 @@ export const Treinos: React.FC = () => {
 
   // --- PRINT / PDF EXPORT STATES ---
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [abaView, setAbaView] = useState<'fichas' | 'progresso'>('fichas');
+  const [progresso, setProgresso] = useState<Progresso | null>(null);
   const [printScope, setPrintScope] = useState<'all' | 'current'>('all');
   const [printPagePerFicha, setPrintPagePerFicha] = useState(true);
   const [printGuidelines, setPrintGuidelines] = useState(false);
@@ -329,6 +333,20 @@ export const Treinos: React.FC = () => {
       setTimeout(() => setShareCopied(false), 2000);
     }
   };
+
+  // Progresso de cargas: carregado ao abrir a aba (sempre atualizado)
+  const idProtocoloAtivo = activeProtocol?.idProtocolo;
+  useEffect(() => {
+    if (abaView !== 'progresso' || !idProtocoloAtivo) return;
+    let cancelado = false;
+    api.get(`/treinos/progresso/${idProtocoloAtivo}`)
+      .then((res) => { if (!cancelado) setProgresso(res.data); })
+      .catch((err) => {
+        console.error('Erro ao carregar progresso:', err);
+        if (!cancelado) toast.error('Não foi possível carregar o progresso do aluno.');
+      });
+    return () => { cancelado = true; };
+  }, [abaView, idProtocoloAtivo]);
 
   // Auto-select first tab when activeProtocol changes if none is selected or current no longer exists
   useEffect(() => {
@@ -1024,8 +1042,22 @@ export const Treinos: React.FC = () => {
         </div>
       )}
 
-      {/* Ficha Tabs */}
+      {/* Fichas | Progresso */}
       {activeProtocol && (
+        <div className="view-switch" role="tablist" aria-label="Visualização da periodização">
+          <button type="button" role="tab" aria-selected={abaView === 'fichas'} onClick={() => setAbaView('fichas')}>
+            Fichas
+          </button>
+          <button type="button" role="tab" aria-selected={abaView === 'progresso'} onClick={() => { setProgresso(null); setAbaView('progresso'); }}>
+            Progresso
+          </button>
+        </div>
+      )}
+
+      {activeProtocol && abaView === 'progresso' && <PainelProgresso progresso={progresso} />}
+
+      {/* Ficha Tabs */}
+      {activeProtocol && abaView === 'fichas' && (
         <>
           <div className="ficha-tabs">
             {sortedTreinos.map((treino) => (

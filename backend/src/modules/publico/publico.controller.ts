@@ -31,6 +31,11 @@ export class PublicoController {
     return this.publicoService.findActiveByToken(token);
   }
 
+  @Get('progresso/:token')
+  async getProgresso(@Param('token') token: string) {
+    return this.publicoService.getProgresso(token);
+  }
+
   // GET /publico/sessao/:token/:idTreino — busca ou cria sessão do dia e retorna histórico anterior
   @Get('sessao/:token/:idTreino')
   async getSessao(

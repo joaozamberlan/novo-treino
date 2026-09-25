@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { buildProgresso } from '../treinos/progresso';
 
 @Injectable()
 export class PublicoService {
@@ -177,6 +178,26 @@ export class PublicoService {
       isAtual: true,
       linkAtualToken: null,
     };
+  }
+
+  // Progresso de cargas da periodização do link (tokenPublico) ou, em links
+  // antigos (tokenAcesso), da periodização ativa do aluno.
+  async getProgresso(token: string) {
+    const porToken = await this.prisma.protocoloTreino.findUnique({
+      where: { tokenPublico: token },
+      select: { idProtocolo: true, idAluno: true },
+    });
+    if (porToken) {
+      return buildProgresso(this.prisma, porToken.idAluno, porToken.idProtocolo);
+    }
+
+    const aluno = await this.getAlunoPorToken(token);
+    const ativo = await this.prisma.protocoloTreino.findFirst({
+      where: { idAluno: aluno.idAluno, ativo: true },
+      select: { idProtocolo: true },
+    });
+    if (!ativo) return { ultimaSessao: null, fichas: [] };
+    return buildProgresso(this.prisma, aluno.idAluno, ativo.idProtocolo);
   }
 
   // Retorna (ou cria) a sessão ativa do treino + histórico anterior
