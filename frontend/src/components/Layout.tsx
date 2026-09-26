@@ -4,8 +4,8 @@ import { PageTransition } from './PageTransition';
 import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  Layers, Settings, LogOut, User, Shield, Users, Menu, Home, 
-  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell, Folder, Sliders 
+  Settings, LogOut, User, Shield, Users, Menu, Home, 
+  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell, Folder, Sliders, ListChecks 
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -263,7 +263,7 @@ export const Layout: React.FC = () => {
                   }
                 }}
               >
-                <Layers size={16} />
+                <Dumbbell size={16} />
                 <span className="sidebar-label">Biblioteca</span>
                 <ChevronDown 
                   size={14} 
@@ -285,7 +285,7 @@ export const Layout: React.FC = () => {
                       if (window.innerWidth <= 768) setIsExpanded(false);
                     }}
                   >
-                    <Dumbbell size={13} />
+                    <ListChecks size={13} />
                     <span>Exercícios</span>
                   </NavLink>
 
@@ -404,7 +404,7 @@ export const Layout: React.FC = () => {
         </NavLink>
         <NavLink to="/exercicios?tab=exercicios" className={`tab-bar-item ${isExerciciosRoute ? 'active' : ''}`}>
           <PressScale as="span" className="tab-bar-inner">
-            <Layers size={22} aria-hidden="true" />
+            <Dumbbell size={22} aria-hidden="true" />
             <span>Biblioteca</span>
           </PressScale>
         </NavLink>
