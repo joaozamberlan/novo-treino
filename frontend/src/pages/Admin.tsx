@@ -385,33 +385,15 @@ const AdminPanel: React.FC = () => {
       {/* ─── Modal: Redefinir Senha do Treinador ─── */}
       {resetModalProf && (
         <div
-          className="modal-overlay"
+          className="modal-backdrop"
           onClick={() => setResetModalProf(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          role="dialog"
+          aria-modal="true"
         >
           <div
-            className="modal-card animate-in"
+            className="modal-content"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'var(--bg-1)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-l)',
-              padding: '1.75rem',
-              maxWidth: '460px',
-              width: '100%',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
-              position: 'relative',
-            }}
+            style={{ maxWidth: '460px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -516,7 +498,7 @@ const AdminPanel: React.FC = () => {
               💡 <strong>Dica:</strong> Copie a senha e envie via WhatsApp ou e-mail para o treinador. Ele conseguirá fazer login imediatamente com essa credencial.
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div className="modal-footer" style={{ margin: 0, paddingTop: '0.85rem' }}>
               <button
                 type="button"
                 className="btn btn-ghost"

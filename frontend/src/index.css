@@ -3522,6 +3522,27 @@ body.light-theme .mobile-tab-bar {
     padding: 2.2rem 1.25rem max(1.5rem, calc(var(--sab) + 1.25rem)) 1.25rem;
     animation: sheetSlideUp 280ms var(--ease-drawer) forwards;
     overscroll-behavior-y: contain;
+    /* Campo focado não fica escondido atrás do rodapé fixo abaixo. */
+    scroll-padding-bottom: 6rem;
+  }
+
+  /* Com o teclado aberto o sheet encolhe e o rodapé (último item da rolagem)
+     sumia abaixo da área visível. Ele fica preso à base do sheet; o respiro
+     da safe area passa do sheet para o próprio rodapé. */
+  .modal-content:has(.modal-footer) {
+    padding-bottom: 0;
+  }
+
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: var(--bg-2);
+    margin-left: -1.25rem !important;
+    margin-right: -1.25rem !important;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-bottom: max(1rem, calc(var(--sab) + 0.75rem));
   }
 
   /* iOS Sheet Grabber / Drag Indicator (Apple HIG standard) */
