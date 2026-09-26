@@ -13,6 +13,7 @@ import {
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { PublicoService } from './publico.service';
+import { EncerrarSessaoDto, SalvarSeriesDto } from './dto/series.dto';
 
 // Endpoints sem autenticação — mais expostos a scraping/automação do que os
 // autenticados. 30/min por IP acomoda um aluno ativo registrando séries
@@ -82,21 +83,13 @@ export class PublicoController {
     @Param('token') token: string,
     @Param('idSessao', ParseIntPipe) idSessao: number,
     @Param('idTreinoExercicio', ParseIntPipe) idTreinoExercicio: number,
-    @Body()
-    body: {
-      series: Array<{
-        numeroSerie: number;
-        cargaKg?: number | null;
-        repeticoes?: number | null;
-        concluido?: boolean;
-      }>;
-    },
+    @Body() body: SalvarSeriesDto,
   ) {
     return this.publicoService.salvarSeriesExercicio(
       token,
       idSessao,
       idTreinoExercicio,
-      body.series || [],
+      body.series,
     );
   }
 
@@ -123,24 +116,9 @@ export class PublicoController {
   async encerrarSessao(
     @Param('token') token: string,
     @Param('idSessao', ParseIntPipe) idSessao: number,
-    @Body()
-    body?: {
-      exercicios?: Array<{
-        idTreinoExercicio: number;
-        series: Array<{
-          numeroSerie: number;
-          cargaKg?: number | null;
-          repeticoes?: number | null;
-          concluido?: boolean;
-        }>;
-      }>;
-    },
+    @Body() body: EncerrarSessaoDto,
   ) {
-    return this.publicoService.encerrarSessao(
-      token,
-      idSessao,
-      body?.exercicios,
-    );
+    return this.publicoService.encerrarSessao(token, idSessao, body.exercicios);
   }
 
   // POST /publico/sessao/:token/:idTreino/nova — inicia uma nova sessão (nova semana)

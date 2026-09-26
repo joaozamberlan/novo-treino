@@ -11,7 +11,7 @@ describe('AuthService — autenticação', () => {
   let service: AuthService;
   let prisma: {
     profissional: {
-      findUnique: jest.Mock;
+      findFirst: jest.Mock;
       create: jest.Mock;
     };
     grupoMuscular: { create: jest.Mock };
@@ -23,7 +23,7 @@ describe('AuthService — autenticação', () => {
 
   beforeEach(async () => {
     prisma = {
-      profissional: { findUnique: jest.fn(), create: jest.fn() },
+      profissional: { findFirst: jest.fn(), create: jest.fn() },
       grupoMuscular: {
         create: jest.fn().mockResolvedValue({ idGrupoMuscular: 1 }),
       },
@@ -47,7 +47,7 @@ describe('AuthService — autenticação', () => {
   describe('login', () => {
     it('autentica com credenciais válidas e conta ativa', async () => {
       const senhaHash = await bcrypt.hash(SENHA_VALIDA, 10);
-      prisma.profissional.findUnique.mockResolvedValue({
+      prisma.profissional.findFirst.mockResolvedValue({
         idProfissional: 1,
         email: 'treinador@ex.com',
         senhaHash,
@@ -70,7 +70,7 @@ describe('AuthService — autenticação', () => {
 
     it('rejeita senha inválida', async () => {
       const senhaHash = await bcrypt.hash(SENHA_VALIDA, 10);
-      prisma.profissional.findUnique.mockResolvedValue({
+      prisma.profissional.findFirst.mockResolvedValue({
         idProfissional: 1,
         email: 'treinador@ex.com',
         senhaHash,
@@ -83,7 +83,7 @@ describe('AuthService — autenticação', () => {
     });
 
     it('rejeita usuário inexistente', async () => {
-      prisma.profissional.findUnique.mockResolvedValue(null);
+      prisma.profissional.findFirst.mockResolvedValue(null);
 
       await expect(
         service.login({ email: 'nao-existe@ex.com', senha: SENHA_VALIDA }),
@@ -92,7 +92,7 @@ describe('AuthService — autenticação', () => {
 
     it('rejeita conta pendente de aprovação mesmo com senha correta', async () => {
       const senhaHash = await bcrypt.hash(SENHA_VALIDA, 10);
-      prisma.profissional.findUnique.mockResolvedValue({
+      prisma.profissional.findFirst.mockResolvedValue({
         idProfissional: 1,
         email: 'pendente@ex.com',
         senhaHash,
@@ -111,7 +111,7 @@ describe('AuthService — autenticação', () => {
     it('usa a mesma mensagem de erro para usuário inexistente e senha errada', async () => {
       const senhaHash = await bcrypt.hash(SENHA_VALIDA, 10);
 
-      prisma.profissional.findUnique.mockResolvedValueOnce(null);
+      prisma.profissional.findFirst.mockResolvedValueOnce(null);
       let inexistenteMsg = '';
       try {
         await service.login({
@@ -122,7 +122,7 @@ describe('AuthService — autenticação', () => {
         inexistenteMsg = e instanceof UnauthorizedException ? e.message : '';
       }
 
-      prisma.profissional.findUnique.mockResolvedValueOnce({
+      prisma.profissional.findFirst.mockResolvedValueOnce({
         idProfissional: 1,
         email: 'existe@ex.com',
         senhaHash,
@@ -142,7 +142,7 @@ describe('AuthService — autenticação', () => {
 
   describe('register', () => {
     it('rejeita e-mail já cadastrado', async () => {
-      prisma.profissional.findUnique.mockResolvedValue({ idProfissional: 1 });
+      prisma.profissional.findFirst.mockResolvedValue({ idProfissional: 1 });
 
       await expect(
         service.register({
@@ -157,7 +157,7 @@ describe('AuthService — autenticação', () => {
     });
 
     it('cria conta nova e nunca retorna o hash da senha', async () => {
-      prisma.profissional.findUnique.mockResolvedValue(null);
+      prisma.profissional.findFirst.mockResolvedValue(null);
       prisma.profissional.create.mockResolvedValue({
         idProfissional: 1,
         email: 'novo@ex.com',
@@ -177,6 +177,45 @@ describe('AuthService — autenticação', () => {
       });
 
       expect(result).not.toHaveProperty('senhaHash');
+    });
+
+    it('grava o e-mail em minúsculas e sem espaços', async () => {
+      prisma.profissional.findFirst.mockResolvedValue(null);
+      prisma.profissional.create.mockResolvedValue({
+        idProfissional: 1,
+        email: 'novo@ex.com',
+        senhaHash: 'x',
+      });
+
+      await service.register({
+        email: '  Novo@Ex.COM ',
+        senha: 'senha12345',
+        nome: 'Novo',
+        cref: '000',
+      });
+
+      expect(prisma.profissional.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ email: 'novo@ex.com' }),
+        }),
+      );
+    });
+
+    it('rejeita e-mail já cadastrado com outra combinação de maiúsculas', async () => {
+      prisma.profissional.findFirst.mockResolvedValue({ idProfissional: 1 });
+
+      await expect(
+        service.register({
+          email: 'Ja-Existe@Ex.com',
+          senha: 'senha12345',
+          nome: 'X',
+          cref: '000',
+        }),
+      ).rejects.toBeInstanceOf(ConflictException);
+
+      expect(prisma.profissional.findFirst).toHaveBeenCalledWith({
+        where: { email: { equals: 'ja-existe@ex.com', mode: 'insensitive' } },
+      });
     });
   });
 });

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
 import helmet from 'helmet';
 import { join } from 'path';
@@ -24,8 +25,13 @@ function resolveAllowedOrigins(): string[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
+
+  // A API roda atrás do proxy do Railway: sem isso req.ip é o IP do proxy e o
+  // ThrottlerGuard conta todos os usuários no mesmo balde. Confia só no
+  // primeiro hop (o proxy), então X-Forwarded-For não pode ser forjado.
+  app.set('trust proxy', 1);
 
   // Helmet: headers de segurança HTTP padrão (X-Content-Type-Options, HSTS, etc).
   // crossOriginResourcePolicy precisa ficar em "cross-origin" porque o frontend

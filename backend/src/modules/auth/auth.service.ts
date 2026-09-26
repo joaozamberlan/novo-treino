@@ -23,6 +23,12 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
   10,
 );
 
+// E-mail é gravado sempre em minúsculas e sem espaços nas pontas, para que
+// "Joao@x.com" e "joao@x.com" sejam a mesma conta.
+function normalizarEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,12 +37,10 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, senha, nome, cref, profissao, telefone, instagram } =
-      registerDto;
+    const { senha, nome, cref, profissao, telefone, instagram } = registerDto;
+    const email = normalizarEmail(registerDto.email);
 
-    const emailExists = await this.prisma.profissional.findUnique({
-      where: { email },
-    });
+    const emailExists = await this.buscarPorEmail(email);
 
     if (emailExists) {
       throw new ConflictException('E-mail já cadastrado');
@@ -112,12 +116,20 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, senha } = loginDto;
-
-    const profesional = await this.prisma.profissional.findUnique({
-      where: { email },
+  // Busca sem diferenciar maiúsculas: contas criadas antes da normalização
+  // podem ter o e-mail gravado com letras maiúsculas.
+  private buscarPorEmail(email: string) {
+    return this.prisma.profissional.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
     });
+  }
+
+  async login(loginDto: LoginDto) {
+    const { senha } = loginDto;
+
+    const profesional = await this.buscarPorEmail(
+      normalizarEmail(loginDto.email),
+    );
 
     // Sempre compara contra um hash — real ou "dummy" — para não revelar,
     // nem pela resposta nem pelo tempo de resposta, se o e-mail existe.

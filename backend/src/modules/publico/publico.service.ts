@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { buildProgresso } from '../treinos/progresso';
 
@@ -85,8 +86,9 @@ export class PublicoService {
   private async getTreinoExercicioDaSessao(
     idTreinoExercicio: number,
     idTreino: number,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
-    const rel = await this.prisma.treinoExercicio.findFirst({
+    const rel = await db.treinoExercicio.findFirst({
       where: { idTreinoExercicio, idTreino },
     });
     if (!rel) {
@@ -395,31 +397,36 @@ export class PublicoService {
     const aluno = await this.getAlunoPorToken(tokenAcesso);
     const sessao = await this.getSessaoDoAluno(idSessao, aluno.idAluno);
 
-    // Se exercicios com séries foram enviados no encerramento, grava todos atomicamente
-    if (exercicios && Array.isArray(exercicios) && exercicios.length > 0) {
-      for (const ex of exercicios) {
-        if (ex.series && Array.isArray(ex.series) && ex.series.length > 0) {
-          await this.salvarSeriesNaSessao(
-            sessao.idSessao,
-            sessao.idTreino,
-            ex.idTreinoExercicio,
-            ex.series,
-          );
+    // Séries enviadas no encerramento e o fechamento da sessão entram na mesma
+    // transação: ou tudo é gravado, ou a sessão continua aberta como estava.
+    const updated = await this.prisma.$transaction(
+      async (tx) => {
+        for (const ex of exercicios ?? []) {
+          if (ex.series.length > 0) {
+            await this.salvarSeriesNaSessao(
+              sessao.idSessao,
+              sessao.idTreino,
+              ex.idTreinoExercicio,
+              ex.series,
+              tx,
+            );
+          }
         }
-      }
-    }
 
-    const updated = await this.prisma.sessaoTreino.update({
-      where: { idSessao: sessao.idSessao },
-      data: {
-        concluida: true,
-        finalizadoEm: new Date(),
+        return tx.sessaoTreino.update({
+          where: { idSessao: sessao.idSessao },
+          data: {
+            concluida: true,
+            finalizadoEm: new Date(),
+          },
+          include: {
+            concluidos: true,
+            seriesRealizadas: true,
+          },
+        });
       },
-      include: {
-        concluidos: true,
-        seriesRealizadas: true,
-      },
-    });
+      { timeout: 15_000 },
+    );
 
     const totalSeriesConcluidas = updated.seriesRealizadas.filter(
       (s) => s.concluido,
@@ -560,13 +567,18 @@ export class PublicoService {
       repeticoes?: number | null;
       concluido?: boolean;
     }>,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
-    await this.getTreinoExercicioDaSessao(idTreinoExercicio, idTreinoDaSessao);
+    await this.getTreinoExercicioDaSessao(
+      idTreinoExercicio,
+      idTreinoDaSessao,
+      db,
+    );
 
     // Upsert para cada série
     const results = await Promise.all(
       series.map((s) =>
-        this.prisma.sessaoExercicioSerie.upsert({
+        db.sessaoExercicioSerie.upsert({
           where: {
             idSessao_idTreinoExercicio_numeroSerie: {
               idSessao,
@@ -615,17 +627,17 @@ export class PublicoService {
     const todasConcluidas =
       results.length > 0 && results.every((r) => r.concluido);
     if (todasConcluidas) {
-      await this.prisma.exercicioConcluido.upsert({
+      await db.exercicioConcluido.upsert({
         where: { idSessao_idTreinoExercicio: { idSessao, idTreinoExercicio } },
         update: {},
         create: { idSessao, idTreinoExercicio },
       });
     } else {
-      const existente = await this.prisma.exercicioConcluido.findUnique({
+      const existente = await db.exercicioConcluido.findUnique({
         where: { idSessao_idTreinoExercicio: { idSessao, idTreinoExercicio } },
       });
       if (existente) {
-        await this.prisma.exercicioConcluido.delete({
+        await db.exercicioConcluido.delete({
           where: { idConcluido: existente.idConcluido },
         });
       }

@@ -69,25 +69,37 @@ export class AlunosService {
     });
   }
 
-  // Gera um novo tokenAcesso e descarta o anterior — o link público antigo
-  // (e qualquer cópia dele que tenha vazado) para de funcionar imediatamente.
+  // Gera novos tokens e descarta os anteriores — tanto o tokenAcesso do aluno
+  // quanto o tokenPublico de cada periodização, já que /publico/* aceita os
+  // dois. Qualquer link antigo (e cópia vazada) para de funcionar na hora.
   async regenerateToken(idAluno: number, idProfissional: number) {
     const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
+      include: { protocolos: { select: { idProtocolo: true } } },
     });
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
     }
-    return this.prisma.aluno.update({
-      where: { idAluno },
-      data: { tokenAcesso: randomUUID() },
-      select: { idAluno: true, nome: true, tokenAcesso: true },
-    });
+    const [atualizado] = await this.prisma.$transaction([
+      this.prisma.aluno.update({
+        where: { idAluno },
+        data: { tokenAcesso: randomUUID() },
+        select: { idAluno: true, nome: true, tokenAcesso: true },
+      }),
+      ...aluno.protocolos.map((p) =>
+        this.prisma.protocoloTreino.update({
+          where: { idProtocolo: p.idProtocolo },
+          data: { tokenPublico: randomUUID() },
+        }),
+      ),
+    ]);
+    return atualizado;
   }
 
-  // Revoga o link público sem gerar um novo — /publico/* para de reconhecer
-  // esse aluno até que um novo token seja gerado (regenerateToken ou o
-  // próximo findOne/getVisaoGeralAluno, que recria automaticamente).
+  // Revoga todos os links públicos do aluno (tokenAcesso e o tokenPublico de
+  // cada periodização) sem gerar novos — /publico/* para de reconhecer esse
+  // aluno. O próximo findOne/getVisaoGeralAluno cria um tokenAcesso novo, mas
+  // os links revogados nunca voltam a valer.
   async revokeToken(idAluno: number, idProfissional: number) {
     const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
@@ -95,11 +107,18 @@ export class AlunosService {
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
     }
-    return this.prisma.aluno.update({
-      where: { idAluno },
-      data: { tokenAcesso: null },
-      select: { idAluno: true, nome: true, tokenAcesso: true },
-    });
+    const [atualizado] = await this.prisma.$transaction([
+      this.prisma.aluno.update({
+        where: { idAluno },
+        data: { tokenAcesso: null },
+        select: { idAluno: true, nome: true, tokenAcesso: true },
+      }),
+      this.prisma.protocoloTreino.updateMany({
+        where: { idAluno },
+        data: { tokenPublico: null },
+      }),
+    ]);
+    return atualizado;
   }
 
   async remove(idAluno: number, idProfissional: number) {

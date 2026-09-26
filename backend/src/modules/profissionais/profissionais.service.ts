@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -80,7 +79,22 @@ export class ProfissionaisService {
     });
   }
 
-  async updateProfessionalStatus(idProfissional: number, ativo: boolean) {
+  // O admin nunca altera o próprio status ou papel: suspender ou rebaixar a
+  // própria conta pode deixar o sistema sem nenhum SUPERADMIN.
+  private impedirAlteracaoPropria(idProfissional: number, idAdmin: number) {
+    if (idProfissional === idAdmin) {
+      throw new BadRequestException(
+        'Você não pode alterar o status ou o papel da sua própria conta.',
+      );
+    }
+  }
+
+  async updateProfessionalStatus(
+    idProfissional: number,
+    ativo: boolean,
+    idAdmin: number,
+  ) {
+    this.impedirAlteracaoPropria(idProfissional, idAdmin);
     const exists = await this.prisma.profissional.findUnique({
       where: { idProfissional },
     });
@@ -98,7 +112,12 @@ export class ProfissionaisService {
     });
   }
 
-  async updateProfessionalRole(idProfissional: number, role: string) {
+  async updateProfessionalRole(
+    idProfissional: number,
+    role: string,
+    idAdmin: number,
+  ) {
+    this.impedirAlteracaoPropria(idProfissional, idAdmin);
     const exists = await this.prisma.profissional.findUnique({
       where: { idProfissional },
     });
@@ -139,7 +158,9 @@ export class ProfissionaisService {
 
     const isMatch = await bcrypt.compare(senhaAtual, prof.senhaHash);
     if (!isMatch) {
-      throw new UnauthorizedException('A senha atual está incorreta');
+      // 400, não 401: o usuário está autenticado, só errou a senha atual — um 401
+      // faria o frontend encerrar a sessão.
+      throw new BadRequestException('A senha atual está incorreta');
     }
 
     const salt = await bcrypt.genSalt(10);

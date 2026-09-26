@@ -1,12 +1,24 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateTreinoDto {
   @IsString()
   @IsNotEmpty({ message: 'Nome da ficha é obrigatório' })
+  @MaxLength(120, {
+    message: 'O nome da ficha deve ter no máximo 120 caracteres',
+  })
   nome: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(1000, {
+    message: 'A observação deve ter no máximo 1000 caracteres',
+  })
   observacao?: string;
 
   @IsInt()

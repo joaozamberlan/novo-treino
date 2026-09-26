@@ -13,6 +13,8 @@ import {
 import { ProfissionaisService } from './profissionais.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
+import { GetProfissional } from '../auth/get-profissional.decorator';
+import type { Profissional } from '@prisma/client';
 import { AdminUpdateStatusDto } from './dto/admin-update-status.dto';
 import { AdminUpdateRoleDto } from './dto/admin-update-role.dto';
 import { AdminResetPasswordDto } from './dto/admin-reset-password.dto';
@@ -32,19 +34,29 @@ export class AdminController {
   @Patch('profissionais/:id/status')
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateStatus(
+    @GetProfissional() admin: Profissional,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AdminUpdateStatusDto,
   ) {
-    return this.profissionaisService.updateProfessionalStatus(id, dto.ativo);
+    return this.profissionaisService.updateProfessionalStatus(
+      id,
+      dto.ativo,
+      admin.idProfissional,
+    );
   }
 
   @Patch('profissionais/:id/role')
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateRole(
+    @GetProfissional() admin: Profissional,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AdminUpdateRoleDto,
   ) {
-    return this.profissionaisService.updateProfessionalRole(id, dto.role);
+    return this.profissionaisService.updateProfessionalRole(
+      id,
+      dto.role,
+      admin.idProfissional,
+    );
   }
 
   @Patch('profissionais/:id/reset-senha')

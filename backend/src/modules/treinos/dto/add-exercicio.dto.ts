@@ -1,4 +1,10 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class AddExercicioDto {
   @IsInt()
@@ -15,10 +21,12 @@ export class AddExercicioDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Repetições são obrigatórias' })
+  @MaxLength(30, { message: 'As repetições devem ter no máximo 30 caracteres' })
   repeticoes: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(30, { message: 'A carga deve ter no máximo 30 caracteres' })
   carga?: string;
 
   @IsInt()
@@ -31,6 +39,9 @@ export class AddExercicioDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(1000, {
+    message: 'A observação deve ter no máximo 1000 caracteres',
+  })
   observacao?: string;
 
   @IsInt()

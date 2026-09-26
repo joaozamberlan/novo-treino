@@ -66,6 +66,7 @@ describe('PublicoService — cadeia de posse do link público', () => {
       upsert: jest.Mock;
     };
     sessaoExercicioSerie: { upsert: jest.Mock };
+    $transaction: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -92,6 +93,8 @@ describe('PublicoService — cadeia de posse do link público', () => {
         upsert: jest.fn(),
       },
       sessaoExercicioSerie: { upsert: jest.fn() },
+      // Transação interativa: o callback recebe o próprio mock como cliente
+      $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(prisma)),
     };
 
     const module: TestingModule = await Test.createTestingModule({
