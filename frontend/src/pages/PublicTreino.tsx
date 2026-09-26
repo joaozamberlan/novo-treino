@@ -102,6 +102,8 @@ const getDiasAtras = (dateStr: string) => {
   }
 };
 
+const fimDoDescanso = (segundos: number) => Date.now() + segundos * 1000;
+
 // iPadOS 13+ se identifica como Mac; o toque múltiplo o distingue de um Mac de verdade.
 const isIosDevice = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -439,6 +441,10 @@ export const PublicTreino: React.FC = () => {
   const [timerDuration, setTimerDuration] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState(false);
+  // Instante em que o descanso acaba. O restante é recalculado a partir dele:
+  // com a tela bloqueada o iOS pausa o setInterval, e um contador que só
+  // decrementa voltava atrasado.
+  const timerEndRef = useRef(0);
 
   // O manifest global tem start_url "/" (área do treinador, exige login).
   // - iOS: o aluno não tem PWA (o atalho do Safari abria a raiz e caía no login), então
@@ -508,9 +514,14 @@ export const PublicTreino: React.FC = () => {
   useEffect(() => {
     let interval: any;
     if (timerRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
+      const tick = () => setTimeLeft(Math.max(0, Math.ceil((timerEndRef.current - Date.now()) / 1000)));
+      interval = setInterval(tick, 1000);
+      // Ao voltar para a aba/desbloquear, corrige na hora em vez de esperar o próximo tick.
+      document.addEventListener('visibilitychange', tick);
+      return () => {
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', tick);
+      };
     } else if (timeLeft === 0 && timerRunning) {
       setTimerRunning(false);
       setTimerDuration(null);
@@ -537,6 +548,7 @@ export const PublicTreino: React.FC = () => {
   }, [timerRunning, timeLeft]);
 
   const startTimer = (seconds: number) => {
+    timerEndRef.current = fimDoDescanso(seconds);
     setTimeLeft(seconds);
     setTimerDuration(seconds);
     setTimerRunning(true);
@@ -1366,7 +1378,7 @@ export const PublicTreino: React.FC = () => {
             <button 
               onClick={stopTimer} 
               className="btn btn-secondary btn-sm"
-              style={{ height: '34px', minWidth: '44px', fontSize: '0.75rem', fontWeight: 600 }}
+              style={{ height: '44px', minWidth: '56px', fontSize: '0.8rem', fontWeight: 600 }}
               aria-label="Finalizar tempo de descanso"
             >
               Pular

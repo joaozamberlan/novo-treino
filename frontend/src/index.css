@@ -882,7 +882,9 @@ select.form-input {
   cursor: pointer;
   border: 1px solid transparent;
   border-radius: var(--radius-s);
-  transition: all 140ms var(--ease-out);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease-out);
   background: transparent;
   display: inline-flex;
   align-items: center;
@@ -897,9 +899,11 @@ select.form-input {
   transform: scale(0.97);
 }
 
-.ficha-tab:hover {
-  color: var(--text-0);
-  background: var(--bg-3);
+@media (hover: hover) and (pointer: fine) {
+  .ficha-tab:hover {
+    color: var(--text-0);
+    background: var(--bg-3);
+  }
 }
 
 .ficha-tab.active {
@@ -1058,8 +1062,10 @@ body.light-theme .ficha-tab.active {
   -webkit-tap-highlight-color: transparent;
 }
 
-.exercise-tactile-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
+@media (hover: hover) and (pointer: fine) {
+  .exercise-tactile-card:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
 }
 
 .exercise-tactile-card.completed {
@@ -1157,7 +1163,9 @@ body.light-theme .exercise-tactile-card.completed {
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-m);
-  transition: all 160ms var(--ease-spring);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-spring);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1249,13 +1257,17 @@ body.light-theme .exercise-tactile-card.completed {
   font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 140ms var(--ease-out);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease-out);
 }
 
-.set-repeat-prev-btn:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: var(--accent-border);
+@media (hover: hover) and (pointer: fine) {
+  .set-repeat-prev-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent-border);
+  }
 }
 
 .set-repeat-prev-btn:active {
@@ -1351,9 +1363,11 @@ body.light-theme .exercise-tactile-card.completed {
   user-select: none;
 }
 
-.set-check-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+@media (hover: hover) and (pointer: fine) {
+  .set-check-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 
 .set-check-btn:active {
@@ -1467,8 +1481,12 @@ body.light-theme .exercise-tactile-card.completed {
 .floating-rest-timer {
   position: fixed;
   bottom: max(1rem, calc(var(--sab) + 0.75rem));
-  left: 50%;
-  transform: translateX(-50%);
+  /* Centralizado por margem, não por translateX(-50%): o keyframe slideUp
+     (fill forwards) substitui o transform inteiro e empurrava o timer para a
+     direita, metade fora da tela do celular. */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   width: calc(100% - 2rem);
   max-width: 540px;
   height: 60px;
@@ -2754,15 +2772,6 @@ body.light-theme {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
@@ -3386,12 +3395,6 @@ body.light-theme .mobile-tab-bar {
 .stagger-4 { animation: slideUp 280ms 165ms var(--ease-out) both; }
 .stagger-5 { animation: slideUp 280ms 220ms var(--ease-out) both; }
 
-@media (prefers-reduced-motion: reduce) {
-  .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5 {
-    animation: none;
-  }
-}
-
 /* ── Page Header ────────────────────────────────────────────────────────── */
 
 .page-header {
@@ -3585,21 +3588,28 @@ body.light-theme .mobile-tab-bar {
 
 /* ── Global Reduced Motion (Accessibility & Vercel Guidelines) ────────── */
 
+/* Reduzir movimento não é remover feedback: entradas que deslizam ou
+   escalam viram um cross-fade curto, e as transições de cor/opacidade
+   continuam. Spinners de carregamento seguem girando — são status, não
+   decoração. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 
   .floating-rest-timer,
   .modal-content,
-  .exercise-check-btn,
+  .action-menu-list,
+  .field-error,
+  .auth-error,
   .check-pop-icon,
   .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5 {
+    animation: fadeIn 160ms var(--ease-out) both !important;
+  }
+
+  .animate-pulse,
+  .skeleton {
     animation: none !important;
-    transform: none !important;
   }
 }
 
@@ -3910,7 +3920,9 @@ body.light-theme .mobile-tab-bar {
   padding: 0 1rem;
   font-size: 0.875rem;
   outline: none;
-  transition: all 140ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease);
 }
 
 .login-input-wrap .form-input:focus {
@@ -3956,7 +3968,9 @@ body.light-theme .mobile-tab-bar {
   gap: 0.5rem;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(207, 52, 39, 0.35);
-  transition: all 140ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease);
   margin-top: 0.75rem;
 }
 
@@ -4073,7 +4087,9 @@ body.light-theme .mobile-tab-bar {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-l);
   padding: 0.35rem 1.15rem;
-  transition: all 160ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease);
   box-shadow: 0 4px 20px -5px rgba(0,0,0,0.25);
 }
 
@@ -4182,7 +4198,9 @@ body.light-theme .mobile-tab-bar {
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: all 180ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
 }
 
 .hub-card::before {
@@ -4273,7 +4291,9 @@ body.light-theme .mobile-tab-bar {
   gap: 0.45rem;
   cursor: pointer;
   text-decoration: none;
-  transition: all 140ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease);
   box-shadow: 0 2px 8px rgba(207, 52, 39, 0.28);
 }
 
@@ -4295,7 +4315,9 @@ body.light-theme .mobile-tab-bar {
   align-items: center;
   gap: 0.4rem;
   cursor: pointer;
-  transition: all 140ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease);
 }
 
 .btn-hub-subtle:hover {
@@ -4356,7 +4378,9 @@ body.light-theme .mobile-tab-bar {
   justify-content: space-between;
   gap: 0.75rem;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: ease;
   text-decoration: none;
 }
 
@@ -4662,10 +4686,6 @@ body.light-theme .mobile-tab-bar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .action-menu-list {
-    animation: none;
-  }
-
   .proto-card {
     transition: none;
   }
@@ -4844,7 +4864,9 @@ body.light-theme .mobile-tab-bar {
   gap: 0.45rem;
   cursor: pointer;
   text-decoration: none;
-  transition: all 140ms var(--ease);
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 140ms;
+  transition-timing-function: var(--ease);
 }
 
 .btn-hub-outline:hover {
