@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import type { ProtocoloResumo } from '../types/treino';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { Breadcrumb } from '../components/Breadcrumb';
@@ -18,14 +19,8 @@ interface Aluno {
   tokenAcesso?: string | null;
 }
 
-interface Protocolo {
-  idProtocolo: number;
-  nome: string;
-  objetivo?: string;
-  dataInicio?: string;
-  dataFim?: string;
-  ativo: boolean;
-  tokenPublico?: string | null;
+// Resumo da periodização com as contagens que a listagem devolve
+interface Protocolo extends ProtocoloResumo {
   totalFichas?: number;
   totalExercicios?: number;
 }
@@ -732,6 +727,7 @@ export const Periodizacoes: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Hipertrofia 12 sem."
                   value={protoNome}
+                  maxLength={120}
                   onChange={(e) => setProtoNome(e.target.value)}
                   autoFocus
                   required
@@ -745,6 +741,7 @@ export const Periodizacoes: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Ganho de massa magra"
                   value={protoObjetivo}
+                  maxLength={500}
                   onChange={(e) => setProtoObjetivo(e.target.value)}
                 />
               </div>

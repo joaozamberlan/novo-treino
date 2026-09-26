@@ -177,6 +177,7 @@ export const Register: React.FC = () => {
                   className={`form-input ${nomeField.inputClass}`}
                   placeholder="Ex: Prof. João Silva"
                   value={nomeField.value}
+                  maxLength={120}
                   onChange={nomeField.onChange}
                   onBlur={nomeField.onBlur}
                   autoComplete="name"
@@ -196,6 +197,7 @@ export const Register: React.FC = () => {
                   className={`form-input ${emailField.inputClass}`}
                   placeholder="treinador@exemplo.com"
                   value={emailField.value}
+                  maxLength={254}
                   onChange={emailField.onChange}
                   onBlur={emailField.onBlur}
                   autoComplete="email"
@@ -215,6 +217,7 @@ export const Register: React.FC = () => {
                   className={`form-input ${senhaField.inputClass}`}
                   placeholder="Mínimo 6 caracteres"
                   value={senhaField.value}
+                  maxLength={72}
                   onChange={senhaField.onChange}
                   onBlur={senhaField.onBlur}
                   autoComplete="new-password"
@@ -262,6 +265,7 @@ export const Register: React.FC = () => {
                     className="form-input"
                     placeholder="Personal Trainer"
                     value={profissao}
+                    maxLength={80}
                     onChange={(e) => setProfissao(e.target.value)}
                     required
                   />
@@ -283,6 +287,7 @@ export const Register: React.FC = () => {
                     className="form-input"
                     placeholder="(00) 90000-0000"
                     value={telefone}
+                    maxLength={30}
                     onChange={(e) => setTelefone(e.target.value)}
                   />
                 </div>
@@ -299,6 +304,7 @@ export const Register: React.FC = () => {
                     className="form-input"
                     placeholder="@seuperfil"
                     value={instagram}
+                    maxLength={100}
                     onChange={(e) => setInstagram(e.target.value)}
                   />
                 </div>

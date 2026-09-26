@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MotionConfig } from 'motion/react';
 import { Toaster } from 'sonner';
@@ -7,7 +7,6 @@ import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { PublicTreino } from './pages/PublicTreino';
-import { ExerciseCardPrototype } from './pages/prototypes/ExerciseCardPrototype';
 import { Alunos } from './pages/Alunos';
 import { Home } from './pages/Home';
 import { Periodizacoes } from './pages/Periodizacoes';
@@ -18,6 +17,11 @@ import { Configuracoes } from './pages/Configuracoes';
 import { useMobileViewportFix } from './hooks/useMobileViewportFix';
 import { LAST_PUBLIC_TOKEN_KEY } from './constants/storageKeys';
 import './App.css';
+
+// Protótipos só existem em desenvolvimento; fora do `vite dev` a rota nem é registrada
+const ExerciseCardPrototype = import.meta.env.DEV
+  ? lazy(() => import('./pages/prototypes/ExerciseCardPrototype').then((m) => ({ default: m.ExerciseCardPrototype })))
+  : null;
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signed, loading } = useAuth();
@@ -58,7 +62,12 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/v/:token" element={<PublicTreino />} />
-            <Route path="/prototypes/exercise-card" element={<ExerciseCardPrototype />} />
+            {ExerciseCardPrototype && (
+              <Route
+                path="/prototypes/exercise-card"
+                element={<Suspense fallback={null}><ExerciseCardPrototype /></Suspense>}
+              />
+            )}
 
             {/* Protected Routes */}
             <Route

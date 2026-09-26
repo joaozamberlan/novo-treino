@@ -486,6 +486,7 @@ const AdminPanel: React.FC = () => {
                   type="text"
                   className="form-input"
                   value={newTempPassword}
+                  maxLength={72}
                   onChange={(e) => setNewTempPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
                   style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, letterSpacing: '0.05em' }}

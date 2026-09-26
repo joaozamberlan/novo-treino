@@ -152,6 +152,7 @@ export const Login: React.FC = () => {
                   className={`form-input ${emailField.inputClass}`}
                   placeholder="exemplo@treinador.com"
                   value={emailField.value}
+                  maxLength={254}
                   onChange={emailField.onChange}
                   onBlur={emailField.onBlur}
                   autoComplete="email"
@@ -192,6 +193,7 @@ export const Login: React.FC = () => {
                   className={`form-input ${senhaField.inputClass}`}
                   placeholder="••••••••"
                   value={senhaField.value}
+                  maxLength={200}
                   onChange={senhaField.onChange}
                   onBlur={senhaField.onBlur}
                   autoComplete="current-password"

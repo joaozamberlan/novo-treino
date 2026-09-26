@@ -12,6 +12,7 @@ interface Props {
   instrucoes: Instrucao[];
   onSave: (texto: string) => Promise<void> | void;
   placeholder?: string;
+  maxLength?: number;
 }
 
 const normalize = (s: string) =>
@@ -27,6 +28,7 @@ export const InstrucaoAutocomplete: React.FC<Props> = ({
   instrucoes,
   onSave,
   placeholder,
+  maxLength,
 }) => {
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -89,6 +91,7 @@ export const InstrucaoAutocomplete: React.FC<Props> = ({
         className="form-input"
         value={value}
         placeholder={placeholder}
+        maxLength={maxLength}
         autoComplete="off"
         role="combobox"
         aria-expanded={visible}

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { toast } from 'sonner';
+import api, { setOnUnauthorized } from '../services/api';
+import { memoryCache } from '../services/cache';
 
 interface Profissional {
   idProfissional: number;
@@ -56,6 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const response = await api.post('/auth/login', { email, senha });
     const { accessToken, profissional } = response.data;
 
+    // Nada do cache de uma conta anterior pode aparecer para a nova
+    memoryCache.clear();
     localStorage.setItem('@TreinosApp:token', accessToken);
     localStorage.setItem('@TreinosApp:user', JSON.stringify(profissional));
 
@@ -69,8 +73,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('@TreinosApp:token');
     localStorage.removeItem('@TreinosApp:user');
+    memoryCache.clear();
     setUser(null);
   };
+
+  // Token expirado ou conta desativada: o servidor responde 401 e o app volta
+  // para o login em vez de continuar "logado" com todas as chamadas falhando.
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      if (!localStorage.getItem('@TreinosApp:token')) return;
+      logout();
+      toast.error('Sua sessão expirou. Entre novamente.', { id: 'sessao-expirada' });
+    });
+    return () => setOnUnauthorized(null);
+  }, []);
 
   const updateUser = (updatedUser: Partial<Profissional>) => {
     if (user) {

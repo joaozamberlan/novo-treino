@@ -1405,6 +1405,63 @@ body.light-theme .exercise-tactile-card.completed {
   }
 }
 
+/* ── Aviso de séries não salvas (link do aluno) ───────────────────────── */
+
+.sync-pendente-aviso {
+  position: fixed;
+  top: max(0.75rem, calc(var(--sat) + 0.5rem));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  background: var(--bg-1);
+  color: var(--text-0);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-m);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  z-index: 210;
+  animation: fadeIn 200ms var(--ease-out);
+}
+
+.sync-pendente-aviso > svg {
+  flex-shrink: 0;
+  color: var(--warning);
+}
+
+.sync-pendente-aviso > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.sync-pendente-aviso button {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--text-0);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.sync-pendente-aviso button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+
+.sync-pendente-aviso button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ── Floating Rest Timer (Apple Material + Dynamic Physics) ───────────── */
 
 .floating-rest-timer {

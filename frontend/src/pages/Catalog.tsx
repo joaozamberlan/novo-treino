@@ -7,31 +7,8 @@ import {
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { toast } from 'sonner';
-
-interface GrupoMuscular {
-  idGrupoMuscular: number;
-  nome: string;
-}
-
-interface Exercicio {
-  idExercicio: number;
-  nome: string;
-  descricao?: string;
-  videoUrl?: string;
-  idGrupoMuscular: number;
-  grupoMuscular: GrupoMuscular;
-}
-
-interface TecnicaTreino {
-  idTecnica: number;
-  nome: string;
-  descricao?: string;
-}
-
-interface Instrucao {
-  idInstrucao: number;
-  texto: string;
-}
+import type { GrupoMuscular, Exercicio, TecnicaTreino } from '../types/treino';
+import type { Instrucao } from '../components/InstrucaoAutocomplete';
 
 export const Catalog: React.FC = () => {
   const location = useLocation();
@@ -878,6 +855,7 @@ export const Catalog: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Supino Reto com Barra"
                   value={exNome}
+                  maxLength={120}
                   onChange={(e) => setExNome(e.target.value)}
                   autoFocus
                   required
@@ -905,6 +883,7 @@ export const Catalog: React.FC = () => {
                       className="form-input"
                       placeholder="Nome do novo grupo..."
                       value={newGrupoNome}
+                      maxLength={80}
                       onChange={(e) => setNewGrupoNome(e.target.value)}
                       style={{ flex: 1 }}
                       autoFocus
@@ -957,6 +936,7 @@ export const Catalog: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Escápulas aduzidas, descer até a linha do peito"
                   value={exDesc}
+                  maxLength={1000}
                   onChange={(e) => setExDesc(e.target.value)}
                 />
               </div>
@@ -969,6 +949,7 @@ export const Catalog: React.FC = () => {
                   className="form-input"
                   placeholder="https://youtube.com/watch?v=..."
                   value={exVideo}
+                  maxLength={500}
                   onChange={(e) => setExVideo(e.target.value)}
                 />
               </div>
@@ -1035,6 +1016,7 @@ export const Catalog: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Rest-Pause, Drop-set, Ponto Zero"
                   value={tecNome}
+                  maxLength={80}
                   onChange={(e) => setTecNome(e.target.value)}
                   autoFocus
                   required
@@ -1049,6 +1031,7 @@ export const Catalog: React.FC = () => {
                   rows={3}
                   placeholder="Ex: Descansar de 10 a 15 segundos e continuar até nova falha concêntrica."
                   value={tecDesc}
+                  maxLength={500}
                   onChange={(e) => setTecDesc(e.target.value)}
                 />
               </div>
@@ -1173,6 +1156,7 @@ export const Catalog: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Quadríceps, Peitoral, Dorsal"
                   value={grupoTabNome}
+                  maxLength={80}
                   onChange={(e) => setGrupoTabNome(e.target.value)}
                   autoFocus
                   required

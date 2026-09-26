@@ -411,6 +411,7 @@ export const Alunos: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Lucas Silva"
                   value={nome}
+                  maxLength={120}
                   onChange={(e) => setNome(e.target.value)}
                   autoFocus
                   required
@@ -425,6 +426,7 @@ export const Alunos: React.FC = () => {
                   className="form-input"
                   placeholder="lucas@exemplo.com"
                   value={email}
+                  maxLength={254}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
@@ -437,6 +439,7 @@ export const Alunos: React.FC = () => {
                   className="form-input"
                   placeholder="(00) 90000-0000"
                   value={telefone}
+                  maxLength={30}
                   onChange={(e) => setTelefone(e.target.value)}
                 />
               </div>
@@ -506,6 +509,7 @@ export const Alunos: React.FC = () => {
                   type="text"
                   className="form-input"
                   value={editNome}
+                  maxLength={120}
                   onChange={(e) => setEditNome(e.target.value)}
                   autoFocus
                   required
@@ -518,6 +522,7 @@ export const Alunos: React.FC = () => {
                   type="email"
                   className="form-input"
                   value={editEmail}
+                  maxLength={254}
                   onChange={(e) => setEditEmail(e.target.value)}
                 />
               </div>
@@ -528,6 +533,7 @@ export const Alunos: React.FC = () => {
                   type="tel"
                   className="form-input"
                   value={editTelefone}
+                  maxLength={30}
                   onChange={(e) => setEditTelefone(e.target.value)}
                 />
               </div>

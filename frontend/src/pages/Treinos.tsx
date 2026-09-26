@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PainelProgresso } from '../components/Progresso';
 import type { Progresso } from '../utils/progresso';
-import { RodapeTreino } from '../components/RodapeTreino';
-import { rodapeEfetivo } from '../utils/rodape';
-import { TabelaProgressao } from '../components/TabelaProgressao';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Reorder, useDragControls } from 'motion/react';
@@ -18,57 +15,9 @@ import {
 import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
-
-interface GrupoMuscular {
-  idGrupoMuscular: number;
-  nome: string;
-}
-
-interface Exercicio {
-  idExercicio: number;
-  nome: string;
-  idGrupoMuscular: number;
-  grupoMuscular: GrupoMuscular;
-}
-
-interface TecnicaTreino {
-  idTecnica: number;
-  nome: string;
-  descricao?: string;
-}
-
-interface PrescribedExercise {
-  idTreinoExercicio: number;
-  series: number;
-  repeticoes: string;
-  carga?: string;
-  descansoSegundos?: number;
-  descansoMaxSegundos?: number;
-  observacao?: string;
-  ordem: number;
-  exercicio: Exercicio;
-  tecnica?: TecnicaTreino;
-}
-
-interface FichaTreino {
-  idTreino: number;
-  nome: string;
-  observacao?: string;
-  rodape?: string | null;
-  ordem: number;
-  exercicios: PrescribedExercise[];
-}
-
-interface Protocolo {
-  idProtocolo: number;
-  nome: string;
-  objetivo?: string;
-  dataInicio?: string;
-  dataFim?: string;
-  ativo: boolean;
-  tokenPublico?: string | null;
-  treinos: FichaTreino[];
-}
+import { FichaPdf } from '../components/FichaPdf';
+import { baixarPdfDoTreino } from '../utils/pdf';
+import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 
 interface Aluno {
   idAluno: number;
@@ -253,60 +202,7 @@ export const Treinos: React.FC = () => {
 
   const handleTriggerPrint = () => {
     setShowPrintModal(false);
-
-    setTimeout(async () => {
-      const element = document.getElementById('print-section');
-      if (!element) return;
-
-      const toastId = toast.loading('Gerando PDF...');
-
-      // Lift the existing @media print rules onto the live page (instead of
-      // only inside html2canvas's clone) so the print-only content is
-      // actually visible and correctly sized before html2canvas measures it.
-      const printCss = Array.from(document.styleSheets)
-        .flatMap((sheet) => {
-          try {
-            return Array.from(sheet.cssRules);
-          } catch {
-            return [];
-          }
-        })
-        .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.media.mediaText.includes('print'))
-        .flatMap((rule) => Array.from(rule.cssRules))
-        .map((rule) => rule.cssText)
-        .join('\n');
-
-      const styleTag = document.createElement('style');
-      styleTag.textContent = printCss;
-      document.head.appendChild(styleTag);
-
-      try {
-        const html2pdf = (await import('html2pdf.js')).default;
-
-        const fileName = `Treino-${(aluno?.nome || 'aluno').replace(/[^a-zA-Z0-9]+/g, '-')}.pdf`;
-
-        const pdfOptions = {
-          margin: [10, 12, 12, 12] as [number, number, number, number],
-          filename: fileName,
-          image: { type: 'jpeg' as const, quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, windowWidth: 794 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-          pagebreak: { mode: ['css', 'legacy'] },
-        };
-
-        await html2pdf()
-          .set(pdfOptions)
-          .from(element)
-          .save();
-
-        toast.success('PDF gerado com sucesso!', { id: toastId });
-      } catch (err) {
-        console.error(err);
-        toast.error('Erro ao gerar o PDF. Tente novamente.', { id: toastId });
-      } finally {
-        styleTag.remove();
-      }
-    }, 150);
+    baixarPdfDoTreino(aluno?.nome);
   };
 
   // Close modals on Escape key
@@ -942,14 +838,6 @@ export const Treinos: React.FC = () => {
     ? [currentFicha] 
     : sortedTreinos;
 
-  const totalSeriesProtocolo = activeProtocol?.treinos.reduce((acc, t) => 
-    acc + (t.exercicios?.reduce((sAcc, e) => sAcc + (Number(e.series) || 0), 0) || 0)
-  , 0) || 0;
-
-  const totalExerciciosProtocolo = activeProtocol?.treinos.reduce((acc, t) =>
-    acc + (t.exercicios?.length || 0)
-  , 0) || 0;
-
   const volumeSemanalPorGrupo = (() => {
     const acc: Record<string, number> = {};
     activeProtocol?.treinos.forEach((t) => {
@@ -960,19 +848,6 @@ export const Treinos: React.FC = () => {
     });
     return Object.entries(acc).sort((a, b) => b[1] - a[1]);
   })();
-
-  const formatPrintDate = (dateStr?: string) => {
-    if (!dateStr) return null;
-    try {
-      const parts = dateStr.split('T')[0].split('-');
-      if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-      return new Date(dateStr).toLocaleDateString('pt-BR');
-    } catch {
-      return dateStr;
-    }
-  };
 
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -1259,225 +1134,14 @@ export const Treinos: React.FC = () => {
       {/* PRINT VIEW FOR WINDOW.PRINT() / SALVAR COMO PDF */}
       {/* ========================================================================= */}
       {activeProtocol && aluno && (
-        <div id="print-section" className="print-only">
-          <div className="print-document">
-            {/* Red accent bar */}
-            <div className="print-accent-bar" />
-
-            {/* Document Header */}
-            <header className="print-header">
-              <div className="print-header-brand">
-                {user?.logoUrl ? (
-                  <img src={user.logoUrl} alt="Logo Profissional" className="print-logo" />
-                ) : (
-                  <div className="print-brand-badge">
-                    <div className="print-brand-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="print-brand-title">TREINOS // APP</div>
-                      <div className="print-brand-sub">PRESCRIÇÃO & CIÊNCIA DO TREINAMENTO</div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="print-trainer-details">
-                  <h1 className="print-trainer-name">{user?.nome || 'Personal Trainer'}</h1>
-                  <div className="print-trainer-cref">
-                    <span className="print-tag-pill">CREF: {user?.cref || 'REGISTRADO'}</span>
-                    <span className="print-trainer-role">{user?.profissao || 'Profissional de Educação Física'}</span>
-                  </div>
-                  <div className="print-trainer-contacts">
-                    {user?.telefone && (
-                      <span className="print-contact-item"><strong>WhatsApp:</strong> {user.telefone}</span>
-                    )}
-                    {user?.instagram && (
-                      <span className="print-contact-item"><strong>Instagram:</strong> @{user.instagram.replace('@', '')}</span>
-                    )}
-                    {user?.email && (
-                      <span className="print-contact-item"><strong>Email:</strong> {user.email}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="print-header-stamp">
-                <div className="print-stamp-title">BACKUP DIGITAL OFFLINE</div>
-                <div className="print-stamp-item">
-                  <span className="print-stamp-label">PROTOCOLO:</span>
-                  <span className="print-stamp-value">#{String(activeProtocol.idProtocolo).padStart(4, '0')}</span>
-                </div>
-              </div>
-            </header>
-
-            {/* Protocol & Student Metadata Card */}
-            <div className="print-meta-card">
-              <div className="print-meta-cell">
-                <span className="print-meta-label">ALUNO // PRONTUÁRIO</span>
-                <span className="print-meta-val-primary">{aluno.nome}</span>
-                {aluno.email && (
-                  <span className="print-meta-val-secondary">{aluno.email}</span>
-                )}
-              </div>
-
-              <div className="print-meta-cell">
-                <span className="print-meta-label">PROGRAMA // CICLO</span>
-                <span className="print-meta-val-primary">{activeProtocol.nome}</span>
-                <span className="print-meta-val-secondary">
-                  {activeProtocol.objetivo || 'Prescrição Técnica Geral'}
-                </span>
-              </div>
-
-              <div className="print-meta-cell">
-                <span className="print-meta-label">PERIODIZAÇÃO</span>
-                <span className="print-meta-val-primary">
-                  {formatPrintDate(activeProtocol.dataInicio) || 'Início Imediato'}
-                  {activeProtocol.dataFim ? ` → ${formatPrintDate(activeProtocol.dataFim)}` : ' (Contínuo)'}
-                </span>
-                <span className="print-meta-val-secondary">
-                  {activeProtocol.treinos.length} divisões cadastradas
-                </span>
-              </div>
-
-              <div className="print-meta-cell">
-                <span className="print-meta-label">VOLUME TOTAL</span>
-                <span className="print-meta-val-primary">{totalSeriesProtocolo} Séries Totais</span>
-                <span className="print-meta-val-secondary">
-                  {totalExerciciosProtocolo} Exercícios no Ciclo
-                </span>
-              </div>
-            </div>
-
-            {/* Workout Fichas */}
-            {treinosToPrint.map((treino, idx) => {
-              const isLast = idx === treinosToPrint.length - 1;
-              const shouldBreakPage = printPagePerFicha && !isLast;
-              const totalFichaSeries = treino.exercicios?.reduce((acc, e) => acc + (Number(e.series) || 0), 0) || 0;
-              const fichaLetra = String.fromCharCode(65 + (treino.ordem ? treino.ordem - 1 : idx));
-
-              return (
-                <div 
-                  key={treino.idTreino} 
-                  className={`print-treino-block ${shouldBreakPage ? 'print-page-break' : ''}`}
-                >
-                  <div className="print-treino-header">
-                    <div className="print-treino-title-wrap">
-                      <span className="print-treino-badge">FICHA {fichaLetra}</span>
-                      <h2 className="print-treino-title">{treino.nome}</h2>
-                    </div>
-                    <div className="print-treino-meta">
-                      <span>{treino.exercicios?.length || 0} EXERCÍCIOS</span>
-                      <span>•</span>
-                      <span>{totalFichaSeries} SÉRIES TOTAIS</span>
-                    </div>
-                  </div>
-
-                  {treino.observacao && (
-                    <div className="print-treino-callout">
-                      <strong>ORIENTAÇÃO DA FICHA:</strong> {treino.observacao}
-                    </div>
-                  )}
-
-                  <table className="print-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '32px', textAlign: 'center' }}>#</th>
-                        <th style={{ width: '34%' }}>EXERCÍCIO & GRUPO</th>
-                        <th style={{ width: '48px', textAlign: 'center' }}>SÉRIES</th>
-                        <th style={{ width: '68px', textAlign: 'center' }}>REPS</th>
-                        <th style={{ width: '64px', textAlign: 'center' }}>PAUSA</th>
-                        <th>TÉCNICA & ORIENTAÇÕES</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {treino.exercicios && treino.exercicios.length > 0 ? (
-                        treino.exercicios.map((item, exIdx) => (
-                          <tr key={item.idTreinoExercicio}>
-                            <td className="print-td-num">{String(exIdx + 1).padStart(2, '0')}</td>
-                            <td>
-                              <div className="print-exercise-name">{item.exercicio.nome}</div>
-                              <div className="print-exercise-group">{item.exercicio.grupoMuscular?.nome?.toUpperCase()}</div>
-                            </td>
-                            <td className="print-td-series">{item.series}</td>
-                            <td className="print-td-reps">{item.repeticoes}</td>
-                            <td className="print-td-descanso">
-                              {formatDescanso(item.descansoSegundos || 60, item.descansoMaxSegundos)}
-                            </td>
-                            <td>
-                              {item.tecnica && (
-                                <span className="print-tecnica-tag">[{item.tecnica.nome.toUpperCase()}]</span>
-                              )}
-                              <span className="print-obs-text">{item.observacao || '—'}</span>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={6} style={{ textAlign: 'center', padding: '1.2rem', color: '#6b7280' }}>
-                            Nenhum exercício prescrito nesta divisão.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  {printGuidelines && (
-                    <RodapeTreino texto={rodapeEfetivo(treino.rodape, user?.rodapeTreino)} variant="print" />
-                  )}
-                </div>
-              );
-            })}
-
-            <TabelaProgressao variant="print" />
-
-            {/* Weekly volume by muscle group — extra summary page */}
-            {volumeSemanalPorGrupo.length > 0 && (
-              <div className="print-volume-page">
-                <div className="print-treino-header">
-                  <div className="print-treino-title-wrap">
-                    <span className="print-treino-badge">RESUMO</span>
-                    <h2 className="print-treino-title">Volume Semanal por Grupo Muscular</h2>
-                  </div>
-                </div>
-                <p className="print-volume-subtitle">
-                  Total de séries prescritas por grupo muscular somando todas as fichas do protocolo — referência de distribuição de volume ao longo da semana.
-                </p>
-                <div className="print-volume-list">
-                  {volumeSemanalPorGrupo.map(([grupo, series]) => {
-                    const max = volumeSemanalPorGrupo[0][1];
-                    const pct = max > 0 ? Math.max((series / max) * 100, 6) : 0;
-                    return (
-                      <div className="print-volume-row" key={grupo}>
-                        <span className="print-volume-group-name">{grupo}</span>
-                        <div className="print-volume-bar-track">
-                          <div className="print-volume-bar-fill" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="print-volume-count">{series} séries</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Digital Offline Footer */}
-            <footer className="print-footer">
-              <div className="print-footer-left">
-                <div className="print-footer-brand">
-                  <strong>TreinosApp</strong> • Prescrição Técnica Digital
-                </div>
-                <div className="print-footer-legal">
-                  Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {user?.nome || 'Personal Trainer'}</strong> (CREF: {user?.cref || '—'})
-                </div>
-              </div>
-
-              <div className="print-footer-right">
-                <span className="print-footer-badge">VERSÃO OFFLINE // BACKUP</span>
-              </div>
-            </footer>
-          </div>
-        </div>
+        <FichaPdf
+          profissional={user}
+          aluno={aluno}
+          protocolo={activeProtocol}
+          fichas={treinosToPrint}
+          paginaPorFicha={printPagePerFicha}
+          mostrarRodape={printGuidelines}
+        />
       )}
 
       {/* ========================================================================= */}
@@ -1528,6 +1192,7 @@ export const Treinos: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Treino A - Superior, PUSH, Peito e Tríceps"
                   value={treinoNome}
+                  maxLength={120}
                   onChange={(e) => setTreinoNome(e.target.value)}
                   autoFocus
                   required
@@ -1542,6 +1207,7 @@ export const Treinos: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Foco em deltoide anterior e peitoral superior"
                   value={treinoObs}
+                  maxLength={1000}
                   onChange={(e) => setTreinoObs(e.target.value)}
                 />
               </div>
@@ -1607,6 +1273,7 @@ export const Treinos: React.FC = () => {
                   type="text"
                   className="form-input"
                   value={editFichaNome}
+                  maxLength={120}
                   onChange={(e) => setEditFichaNome(e.target.value)}
                   autoFocus
                   required
@@ -1621,6 +1288,7 @@ export const Treinos: React.FC = () => {
                   className="form-input"
                   placeholder="Ex: Aquecimento articular prévio obrigatório"
                   value={editFichaObs}
+                  maxLength={1000}
                   onChange={(e) => setEditFichaObs(e.target.value)}
                 />
               </div>
@@ -1763,6 +1431,7 @@ export const Treinos: React.FC = () => {
                     type="text"
                     className="form-input"
                     value={exReps}
+                    maxLength={30}
                     onChange={(e) => setExReps(e.target.value)}
                     placeholder="Ex: 8-12 ou 10"
                     required
@@ -1804,6 +1473,7 @@ export const Treinos: React.FC = () => {
                   instrucoes={catalogInstrucoes}
                   onSave={handleSaveInstrucao}
                   placeholder="Ex: Buscar a falha (comece a digitar para ver sugestões)"
+                  maxLength={1000}
                 />
               </div>
 

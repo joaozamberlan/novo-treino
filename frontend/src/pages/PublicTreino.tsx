@@ -5,9 +5,12 @@ import { RodapeTreino } from '../components/RodapeTreino';
 import { rodapeEfetivo } from '../utils/rodape';
 import { TabelaProgressao } from '../components/TabelaProgressao';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 import api from '../services/api';
+import { toast } from 'sonner';
 import { formatDescanso } from '../utils/descanso';
+import { FichaPdf } from '../components/FichaPdf';
+import { baixarPdfDoTreino } from '../utils/pdf';
+import type { PrescribedExercise, Protocolo } from '../types/treino';
 import {
   Award, Phone, Video, FileText,
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
@@ -36,48 +39,6 @@ const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-interface GrupoMuscular {
-  nome: string;
-}
-
-interface Exercicio {
-  nome: string;
-  videoUrl?: string;
-  grupoMuscular: GrupoMuscular;
-}
-
-interface TecnicaTreino {
-  nome: string;
-  descricao?: string;
-}
-
-interface PrescribedExercise {
-  idTreinoExercicio: number;
-  series: number;
-  repeticoes: string;
-  carga?: string;
-  descansoSegundos?: number;
-  descansoMaxSegundos?: number;
-  observacao?: string;
-  exercicio: Exercicio;
-  tecnica?: TecnicaTreino;
-}
-
-interface FichaTreino {
-  idTreino: number;
-  nome: string;
-  observacao?: string;
-  rodape?: string | null;
-  ordem: number;
-  exercicios: PrescribedExercise[];
-}
-
-interface Protocolo {
-  idProtocolo: number;
-  nome: string;
-  objetivo?: string;
-}
-
 interface Profissional {
   nome: string;
   cref: string;
@@ -91,7 +52,7 @@ interface Profissional {
 interface PublicData {
   aluno: { nome: string };
   profissional: Profissional;
-  protocolo: (Protocolo & { treinos: FichaTreino[]; dataFim?: string | null }) | null;
+  protocolo: Protocolo | null;
   isAtual: boolean;
   linkAtualToken: string | null;
 }
@@ -197,6 +158,11 @@ export const PublicTreino: React.FC = () => {
 
   const syncTimeoutRef = useRef<Record<number, any>>({});
 
+  // Exercícios cujas séries não chegaram ao servidor (idTreinoExercicio → idSessao).
+  // Os dados continuam no localStorage; o aviso some quando o reenvio funciona.
+  const [seriesPendentes, setSeriesPendentes] = useState<Record<number, number>>({});
+  const [reenviando, setReenviando] = useState(false);
+
   const saveLocalSets = (newMap: Record<number, ExerciseSetEntry[]>, currentSessaoId?: number | null) => {
     const sId = currentSessaoId || sessaoId;
     if (sId) {
@@ -226,7 +192,7 @@ export const PublicTreino: React.FC = () => {
 
   const syncSetsToServer = async (idTreinoExercicio: number, setsToSync: ExerciseSetEntry[], targetSessaoId?: number) => {
     const activeSessao = targetSessaoId || sessaoId;
-    if (!activeSessao || !token) return;
+    if (!activeSessao || !token) return false;
     try {
       await api.post(`/publico/sessao/${token}/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
         series: setsToSync.map(s => {
@@ -240,10 +206,82 @@ export const PublicTreino: React.FC = () => {
           };
         }),
       });
+      setSeriesPendentes((prev) => {
+        if (prev[idTreinoExercicio] !== activeSessao) return prev;
+        const next = { ...prev };
+        delete next[idTreinoExercicio];
+        return next;
+      });
+      return true;
     } catch (err) {
       console.error('Erro ao sincronizar séries com o servidor:', err);
+      setSeriesPendentes((prev) => ({ ...prev, [idTreinoExercicio]: activeSessao }));
+      return false;
     }
   };
+
+  // Reenvia o estado mais recente de cada exercício pendente. Séries de uma
+  // sessão que já não está aberta na tela vêm do localStorage dessa sessão.
+  const reenviarPendentes = async () => {
+    const pendentes = Object.entries(seriesPendentesRef.current);
+    if (pendentes.length === 0 || reenviandoRef.current) return;
+    reenviandoRef.current = true;
+    setReenviando(true);
+    try {
+      for (const [id, idSessaoPendente] of pendentes) {
+        const idTreinoExercicio = Number(id);
+        let sets: ExerciseSetEntry[] | undefined;
+        if (idSessaoPendente === sessaoIdRef.current) {
+          sets = setsProgressMapRef.current[idTreinoExercicio];
+        } else {
+          try {
+            const salvo = localStorage.getItem(`workout-sets-progress-${idSessaoPendente}`);
+            sets = salvo ? JSON.parse(salvo)[idTreinoExercicio] : undefined;
+          } catch {
+            sets = undefined;
+          }
+        }
+        if (!sets) {
+          // Nada para reenviar (dados locais apagados): descarta o aviso
+          setSeriesPendentes((prev) => {
+            const next = { ...prev };
+            delete next[idTreinoExercicio];
+            return next;
+          });
+          continue;
+        }
+        await syncSetsToServer(idTreinoExercicio, sets, idSessaoPendente);
+      }
+    } finally {
+      reenviandoRef.current = false;
+      setReenviando(false);
+    }
+  };
+
+  // Refs lidas pelo reenvio (chamado por timer/evento, fora do render)
+  const seriesPendentesRef = useRef(seriesPendentes);
+  const sessaoIdRef = useRef(sessaoId);
+  const reenviandoRef = useRef(false);
+  const reenviarPendentesRef = useRef(reenviarPendentes);
+  useEffect(() => {
+    seriesPendentesRef.current = seriesPendentes;
+    sessaoIdRef.current = sessaoId;
+    reenviarPendentesRef.current = reenviarPendentes;
+  });
+
+  const temPendentes = Object.keys(seriesPendentes).length > 0;
+
+  // Tenta de novo quando a conexão volta e, enquanto houver pendência, a cada 15s
+  useEffect(() => {
+    if (!temPendentes) return;
+    const tentar = () => reenviarPendentesRef.current();
+    window.addEventListener('online', tentar);
+    const intervalo = setInterval(tentar, 15_000);
+    return () => {
+      window.removeEventListener('online', tentar);
+      clearInterval(intervalo);
+    };
+  }, [temPendentes]);
 
   const scheduleSyncSets = (idTreinoExercicio: number, setsToSync: ExerciseSetEntry[]) => {
     if (syncTimeoutRef.current[idTreinoExercicio]) {
@@ -412,58 +450,7 @@ export const PublicTreino: React.FC = () => {
 
   const { canInstall, install } = usePWAInstall();
 
-  const handleDownloadPdf = () => {
-    setTimeout(async () => {
-      const element = document.getElementById('print-section');
-      if (!element) return;
-
-      const toastId = toast.loading('Gerando PDF...');
-
-      const printCss = Array.from(document.styleSheets)
-        .flatMap((sheet) => {
-          try {
-            return Array.from(sheet.cssRules);
-          } catch {
-            return [];
-          }
-        })
-        .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.media.mediaText.includes('print'))
-        .flatMap((rule) => Array.from(rule.cssRules))
-        .map((rule) => rule.cssText)
-        .join('\n');
-
-      const styleTag = document.createElement('style');
-      styleTag.textContent = printCss;
-      document.head.appendChild(styleTag);
-
-      try {
-        const html2pdf = (await import('html2pdf.js')).default;
-
-        const fileName = `Treino-${(data?.aluno?.nome || 'aluno').replace(/[^a-zA-Z0-9]+/g, '-')}.pdf`;
-
-        const pdfOptions = {
-          margin: [10, 12, 12, 12] as [number, number, number, number],
-          filename: fileName,
-          image: { type: 'jpeg' as const, quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, windowWidth: 794 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-          pagebreak: { mode: ['css', 'legacy'] },
-        };
-
-        await html2pdf()
-          .set(pdfOptions)
-          .from(element)
-          .save();
-
-        toast.success('PDF gerado com sucesso!', { id: toastId });
-      } catch (err) {
-        console.error(err);
-        toast.error('Erro ao gerar o PDF. Tente novamente.', { id: toastId });
-      } finally {
-        styleTag.remove();
-      }
-    }, 50);
-  };
+  const handleDownloadPdf = () => baixarPdfDoTreino(data?.aluno?.nome);
 
   // Timer states
   const [timerDuration, setTimerDuration] = useState<number | null>(null);
@@ -716,6 +703,7 @@ export const PublicTreino: React.FC = () => {
       setShowCelebrationModal(true);
     } catch (err) {
       console.error('Erro ao encerrar treino:', err);
+      toast.error('Não foi possível encerrar o treino. Verifique sua conexão e tente de novo.');
     } finally {
       setEndingWorkout(false);
     }
@@ -759,8 +747,8 @@ export const PublicTreino: React.FC = () => {
 
   const { aluno, profissional, protocolo, isAtual, linkAtualToken } = data;
   const activeFicha = protocolo?.treinos.find(t => t.idTreino === activeTabId);
-  const sortedTreinos = protocolo?.treinos ? [...protocolo.treinos].sort((a: any, b: any) => a.ordem - b.ordem) : [];
-  const sortedExercicios = activeFicha?.exercicios ? [...activeFicha.exercicios].sort((a: any, b: any) => a.ordem - b.ordem) : [];
+  const sortedTreinos = protocolo?.treinos ? [...protocolo.treinos].sort((a, b) => a.ordem - b.ordem) : [];
+  const sortedExercicios = activeFicha?.exercicios ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
 
   const totalSeriesTotal = sortedExercicios.reduce((acc, ex) => {
     const s = getExerciseSets(ex);
@@ -799,168 +787,7 @@ export const PublicTreino: React.FC = () => {
 
       {/* Print-only PDF export (hidden on screen, captured by html2pdf on demand) */}
       {protocolo && (
-        <div id="print-section" className="print-only">
-          <div className="print-accent-bar" />
-          <header className="print-header">
-            <div className="print-header-brand">
-              {profissional.logoUrl ? (
-                <img src={profissional.logoUrl} alt="Logo" className="print-logo" />
-              ) : (
-                <div className="print-brand-badge">
-                  <div className="print-brand-icon">T</div>
-                  <div>
-                    <div className="print-brand-title">TREINOSAPP</div>
-                    <div className="print-brand-sub">PRESCRIÇÃO TÉCNICA</div>
-                  </div>
-                </div>
-              )}
-              <div className="print-trainer-details">
-                <h1 className="print-trainer-name">{profissional.nome}</h1>
-                <div className="print-trainer-cref">
-                  <span className="print-tag-pill">CREF {profissional.cref}</span>
-                  <span className="print-trainer-role">{profissional.profissao}</span>
-                </div>
-              </div>
-            </div>
-            <div className="print-header-stamp">
-              <div className="print-stamp-title">BACKUP DIGITAL OFFLINE</div>
-              <div className="print-stamp-item">
-                <span className="print-stamp-label">PROTOCOLO:</span>
-                <span className="print-stamp-value">#{String(protocolo.idProtocolo).padStart(4, '0')}</span>
-              </div>
-            </div>
-          </header>
-
-          <div className="print-meta-card">
-            <div className="print-meta-cell">
-              <span className="print-meta-label">ALUNO</span>
-              <span className="print-meta-val-primary">{aluno.nome}</span>
-            </div>
-            <div className="print-meta-cell">
-              <span className="print-meta-label">PROGRAMA // CICLO</span>
-              <span className="print-meta-val-primary">{protocolo.nome}</span>
-              <span className="print-meta-val-secondary">{protocolo.objetivo || 'Prescrição Técnica Geral'}</span>
-            </div>
-            <div className="print-meta-cell">
-              <span className="print-meta-label">DIVISÕES</span>
-              <span className="print-meta-val-primary">{sortedTreinos.length} {sortedTreinos.length === 1 ? 'Ficha' : 'Fichas'}</span>
-            </div>
-            <div className="print-meta-cell">
-              <span className="print-meta-label">VOLUME TOTAL</span>
-              <span className="print-meta-val-primary">
-                {sortedTreinos.reduce((acc, t) => acc + (t.exercicios?.reduce((s, e) => s + e.series, 0) || 0), 0)} Séries Totais
-              </span>
-            </div>
-          </div>
-
-          {sortedTreinos.map((treino, idx) => {
-            const fichaLetra = String.fromCharCode(65 + ((treino as any).ordem ? (treino as any).ordem - 1 : idx));
-            const exs = treino.exercicios ? [...treino.exercicios].sort((a: any, b: any) => a.ordem - b.ordem) : [];
-            return (
-              <div key={treino.idTreino} className="print-treino-block">
-                <div className="print-treino-header">
-                  <div className="print-treino-title-wrap">
-                    <span className="print-treino-badge">FICHA {fichaLetra}</span>
-                    <h2 className="print-treino-title">{treino.nome}</h2>
-                  </div>
-                  <div className="print-treino-meta">
-                    <span>{exs.length} EXERCÍCIOS</span>
-                  </div>
-                </div>
-                <table className="print-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '32px', textAlign: 'center' }}>#</th>
-                      <th style={{ width: '34%' }}>EXERCÍCIO & GRUPO</th>
-                      <th style={{ width: '48px', textAlign: 'center' }}>SÉRIES</th>
-                      <th style={{ width: '68px', textAlign: 'center' }}>REPS</th>
-                      <th style={{ width: '64px', textAlign: 'center' }}>PAUSA</th>
-                      <th>TÉCNICA & ORIENTAÇÕES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {exs.length > 0 ? (
-                      exs.map((item, exIdx) => (
-                        <tr key={item.idTreinoExercicio}>
-                          <td className="print-td-num">{String(exIdx + 1).padStart(2, '0')}</td>
-                          <td>
-                            <div className="print-exercise-name">{item.exercicio.nome}</div>
-                            <div className="print-exercise-group">{item.exercicio.grupoMuscular.nome.toUpperCase()}</div>
-                          </td>
-                          <td className="print-td-series">{item.series}</td>
-                          <td className="print-td-reps">{item.repeticoes}</td>
-                          <td className="print-td-descanso">
-                            {formatDescanso(item.descansoSegundos || 60, item.descansoMaxSegundos)}
-                          </td>
-                          <td>
-                            {item.tecnica && (
-                              <span className="print-tecnica-tag">[{item.tecnica.nome.toUpperCase()}]</span>
-                            )}
-                            <span className="print-obs-text">{item.observacao || '—'}</span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '1.2rem', color: '#6b7280' }}>
-                          Nenhum exercício prescrito nesta divisão.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                <RodapeTreino texto={rodapeEfetivo(treino.rodape, profissional.rodapeTreino)} variant="print" />
-              </div>
-            );
-          })}
-
-          <TabelaProgressao variant="print" />
-
-          {Object.keys(volume).length > 0 && (
-            <div className="print-volume-page">
-              <div className="print-treino-header">
-                <div className="print-treino-title-wrap">
-                  <span className="print-treino-badge">RESUMO</span>
-                  <h2 className="print-treino-title">Volume Semanal por Grupo Muscular</h2>
-                </div>
-              </div>
-              <p className="print-volume-subtitle">
-                Total de séries prescritas por grupo muscular somando todas as fichas do protocolo — referência de distribuição de volume ao longo da semana.
-              </p>
-              <div className="print-volume-list">
-                {Object.entries(volume)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([grupo, series]) => {
-                    const max = Math.max(...Object.values(volume));
-                    const pct = max > 0 ? Math.max((series / max) * 100, 6) : 0;
-                    return (
-                      <div className="print-volume-row" key={grupo}>
-                        <span className="print-volume-group-name">{grupo}</span>
-                        <div className="print-volume-bar-track">
-                          <div className="print-volume-bar-fill" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="print-volume-count">{series} séries</span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-
-          <footer className="print-footer">
-            <div className="print-footer-left">
-              <div className="print-footer-brand">
-                <strong>TreinosApp</strong> • Prescrição Técnica Digital
-              </div>
-              <div className="print-footer-legal">
-                Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {profissional.nome}</strong> (CREF: {profissional.cref})
-              </div>
-            </div>
-            <div className="print-footer-right">
-              <span className="print-footer-badge">VERSÃO OFFLINE // BACKUP</span>
-            </div>
-          </footer>
-        </div>
+        <FichaPdf profissional={profissional} aluno={aluno} protocolo={protocolo} />
       )}
 
       {/* Personal Trainer Branding Header */}
@@ -1584,6 +1411,23 @@ export const PublicTreino: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Aviso de séries que não chegaram ao servidor */}
+      <div aria-live="polite">
+        {temPendentes && (
+          <div className="sync-pendente-aviso" role="status">
+            <AlertCircle size={18} aria-hidden="true" />
+            <span>
+              {reenviando
+                ? 'Salvando suas séries…'
+                : 'Algumas séries não foram salvas. Elas estão guardadas neste aparelho e serão enviadas quando a conexão voltar.'}
+            </span>
+            <button type="button" onClick={() => reenviarPendentes()} disabled={reenviando}>
+              Tentar agora
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Floating countdown rest timer overlay */}
       {timerDuration !== null && (

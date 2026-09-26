@@ -90,7 +90,6 @@ export const Configuracoes: React.FC = () => {
         profissao,
         telefone: telefone || null,
         instagram: instagram || null,
-        logoUrl: logoUrl || null,
         rodapeTreino: rodapeTreino.trim() || null,
       });
 
@@ -232,6 +231,7 @@ export const Configuracoes: React.FC = () => {
                 type="text"
                 className="form-input"
                 value={nome}
+                maxLength={120}
                 onChange={(e) => setNome(e.target.value)}
                 required
               />
@@ -258,6 +258,7 @@ export const Configuracoes: React.FC = () => {
                 type="text"
                 className="form-input"
                 value={profissao}
+                maxLength={80}
                 onChange={(e) => setProfissao(e.target.value)}
                 required
               />
@@ -270,6 +271,7 @@ export const Configuracoes: React.FC = () => {
                 className="form-input"
                 placeholder="(00) 90000-0000"
                 value={telefone}
+                maxLength={30}
                 onChange={(e) => setTelefone(e.target.value)}
               />
             </div>
@@ -284,6 +286,7 @@ export const Configuracoes: React.FC = () => {
                 className="form-input"
                 placeholder="@seuusuario"
                 value={instagram}
+                maxLength={100}
                 onChange={(e) => setInstagram(e.target.value)}
               />
             </div>
@@ -407,6 +410,7 @@ export const Configuracoes: React.FC = () => {
                 type={showSenhaAtual ? 'text' : 'password'}
                 className="form-input"
                 value={senhaAtual}
+                maxLength={200}
                 onChange={(e) => setSenhaAtual(e.target.value)}
                 placeholder="Informe sua senha atual"
                 required
@@ -431,6 +435,7 @@ export const Configuracoes: React.FC = () => {
                   type={showNovaSenha ? 'text' : 'password'}
                   className={`form-input ${novaSenhaField.inputClass}`}
                   value={novaSenhaField.value}
+                  maxLength={72}
                   onChange={novaSenhaField.onChange}
                   onBlur={novaSenhaField.onBlur}
                   placeholder="Mínimo 8 caracteres"
@@ -457,6 +462,7 @@ export const Configuracoes: React.FC = () => {
                   type={showNovaSenha ? 'text' : 'password'}
                   className={`form-input ${confirmarSenhaField.inputClass}`}
                   value={confirmarSenhaField.value}
+                  maxLength={72}
                   onChange={confirmarSenhaField.onChange}
                   onBlur={confirmarSenhaField.onBlur}
                   placeholder="Repita a nova senha"
