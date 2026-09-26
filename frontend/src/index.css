@@ -1720,17 +1720,16 @@ body.light-theme .floating-rest-timer {
 }
 
 /* ── Volume semanal (treinador e aluno) ───────────────────────────────── */
-/* Barra única por grupo: a parte da ficha aberta em cor cheia e o restante da
-   semana em um tom mais baixo do mesmo matiz (validado ≥2:1 contra bg-0 e bg-1). */
+/* Um controle segmentado alterna entre a ficha aberta e a semana inteira;
+   cada visão usa uma barra de cor única, sem legenda para decifrar.
+   A cor da barra é validada contra bg-1 nos dois temas. */
 
 :root {
-  --vol-atual: #F0594A;
-  --vol-outras: #8C2A23;
+  --vol-barra: #F0594A;
 }
 
 body.light-theme {
-  --vol-atual: #BA281A;
-  --vol-outras: #DD948D;
+  --vol-barra: #BA281A;
 }
 
 .vol-semanal {
@@ -1749,51 +1748,76 @@ body.light-theme {
   text-wrap: balance;
 }
 
-.vol-head p {
-  margin: 0.2rem 0 0;
+/* Controle segmentado: o "thumb" desliza entre as duas opções. */
+.vol-segmentado {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 0.75rem;
+  padding: 2px;
+  background: var(--bg-2);
+  border-radius: var(--radius-m);
+}
+
+.vol-segmentado::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  background: var(--bg-0);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius-m) - 2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 220ms var(--ease-out);
+}
+
+.vol-segmentado[data-visao="semana"]::before {
+  transform: translateX(100%);
+}
+
+.vol-segmentado button {
+  position: relative;
+  min-height: 36px;
+  padding: 0 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-m) - 2px);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-1);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms var(--ease-out), transform 100ms var(--ease-out);
+}
+
+.vol-segmentado button:active {
+  transform: scale(0.97);
+}
+
+.vol-segmentado button[aria-pressed="true"] {
+  color: var(--text-0);
+}
+
+.vol-resumo {
+  margin: 0.75rem 0 0;
   font-size: 0.78rem;
   line-height: 1.4;
   color: var(--text-1);
 }
 
-.vol-legenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  margin-top: 0.85rem;
-  font-size: 0.72rem;
-  color: var(--text-1);
+.vol-vazio {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-2);
 }
-
-.vol-legenda-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.vol-legenda-texto {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vol-swatch {
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
-.vol-swatch.atual,
-.vol-seg.atual { background: var(--vol-atual); }
-.vol-swatch.outras,
-.vol-seg.outras { background: var(--vol-outras); }
 
 .vol-lista {
   list-style: none;
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
 }
 
@@ -1824,20 +1848,11 @@ body.light-theme {
   min-width: 0;
 }
 
-/* Cresce da base à esquerda; só a ponta do dado é arredondada. Os segmentos
-   se separam por um vão de 2px na cor da superfície, nunca por borda. */
+/* Cresce da base à esquerda; só a ponta do dado é arredondada. */
 .vol-barra {
-  display: flex;
-  gap: 2px;
   height: 10px;
   border-radius: 0 4px 4px 0;
-  overflow: hidden;
-}
-
-.vol-seg {
-  flex-basis: 0;
-  min-width: 2px;
-  height: 100%;
+  background: var(--vol-barra);
 }
 
 .vol-valor {
@@ -1863,8 +1878,8 @@ body.light-theme {
 }
 
 @media (forced-colors: active) {
-  .vol-seg.atual, .vol-swatch.atual { background: CanvasText; }
-  .vol-seg.outras, .vol-swatch.outras { background: GrayText; }
+  .vol-barra { background: CanvasText; }
+  .vol-segmentado button[aria-pressed="true"] { outline: 2px solid CanvasText; }
 }
 
 /* ── Settings Page ─────────────────────────────────────────────────────── */
