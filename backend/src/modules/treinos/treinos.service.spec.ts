@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TreinosService } from './treinos.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -19,7 +19,7 @@ describe('TreinosService — isolamento entre treinadores (multi-tenancy)', () =
       update: jest.Mock;
       updateMany: jest.Mock;
     };
-    treino: { findFirst: jest.Mock; delete: jest.Mock; create: jest.Mock };
+    treino: { findFirst: jest.Mock; update: jest.Mock; create: jest.Mock };
     exercicio: { findFirst: jest.Mock };
     tecnicaTreino: { findFirst: jest.Mock };
     treinoExercicio: {
@@ -36,7 +36,7 @@ describe('TreinosService — isolamento entre treinadores (multi-tenancy)', () =
         update: jest.fn(),
         updateMany: jest.fn(),
       },
-      treino: { findFirst: jest.fn(), delete: jest.fn(), create: jest.fn() },
+      treino: { findFirst: jest.fn(), update: jest.fn(), create: jest.fn() },
       exercicio: { findFirst: jest.fn() },
       tecnicaTreino: { findFirst: jest.fn() },
       treinoExercicio: {
@@ -68,7 +68,65 @@ describe('TreinosService — isolamento entre treinadores (multi-tenancy)', () =
     await expect(
       service.deleteTreino(/* idTreino de B */ 888, ID_PROFISSIONAL_A),
     ).rejects.toBeInstanceOf(NotFoundException);
-    expect(prisma.treino.delete).not.toHaveBeenCalled();
+    expect(prisma.treino.update).not.toHaveBeenCalled();
+  });
+
+  // Excluir apagava em cascata as sessões e cargas do aluno; agora a exclusão
+  // é lógica e o histórico continua no banco.
+  it('excluir periodização só marca como excluída e revoga o link', async () => {
+    prisma.protocoloTreino.findFirst.mockResolvedValue({ idProtocolo: 10 });
+
+    await service.deleteProtocolo(10, ID_PROFISSIONAL_A);
+
+    expect(prisma.protocoloTreino.findFirst).toHaveBeenCalledWith({
+      where: {
+        idProtocolo: 10,
+        idProfissional: ID_PROFISSIONAL_A,
+        excluido: false,
+      },
+    });
+    expect(prisma.protocoloTreino.update).toHaveBeenCalledWith({
+      where: { idProtocolo: 10 },
+      data: { excluido: true, ativo: false, tokenPublico: null },
+    });
+  });
+
+  it('excluir ficha só a desativa, preservando as sessões', async () => {
+    prisma.treino.findFirst.mockResolvedValue(TREINO_DE_A);
+
+    await service.deleteTreino(200, ID_PROFISSIONAL_A);
+
+    expect(prisma.treino.update).toHaveBeenCalledWith({
+      where: { idTreino: 200 },
+      data: { ativo: false },
+    });
+  });
+
+  it('remover exercício da ficha só o desativa, preservando as séries', async () => {
+    prisma.treinoExercicio.findFirst.mockResolvedValue({
+      idTreinoExercicio: 400,
+    });
+
+    await service.removeExercicioFromTreino(400, ID_PROFISSIONAL_A);
+
+    expect(prisma.treinoExercicio.update).toHaveBeenCalledWith({
+      where: { idTreinoExercicio: 400 },
+      data: { ativo: false },
+    });
+  });
+
+  it('rejeita data de término anterior à de início ao editar', async () => {
+    prisma.protocoloTreino.findFirst.mockResolvedValue({
+      idProtocolo: 10,
+      idAluno: 2,
+      dataInicio: new Date('2026-10-01'),
+      dataFim: null,
+    });
+
+    await expect(
+      service.updateProtocolo(10, ID_PROFISSIONAL_A, { dataFim: '2026-09-01' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.protocoloTreino.update).not.toHaveBeenCalled();
   });
 
   it('treinador A não deleta protocolo do treinador B', async () => {
@@ -221,7 +279,11 @@ describe('TreinosService — duplicarProtocolo', () => {
 
     expect(prisma.protocoloTreino.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { idProtocolo: 10, idProfissional: ID_PROFISSIONAL_A },
+        where: {
+          idProtocolo: 10,
+          idProfissional: ID_PROFISSIONAL_A,
+          excluido: false,
+        },
       }),
     );
     expect(prisma.aluno.findFirst).toHaveBeenCalledWith({

@@ -9,7 +9,7 @@ import { ActionMenu } from '../components/ActionMenu';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import {
   ArrowLeft, Plus, Calendar, AlertCircle,
-  Edit2, Trash2, Share2, X, Save, Copy,
+  Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban,
 } from 'lucide-react';
 
 interface Aluno {
@@ -337,10 +337,48 @@ export const Periodizacoes: React.FC = () => {
 
   const handleShare = (proto: Protocolo) => {
     const token = proto.tokenPublico || aluno?.tokenAcesso;
-    if (!token) return;
+    if (!token) {
+      toast.error('O link deste aluno foi revogado. Use "Link do aluno → Gerar novo link".');
+      return;
+    }
     const url = `${window.location.origin}/v/${token}`;
     navigator.clipboard.writeText(url);
     toast.success(`Link de "${proto.nome}" copiado!`);
+  };
+
+  // Links são por aluno: gerar ou revogar vale para todas as periodizações dele
+  const invalidarCacheDoAluno = () => {
+    if (!idAluno) return;
+    memoryCache.invalidate(`periodizacoes-${idAluno}`);
+    memoryCache.invalidate('treino-detalhe-');
+  };
+
+  const handleRegenerarLink = async () => {
+    if (!aluno) return;
+    if (!confirm(`Gerar um novo link para ${aluno.nome}? Os links enviados antes param de funcionar.`)) return;
+    try {
+      await api.post(`/alunos/${aluno.idAluno}/token/regenerar`);
+      invalidarCacheDoAluno();
+      await loadData(false);
+      toast.success('Novo link gerado. Use "Compartilhar link" na periodização para enviar.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao gerar novo link.');
+    }
+  };
+
+  const handleRevogarLink = async () => {
+    if (!aluno) return;
+    if (!confirm(`Revogar o acesso de ${aluno.nome}? Todos os links enviados param de funcionar até você gerar um novo.`)) return;
+    try {
+      await api.post(`/alunos/${aluno.idAluno}/token/revogar`);
+      invalidarCacheDoAluno();
+      await loadData(false);
+      toast.success('Links revogados.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao revogar links.');
+    }
   };
 
   if (loading && !aluno) {
@@ -405,6 +443,14 @@ export const Periodizacoes: React.FC = () => {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <ActionMenu
+              label={`Link do aluno ${aluno?.nome ?? ''}`}
+              trigger={<><Link2 size={16} /><span>Link do aluno</span></>}
+              items={[
+                { label: 'Gerar novo link', icon: <RefreshCw size={14} />, onClick: handleRegenerarLink },
+                { label: 'Revogar links', icon: <Ban size={14} />, onClick: handleRevogarLink, danger: true },
+              ]}
+            />
             <button className="btn btn-secondary btn-sm" onClick={openImportModal}>
               <Copy size={16} />
               <span>Copiar de outro aluno</span>

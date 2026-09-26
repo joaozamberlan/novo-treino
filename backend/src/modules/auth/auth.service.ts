@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import type { Profissional } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -22,6 +23,16 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
   'senha-nao-existe-para-timing-safety',
   10,
 );
+
+// Payload do JWT do treinador. `tipo` separa este token do acesso futuro do
+// aluno (link público com verificação), que terá o próprio token; `ver` é a
+// versaoToken do profissional no momento da emissão.
+export interface JwtPayloadProfissional {
+  sub: number;
+  email: string;
+  tipo: 'profissional';
+  ver: number;
+}
 
 // E-mail é gravado sempre em minúsculas e sem espaços nas pontas, para que
 // "Joao@x.com" e "joao@x.com" sejam a mesma conta.
@@ -150,13 +161,8 @@ export class AuthService {
       );
     }
 
-    const payload = {
-      sub: profesional.idProfissional,
-      email: profesional.email,
-    };
-
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.emitirToken(profesional),
       profissional: {
         idProfissional: profesional.idProfissional,
         nome: profesional.nome,
@@ -170,5 +176,15 @@ export class AuthService {
         role: profesional.role,
       },
     };
+  }
+
+  emitirToken(profissional: Profissional): string {
+    const payload: JwtPayloadProfissional = {
+      sub: profissional.idProfissional,
+      email: profissional.email,
+      tipo: 'profissional',
+      ver: profissional.versaoToken,
+    };
+    return this.jwtService.sign(payload);
   }
 }

@@ -11,9 +11,11 @@ export interface ActionMenuItem {
 interface Props {
   items: ActionMenuItem[];
   label: string; // aria-label do botão (ex.: "Ações de Protocolo 1")
+  // Conteúdo visível do gatilho; sem ele, o gatilho é o ícone "…"
+  trigger?: React.ReactNode;
 }
 
-export const ActionMenu: React.FC<Props> = ({ items, label }) => {
+export const ActionMenu: React.FC<Props> = ({ items, label, trigger }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -40,15 +42,15 @@ export const ActionMenu: React.FC<Props> = ({ items, label }) => {
     <div ref={rootRef} className="action-menu" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
-        className="exercise-action-btn"
+        className={trigger ? 'btn btn-secondary btn-sm' : 'exercise-action-btn'}
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        title="Mais ações"
+        title={trigger ? undefined : 'Mais ações'}
         onClick={() => setOpen((v) => !v)}
       >
-        <MoreHorizontal size={16} />
+        {trigger ?? <MoreHorizontal size={16} />}
       </button>
       {open && (
         <div id={menuId} role="menu" className="action-menu-list">

@@ -7,6 +7,14 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { buildProgresso } from '../treinos/progresso';
 
+// Data de hoje no fuso dos alunos ('YYYY-MM-DD'). O servidor roda em UTC:
+// toISOString() jogava treinos feitos depois das 21h para o dia seguinte.
+export function hojeEmSaoPaulo(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
+}
+
 @Injectable()
 export class PublicoService {
   constructor(private prisma: PrismaService) {}
@@ -57,8 +65,18 @@ export class PublicoService {
       theme_color: '#0d0d0d',
       background_color: '#0d0d0d',
       icons: [
-        { src: '/pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-        { src: '/pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+        {
+          src: '/pwa-icon-192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any maskable',
+        },
+        {
+          src: '/pwa-icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable',
+        },
       ],
     };
   }
@@ -113,6 +131,7 @@ export class PublicoService {
       orderBy: { ordem: 'asc' as const },
       include: {
         exercicios: {
+          where: { ativo: true },
           orderBy: { ordem: 'asc' as const },
           include: {
             exercicio: { include: { grupoMuscular: true } },
@@ -130,7 +149,9 @@ export class PublicoService {
       where: { tokenPublico: token },
       include: {
         aluno: {
-          include: { profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT } },
+          include: {
+            profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT },
+          },
         },
         ...PublicoService.PROTOCOLO_TREINOS_INCLUDE,
       },
@@ -161,7 +182,9 @@ export class PublicoService {
     // por periodização: continuam mostrando a periodização ativa do aluno.
     const aluno = await this.prisma.aluno.findUnique({
       where: { tokenAcesso: token },
-      include: { profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT } },
+      include: {
+        profissional: { select: PublicoService.ALUNO_PROFISSIONAL_SELECT },
+      },
     });
 
     if (!aluno) {
@@ -202,7 +225,11 @@ export class PublicoService {
       select: { idProtocolo: true, idAluno: true },
     });
     if (porToken) {
-      return buildProgresso(this.prisma, porToken.idAluno, porToken.idProtocolo);
+      return buildProgresso(
+        this.prisma,
+        porToken.idAluno,
+        porToken.idProtocolo,
+      );
     }
 
     const aluno = await this.getAlunoPorToken(token);
@@ -219,7 +246,7 @@ export class PublicoService {
     const aluno = await this.getAlunoPorToken(tokenAcesso);
     await this.getTreinoDoAluno(idTreino, aluno.idAluno);
 
-    const hoje = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const hoje = hojeEmSaoPaulo();
 
     // Busca sessão ativa (não encerrada) mais recente
     let sessao = await this.prisma.sessaoTreino.findFirst({
@@ -236,6 +263,27 @@ export class PublicoService {
         },
       },
     });
+
+    // Treino já encerrado hoje: reabrir o link mostra o treino concluído, em
+    // vez de criar outra sessão vazia no mesmo dia.
+    if (!sessao) {
+      sessao = await this.prisma.sessaoTreino.findFirst({
+        where: {
+          idAluno: aluno.idAluno,
+          idTreino,
+          concluida: true,
+          data: hoje,
+          seriesRealizadas: { some: {} },
+        },
+        orderBy: [{ finalizadoEm: 'desc' }, { idSessao: 'desc' }],
+        include: {
+          concluidos: true,
+          seriesRealizadas: {
+            orderBy: { numeroSerie: 'asc' },
+          },
+        },
+      });
+    }
 
     // Se não houver sessão ativa aberta, cria uma nova
     if (!sessao) {
@@ -462,7 +510,7 @@ export class PublicoService {
     });
 
     // Cria nova sessão vazia
-    const hoje = new Date().toISOString().slice(0, 10);
+    const hoje = hojeEmSaoPaulo();
     await this.prisma.sessaoTreino.create({
       data: {
         idAluno: aluno.idAluno,
@@ -574,6 +622,18 @@ export class PublicoService {
       idTreinoDaSessao,
       db,
     );
+
+    // A sessão nasce quando o aluno abre a ficha, que pode ser dias antes do
+    // treino. A data dela passa a ser o dia do primeiro registro de série.
+    const seriesJaRegistradas = await db.sessaoExercicioSerie.count({
+      where: { idSessao },
+    });
+    if (seriesJaRegistradas === 0) {
+      await db.sessaoTreino.update({
+        where: { idSessao },
+        data: { data: hojeEmSaoPaulo() },
+      });
+    }
 
     // Upsert para cada série
     const results = await Promise.all(

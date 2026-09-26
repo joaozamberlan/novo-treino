@@ -8,7 +8,7 @@ import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff, Shield } from 
 import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Configuracoes: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, replaceToken } = useAuth();
 
   // Profile form
   const [nome, setNome] = useState('');
@@ -126,11 +126,13 @@ export const Configuracoes: React.FC = () => {
 
     setSavingPassword(true);
     try {
-      await api.patch('/profissionais/me/senha', {
+      const res = await api.patch('/profissionais/me/senha', {
         senhaAtual,
         novaSenha: novaSenhaField.value,
       });
-      toast.success('Senha atualizada com sucesso!');
+      // As sessões em outros aparelhos foram encerradas; esta segue com o token novo
+      if (res.data?.accessToken) replaceToken(res.data.accessToken);
+      toast.success('Senha atualizada. Os outros aparelhos conectados precisarão entrar de novo.');
       setSenhaAtual('');
       novaSenhaField.reset();
       confirmarSenhaField.reset();

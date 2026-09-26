@@ -114,9 +114,7 @@ export const PublicTreino: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
 
   // Progresso persistido no servidor
-  const [completedList, setCompletedList] = useState<Record<number, boolean>>({});
   const [sessaoId, setSessaoId] = useState<number | null>(null);
-  const [savingId, setSavingId] = useState<number | null>(null);
   const [historicoAnterior, setHistoricoAnterior] = useState<HistoricoAnterior | null>(null);
   const [sessaoConcluida, setSessaoConcluida] = useState(false);
   const [finalizadoEm, setFinalizadoEm] = useState<string | null>(null);
@@ -149,7 +147,6 @@ export const PublicTreino: React.FC = () => {
     }
   };
 
-  // Progressão detalhada de séries (Série 1: 6 reps com 33kg, etc.)
   // Progressão detalhada de séries (Série 1: 6 reps com 33kg, etc.)
   const [setsProgressMap, setSetsProgressMap] = useState<Record<number, ExerciseSetEntry[]>>({});
   const setsProgressMapRef = useRef(setsProgressMap);
@@ -293,70 +290,68 @@ export const PublicTreino: React.FC = () => {
     }, 600);
   };
 
+  // Cópia editável das séries atuais de um exercício
+  const currentSets = (idTreinoExercicio: number, allSets: ExerciseSetEntry[]) =>
+    (setsProgressMapRef.current[idTreinoExercicio] || allSets).map(s => ({ ...s }));
+
+  // Grava o novo estado das séries de um exercício. Fica fora do updater do
+  // setState: o React pode executar updaters mais de uma vez, e aqui há efeitos
+  // colaterais (localStorage, requisições). A ref é atualizada na hora para que
+  // toques rápidos em sequência leiam o estado mais recente.
+  const commitSets = (idTreinoExercicio: number, sets: ExerciseSetEntry[]) => {
+    const updated = { ...setsProgressMapRef.current, [idTreinoExercicio]: sets };
+    setsProgressMapRef.current = updated;
+    setSetsProgressMap(updated);
+    saveLocalSets(updated);
+  };
+
+  const syncNow = (idTreinoExercicio: number, sets: ExerciseSetEntry[]) => {
+    if (syncTimeoutRef.current[idTreinoExercicio]) {
+      clearTimeout(syncTimeoutRef.current[idTreinoExercicio]);
+    }
+    syncSetsToServer(idTreinoExercicio, sets);
+  };
+
   const updateSetKg = (idTreinoExercicio: number, setIndex: number, newKg: string, allSets: ExerciseSetEntry[]) => {
-    setSetsProgressMap(prev => {
-      const sets = (prev[idTreinoExercicio] || allSets).map(s => ({ ...s }));
-      if (!sets[setIndex]) return prev;
-      sets[setIndex].kg = newKg;
-      // Auto-propaga a carga para séries posteriores vazias não concluídas
-      for (let j = setIndex + 1; j < sets.length; j++) {
-        if (!sets[j].kg && !sets[j].completed) {
-          sets[j].kg = newKg;
-        }
+    const sets = currentSets(idTreinoExercicio, allSets);
+    if (!sets[setIndex]) return;
+    sets[setIndex].kg = newKg;
+    // Auto-propaga a carga para séries posteriores vazias não concluídas
+    for (let j = setIndex + 1; j < sets.length; j++) {
+      if (!sets[j].kg && !sets[j].completed) {
+        sets[j].kg = newKg;
       }
-      const updated = { ...prev, [idTreinoExercicio]: sets };
-      saveLocalSets(updated);
-      scheduleSyncSets(idTreinoExercicio, sets);
-      return updated;
-    });
+    }
+    commitSets(idTreinoExercicio, sets);
+    scheduleSyncSets(idTreinoExercicio, sets);
   };
 
   const updateSetReps = (idTreinoExercicio: number, setIndex: number, newReps: string, allSets: ExerciseSetEntry[]) => {
-    setSetsProgressMap(prev => {
-      const sets = (prev[idTreinoExercicio] || allSets).map(s => ({ ...s }));
-      if (!sets[setIndex]) return prev;
-      sets[setIndex].reps = newReps;
-      const updated = { ...prev, [idTreinoExercicio]: sets };
-      saveLocalSets(updated);
-      scheduleSyncSets(idTreinoExercicio, sets);
-      return updated;
-    });
+    const sets = currentSets(idTreinoExercicio, allSets);
+    if (!sets[setIndex]) return;
+    sets[setIndex].reps = newReps;
+    commitSets(idTreinoExercicio, sets);
+    scheduleSyncSets(idTreinoExercicio, sets);
   };
 
   const toggleSetCompleted = (item: PrescribedExercise, setIndex: number, allSets: ExerciseSetEntry[]) => {
     if ('vibrate' in navigator) {
       try { navigator.vibrate(15); } catch {}
     }
-    setSetsProgressMap(prev => {
-      const sets = (prev[item.idTreinoExercicio] || allSets).map(s => ({ ...s }));
-      if (!sets[setIndex]) return prev;
-      const willBeCompleted = !sets[setIndex].completed;
-      sets[setIndex].completed = willBeCompleted;
+    const sets = currentSets(item.idTreinoExercicio, allSets);
+    if (!sets[setIndex]) return;
+    const willBeCompleted = !sets[setIndex].completed;
+    sets[setIndex].completed = willBeCompleted;
 
-      // Inicia timer de descanso automaticamente ao concluir série
-      if (willBeCompleted && item.descansoSegundos) {
-        startTimer(item.descansoSegundos);
-      }
+    // Inicia timer de descanso automaticamente ao concluir série
+    if (willBeCompleted && item.descansoSegundos) {
+      startTimer(item.descansoSegundos);
+    }
 
-      const updated = { ...prev, [item.idTreinoExercicio]: sets };
-      saveLocalSets(updated);
-
-      // Sincroniza status do exercício se todas as séries foram concluídas
-      const allDone = sets.every(s => s.completed);
-      if (allDone && !completedList[item.idTreinoExercicio]) {
-        toggleExerciseCompleted(item.idTreinoExercicio);
-      } else if (!allDone && completedList[item.idTreinoExercicio]) {
-        toggleExerciseCompleted(item.idTreinoExercicio);
-      }
-
-      // Cancela debounce pendente e sincroniza séries imediatamente com o servidor
-      if (syncTimeoutRef.current[item.idTreinoExercicio]) {
-        clearTimeout(syncTimeoutRef.current[item.idTreinoExercicio]);
-      }
-      syncSetsToServer(item.idTreinoExercicio, sets);
-
-      return updated;
-    });
+    commitSets(item.idTreinoExercicio, sets);
+    // O servidor marca o exercício como concluído a partir das próprias séries.
+    // Chamar também o /toggle criava uma corrida que podia desfazer a marcação.
+    syncNow(item.idTreinoExercicio, sets);
   };
 
   const copyPreviousSets = (item: PrescribedExercise, allSets: ExerciseSetEntry[]) => {
@@ -367,44 +362,32 @@ export const PublicTreino: React.FC = () => {
       try { navigator.vibrate(12); } catch {}
     }
 
-    setSetsProgressMap(prev => {
-      const current = (prev[item.idTreinoExercicio] || allSets).map(s => ({ ...s }));
-      const updated = current.map(s => {
-        const found = prevSets.find(p => p.numeroSerie === s.setNumber);
-        if (found) {
-          return {
-            ...s,
-            kg: found.cargaKg !== null && found.cargaKg !== undefined ? String(found.cargaKg) : s.kg,
-            reps: found.repeticoes !== null && found.repeticoes !== undefined ? String(found.repeticoes) : s.reps,
-          };
-        }
-        return s;
-      });
-      const newMap = { ...prev, [item.idTreinoExercicio]: updated };
-      saveLocalSets(newMap);
-      if (syncTimeoutRef.current[item.idTreinoExercicio]) {
-        clearTimeout(syncTimeoutRef.current[item.idTreinoExercicio]);
+    const updated = currentSets(item.idTreinoExercicio, allSets).map(s => {
+      const found = prevSets.find(p => p.numeroSerie === s.setNumber);
+      if (found) {
+        return {
+          ...s,
+          kg: found.cargaKg !== null && found.cargaKg !== undefined ? String(found.cargaKg) : s.kg,
+          reps: found.repeticoes !== null && found.repeticoes !== undefined ? String(found.repeticoes) : s.reps,
+        };
       }
-      syncSetsToServer(item.idTreinoExercicio, updated);
-      return newMap;
+      return s;
     });
+    commitSets(item.idTreinoExercicio, updated);
+    syncNow(item.idTreinoExercicio, updated);
   };
 
   const addSet = (item: PrescribedExercise, allSets: ExerciseSetEntry[]) => {
-    setSetsProgressMap(prev => {
-      const sets = (prev[item.idTreinoExercicio] || allSets).map(s => ({ ...s }));
-      const last = sets[sets.length - 1];
-      sets.push({
-        setNumber: sets.length + 1,
-        kg: last ? last.kg : '',
-        reps: last ? last.reps : '10',
-        completed: false
-      });
-      const updated = { ...prev, [item.idTreinoExercicio]: sets };
-      saveLocalSets(updated);
-      syncSetsToServer(item.idTreinoExercicio, sets);
-      return updated;
+    const sets = currentSets(item.idTreinoExercicio, allSets);
+    const last = sets[sets.length - 1];
+    sets.push({
+      setNumber: sets.length + 1,
+      kg: last ? last.kg : '',
+      reps: last ? last.reps : '10',
+      completed: false
     });
+    commitSets(item.idTreinoExercicio, sets);
+    syncSetsToServer(item.idTreinoExercicio, sets);
   };
 
   // Remove apenas a última série, e só se for extra (acima do prescrito pelo treinador).
@@ -414,9 +397,7 @@ export const PublicTreino: React.FC = () => {
     if (!last || last.setNumber <= (item.series || 3)) return;
 
     const remaining = current.slice(0, -1);
-    const newMap = { ...setsProgressMapRef.current, [item.idTreinoExercicio]: remaining };
-    setSetsProgressMap(newMap);
-    saveLocalSets(newMap);
+    commitSets(item.idTreinoExercicio, remaining);
 
     if (sessaoId && token) {
       try {
@@ -574,9 +555,6 @@ export const PublicTreino: React.FC = () => {
       setSessaoId(res.data.idSessao);
       setSessaoConcluida(!!res.data.concluida);
       setFinalizadoEm(res.data.finalizadoEm || null);
-      const mapa: Record<number, boolean> = {};
-      (res.data.concluidosIds as number[]).forEach(id => { mapa[id] = true; });
-      setCompletedList(mapa);
       setHistoricoAnterior(res.data.historicoAnterior || null);
 
       // Se há séries salvas hoje no servidor, sincroniza com o estado do app
@@ -630,27 +608,9 @@ export const PublicTreino: React.FC = () => {
     return () => { cancelado = true; };
   }, [token, activeTabId, sessaoConcluida]);
 
-  // Toggle com optimistic update + persistência no servidor
-  const toggleExerciseCompleted = async (id: number) => {
-    if (!sessaoId || !token || savingId !== null) return;
-    setCompletedList(prev => ({ ...prev, [id]: !prev[id] }));
-    setSavingId(id);
-    try {
-      const res = await api.post(`/publico/sessao/${token}/${sessaoId}/toggle/${id}`);
-      setCompletedList(prev => ({ ...prev, [id]: res.data.concluido }));
-    } catch (err) {
-      // Reverte em caso de erro
-      setCompletedList(prev => ({ ...prev, [id]: !prev[id] }));
-      console.error('Erro ao salvar progresso:', err);
-    } finally {
-      setSavingId(null);
-    }
-  };
-
   // Troca de aba: limpa lista antes de buscar nova sessão
   const handleTabChange = (idTreino: number) => {
     setActiveTabId(idTreino);
-    setCompletedList({});
     setSessaoId(null);
     setHistoricoAnterior(null);
     setSessaoConcluida(false);
@@ -720,7 +680,6 @@ export const PublicTreino: React.FC = () => {
       setSessaoId(res.data.idSessao);
       setSessaoConcluida(false);
       setFinalizadoEm(null);
-      setCompletedList({});
       setHistoricoAnterior(res.data.historicoAnterior || null);
     } catch (err) {
       console.error('Erro ao iniciar nova sessão:', err);

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { PublicoService } from './publico.service';
+import { PublicoService, hojeEmSaoPaulo } from './publico.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 // Aluno A é o único "dono legítimo" nos cenários abaixo — token-a, idAluno 1.
@@ -65,7 +65,7 @@ describe('PublicoService — cadeia de posse do link público', () => {
       delete: jest.Mock;
       upsert: jest.Mock;
     };
-    sessaoExercicioSerie: { upsert: jest.Mock };
+    sessaoExercicioSerie: { upsert: jest.Mock; count: jest.Mock };
     $transaction: jest.Mock;
   };
 
@@ -92,7 +92,10 @@ describe('PublicoService — cadeia de posse do link público', () => {
         delete: jest.fn(),
         upsert: jest.fn(),
       },
-      sessaoExercicioSerie: { upsert: jest.fn() },
+      sessaoExercicioSerie: {
+        upsert: jest.fn(),
+        count: jest.fn().mockResolvedValue(0),
+      },
       // Transação interativa: o callback recebe o próprio mock como cliente
       $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(prisma)),
     };
@@ -151,6 +154,7 @@ describe('PublicoService — cadeia de posse do link público', () => {
     prisma.treino.findFirst.mockResolvedValue(TREINO_DO_ALUNO_A);
     prisma.sessaoTreino.findFirst
       .mockResolvedValueOnce(null) // não há sessão ativa aberta
+      .mockResolvedValueOnce(null) // nenhum treino encerrado hoje
       .mockResolvedValueOnce(null) // sessão anterior concluída com séries
       .mockResolvedValueOnce(null); // sessão anterior (fallback) com séries
     prisma.sessaoTreino.create.mockImplementation(
@@ -172,6 +176,64 @@ describe('PublicoService — cadeia de posse do link público', () => {
     });
     expect(dadosCriacaoSessao?.idAluno).toBe(1);
     expect(dadosCriacaoSessao?.idTreino).toBe(100);
+  });
+
+  it('reabrir o link no dia do treino encerrado mostra a sessão concluída sem criar outra', async () => {
+    const encerradaHoje = {
+      ...SESSAO_DO_ALUNO_A,
+      concluida: true,
+      finalizadoEm: new Date(),
+      concluidos: [],
+      seriesRealizadas: [
+        {
+          idTreinoExercicio: 700,
+          numeroSerie: 1,
+          cargaKg: 20,
+          repeticoes: 10,
+          concluido: true,
+        },
+      ],
+    };
+    prisma.aluno.findUnique.mockResolvedValue(ALUNO_A);
+    prisma.treino.findFirst.mockResolvedValue(TREINO_DO_ALUNO_A);
+    prisma.sessaoTreino.findFirst
+      .mockResolvedValueOnce(null) // não há sessão aberta
+      .mockResolvedValueOnce(encerradaHoje)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    const result = await service.getOuCriarSessao('token-a', 100);
+
+    expect(result.concluida).toBe(true);
+    expect(result.seriesHoje[700]).toHaveLength(1);
+    expect(prisma.sessaoTreino.create).not.toHaveBeenCalled();
+  });
+
+  it('a sessão recebe a data do primeiro registro de série, não a da abertura da ficha', async () => {
+    prisma.aluno.findUnique.mockResolvedValue(ALUNO_A);
+    prisma.sessaoTreino.findFirst.mockResolvedValue(SESSAO_DO_ALUNO_A);
+    prisma.treinoExercicio.findFirst.mockResolvedValue(
+      TREINO_EXERCICIO_DA_SESSAO_A,
+    );
+    prisma.sessaoExercicioSerie.upsert.mockResolvedValue({ concluido: true });
+    prisma.sessaoExercicioSerie.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(1);
+
+    await service.salvarSeriesExercicio('token-a', 500, 700, [
+      { numeroSerie: 1, cargaKg: 20, repeticoes: 10, concluido: true },
+    ]);
+    expect(prisma.sessaoTreino.update).toHaveBeenCalledWith({
+      where: { idSessao: 500 },
+      data: { data: hojeEmSaoPaulo() },
+    });
+
+    // Registros seguintes não mexem mais na data
+    prisma.sessaoTreino.update.mockClear();
+    await service.salvarSeriesExercicio('token-a', 500, 700, [
+      { numeroSerie: 2, cargaKg: 20, repeticoes: 10, concluido: true },
+    ]);
+    expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
   });
 
   // 3. Aluno legítimo consegue marcar/desmarcar exercício.
@@ -402,5 +464,16 @@ describe('PublicoService — cadeia de posse do link público', () => {
       expect(prisma.sessaoTreino.findFirst).not.toHaveBeenCalled();
       expect(prisma.sessaoExercicioSerie.upsert).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('hojeEmSaoPaulo', () => {
+  afterEach(() => jest.useRealTimers());
+
+  it('usa o dia de Brasília, não o de UTC', () => {
+    jest.useFakeTimers();
+    // 23h30 de 25/09 em Brasília = 02h30 de 26/09 em UTC
+    jest.setSystemTime(new Date('2026-09-26T02:30:00Z'));
+    expect(hojeEmSaoPaulo()).toBe('2026-09-25');
   });
 });

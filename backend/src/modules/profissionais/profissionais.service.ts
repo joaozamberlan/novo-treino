@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuthService } from '../auth/auth.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
 import { apiBaseUrl } from '../../common/utils/base-url';
 import {
@@ -14,7 +15,10 @@ import {
 
 @Injectable()
 export class ProfissionaisService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private authService: AuthService,
+  ) {}
 
   async getProfile(idProfissional: number) {
     const profissional = await this.prisma.profissional.findUnique({
@@ -166,12 +170,17 @@ export class ProfissionaisService {
     const salt = await bcrypt.genSalt(10);
     const senhaHash = await bcrypt.hash(novaSenha, salt);
 
-    await this.prisma.profissional.update({
+    // versaoToken sobe: as sessões abertas em outros aparelhos caem. Esta
+    // continua com o token novo devolvido aqui.
+    const atualizado = await this.prisma.profissional.update({
       where: { idProfissional },
-      data: { senhaHash },
+      data: { senhaHash, versaoToken: { increment: 1 } },
     });
 
-    return { message: 'Senha alterada com sucesso' };
+    return {
+      message: 'Senha alterada com sucesso',
+      accessToken: this.authService.emitirToken(atualizado),
+    };
   }
 
   async resetPasswordByAdmin(idProfissional: number, novaSenha: string) {
@@ -190,9 +199,10 @@ export class ProfissionaisService {
     const salt = await bcrypt.genSalt(10);
     const senhaHash = await bcrypt.hash(novaSenha, salt);
 
+    // Derruba todas as sessões abertas da conta
     await this.prisma.profissional.update({
       where: { idProfissional },
-      data: { senhaHash },
+      data: { senhaHash, versaoToken: { increment: 1 } },
     });
 
     return { message: 'Senha redefinida com sucesso' };

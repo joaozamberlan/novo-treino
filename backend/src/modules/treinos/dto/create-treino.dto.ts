@@ -3,8 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
+import { MAX_ORDEM } from './limites';
 
 export class CreateTreinoDto {
   @IsString()
@@ -22,6 +25,8 @@ export class CreateTreinoDto {
   observacao?: string;
 
   @IsInt()
+  @Min(0)
+  @Max(MAX_ORDEM)
   @IsNotEmpty({ message: 'A ordem é obrigatória' })
   ordem: number;
 }

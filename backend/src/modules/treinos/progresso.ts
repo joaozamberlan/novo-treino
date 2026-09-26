@@ -34,7 +34,8 @@ function melhorSerie(series: SerieFeita[]) {
   return series.reduce((best, s) => {
     const c = s.cargaKg ?? 0;
     const bc = best.cargaKg ?? 0;
-    if (c > bc || (c === bc && (s.repeticoes ?? 0) > (best.repeticoes ?? 0))) return s;
+    if (c > bc || (c === bc && (s.repeticoes ?? 0) > (best.repeticoes ?? 0)))
+      return s;
     return best;
   });
 }
@@ -51,13 +52,16 @@ export async function buildProgresso(
       idTreino: true,
       nome: true,
       exercicios: {
+        where: { ativo: true },
         orderBy: { ordem: 'asc' },
         select: {
           idTreinoExercicio: true,
           idExercicio: true,
           series: true,
           repeticoes: true,
-          exercicio: { select: { nome: true, grupoMuscular: { select: { nome: true } } } },
+          exercicio: {
+            select: { nome: true, grupoMuscular: { select: { nome: true } } },
+          },
         },
       },
     },
@@ -96,7 +100,8 @@ export async function buildProgresso(
     let sessoes = porExercicio.get(idEx);
     if (!sessoes) porExercicio.set(idEx, (sessoes = new Map()));
     let sessao = sessoes.get(s.idSessao);
-    if (!sessao) sessoes.set(s.idSessao, (sessao = { data: s.sessao.data, series: [] }));
+    if (!sessao)
+      sessoes.set(s.idSessao, (sessao = { data: s.sessao.data, series: [] }));
     sessao.series.push({
       numeroSerie: s.numeroSerie,
       cargaKg: s.cargaKg,
@@ -109,7 +114,9 @@ export async function buildProgresso(
       .sort(([idA, a], [idB, b]) => a.data.localeCompare(b.data) || idA - idB)
       .slice(-MAX_SESSOES)
       .map(([, s]) => {
-        const ordenadas = [...s.series].sort((a, b) => a.numeroSerie - b.numeroSerie);
+        const ordenadas = [...s.series].sort(
+          (a, b) => a.numeroSerie - b.numeroSerie,
+        );
         const melhor = melhorSerie(ordenadas);
         return {
           data: s.data,

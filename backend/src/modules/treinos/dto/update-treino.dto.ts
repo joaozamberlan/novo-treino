@@ -3,8 +3,11 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
+import { MAX_ORDEM } from './limites';
 
 // Nunca inclui idProtocolo — reatribuir esse campo via body permitiria mover
 // a ficha para o protocolo de outro treinador (ou de outro aluno).
@@ -29,6 +32,8 @@ export class UpdateTreinoDto {
   rodape?: string | null;
 
   @IsInt()
+  @Min(0)
+  @Max(MAX_ORDEM)
   @IsOptional()
   ordem?: number;
 

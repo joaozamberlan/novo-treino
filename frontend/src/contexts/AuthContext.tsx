@@ -32,6 +32,8 @@ interface AuthContextData {
   }): Promise<void>;
   logout(): void;
   updateUser(updatedUser: Partial<Profissional>): void;
+  // Troca de senha invalida os tokens anteriores; o servidor devolve um novo
+  replaceToken(accessToken: string): void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -96,9 +98,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const replaceToken = (accessToken: string) => {
+    localStorage.setItem('@TreinosApp:token', accessToken);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ signed: !!user, user, loading, login, register, logout, updateUser }}
+      value={{ signed: !!user, user, loading, login, register, logout, updateUser, replaceToken }}
     >
       {children}
     </AuthContext.Provider>

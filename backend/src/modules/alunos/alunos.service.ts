@@ -38,19 +38,14 @@ export class AlunosService {
     });
   }
 
+  // Não recria o tokenAcesso quando ele é nulo: nulo significa link revogado,
+  // e só o "gerar novo link" (regenerateToken) devolve o acesso.
   async findOne(idAluno: number, idProfissional: number) {
-    let aluno = await this.prisma.aluno.findFirst({
+    const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
     });
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
-    }
-    if (!aluno.tokenAcesso) {
-      const token = randomUUID();
-      aluno = await this.prisma.aluno.update({
-        where: { idAluno },
-        data: { tokenAcesso: token },
-      });
     }
     return aluno;
   }
@@ -75,7 +70,12 @@ export class AlunosService {
   async regenerateToken(idAluno: number, idProfissional: number) {
     const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
-      include: { protocolos: { select: { idProtocolo: true } } },
+      include: {
+        protocolos: {
+          where: { excluido: false },
+          select: { idProtocolo: true },
+        },
+      },
     });
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
@@ -98,8 +98,7 @@ export class AlunosService {
 
   // Revoga todos os links públicos do aluno (tokenAcesso e o tokenPublico de
   // cada periodização) sem gerar novos — /publico/* para de reconhecer esse
-  // aluno. O próximo findOne/getVisaoGeralAluno cria um tokenAcesso novo, mas
-  // os links revogados nunca voltam a valer.
+  // aluno até o treinador gerar um link novo.
   async revokeToken(idAluno: number, idProfissional: number) {
     const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },

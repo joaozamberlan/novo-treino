@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { buildProgresso } from './progresso';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProtocoloDto } from './dto/create-protocolo.dto';
@@ -8,6 +12,18 @@ import { UpdateProtocoloDto } from './dto/update-protocolo.dto';
 import { UpdateTreinoDto } from './dto/update-treino.dto';
 import { UpdateTreinoExercicioDto } from './dto/update-treino-exercicio.dto';
 import { randomUUID } from 'crypto';
+
+// Fim antes do início não é um período válido
+function validarPeriodo(
+  dataInicio: Date | string | null | undefined,
+  dataFim: Date | string | null | undefined,
+) {
+  if (dataInicio && dataFim && new Date(dataFim) < new Date(dataInicio)) {
+    throw new BadRequestException(
+      'A data de término não pode ser anterior à de início.',
+    );
+  }
+}
 
 @Injectable()
 export class TreinosService {
@@ -25,6 +41,7 @@ export class TreinosService {
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
     }
+    validarPeriodo(createDto.dataInicio, createDto.dataFim);
 
     // Set other protocols of this student as inactive, then create the new active one
     return this.prisma.$transaction(async (tx) => {
@@ -51,12 +68,14 @@ export class TreinosService {
 
   async findAllProtocolos(idAluno: number, idProfissional: number) {
     const protocolos = await this.prisma.protocoloTreino.findMany({
-      where: { idAluno, idProfissional },
+      where: { idAluno, idProfissional, excluido: false },
       orderBy: { dataInicio: 'desc' },
       include: {
         treinos: {
           where: { ativo: true },
-          select: { _count: { select: { exercicios: true } } },
+          select: {
+            _count: { select: { exercicios: { where: { ativo: true } } } },
+          },
         },
       },
     });
@@ -71,13 +90,14 @@ export class TreinosService {
 
   async findOneProtocolo(idProtocolo: number, idProfissional: number) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
       include: {
         treinos: {
           where: { ativo: true },
           orderBy: { ordem: 'asc' },
           include: {
             exercicios: {
+              where: { ativo: true },
               orderBy: { ordem: 'asc' },
               include: {
                 exercicio: {
@@ -107,12 +127,17 @@ export class TreinosService {
     idProfissional: number,
   ) {
     const origem = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
       include: {
         treinos: {
           where: { ativo: true },
           orderBy: { ordem: 'asc' },
-          include: { exercicios: { orderBy: { ordem: 'asc' } } },
+          include: {
+            exercicios: {
+              where: { ativo: true },
+              orderBy: { ordem: 'asc' },
+            },
+          },
         },
       },
     });
@@ -172,7 +197,7 @@ export class TreinosService {
     updateDto: UpdateProtocoloDto,
   ) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
     });
     if (!protocolo) {
       throw new NotFoundException('Protocolo não encontrado');
@@ -191,6 +216,10 @@ export class TreinosService {
     };
     if (updateDto.dataInicio) data.dataInicio = new Date(updateDto.dataInicio);
     if (updateDto.dataFim) data.dataFim = new Date(updateDto.dataFim);
+    validarPeriodo(
+      data.dataInicio ?? protocolo.dataInicio,
+      data.dataFim ?? protocolo.dataFim,
+    );
 
     // If activating, deactivate all other protocols of the student
     if (updateDto.ativo === true) {
@@ -219,14 +248,18 @@ export class TreinosService {
 
   async deleteProtocolo(idProtocolo: number, idProfissional: number) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
     });
     if (!protocolo) {
       throw new NotFoundException('Protocolo não encontrado');
     }
 
-    return this.prisma.protocoloTreino.delete({
+    // Exclusão lógica: as sessões e cargas do aluno nas fichas desta
+    // periodização continuam no histórico (e no progresso). O link público
+    // para de funcionar.
+    return this.prisma.protocoloTreino.update({
       where: { idProtocolo },
+      data: { excluido: true, ativo: false, tokenPublico: null },
     });
   }
 
@@ -237,7 +270,7 @@ export class TreinosService {
     createDto: CreateTreinoDto,
   ) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
     });
     if (!protocolo) {
       throw new NotFoundException('Protocolo não encontrado');
@@ -257,7 +290,11 @@ export class TreinosService {
     updateDto: UpdateTreinoDto,
   ) {
     const treino = await this.prisma.treino.findFirst({
-      where: { idTreino, protocolo: { idProfissional } },
+      where: {
+        idTreino,
+        ativo: true,
+        protocolo: { idProfissional, excluido: false },
+      },
     });
     if (!treino) {
       throw new NotFoundException('Ficha de treino não encontrada');
@@ -271,20 +308,27 @@ export class TreinosService {
 
   async deleteTreino(idTreino: number, idProfissional: number) {
     const treino = await this.prisma.treino.findFirst({
-      where: { idTreino, protocolo: { idProfissional } },
+      where: {
+        idTreino,
+        ativo: true,
+        protocolo: { idProfissional, excluido: false },
+      },
     });
     if (!treino) {
       throw new NotFoundException('Ficha de treino não encontrada');
     }
 
-    return this.prisma.treino.delete({
+    // Exclusão lógica: preserva as sessões e cargas já registradas na ficha.
+    return this.prisma.treino.update({
       where: { idTreino },
+      data: { ativo: false },
     });
   }
 
   // --- VISÃO GERAL CONSOLIDADA (ALUNO + PROTOCOLOS + TREINOS + VOLUME EM 1 REQUISIÇÃO) ---
   async getVisaoGeralAluno(idAluno: number, idProfissional: number) {
-    let aluno = await this.prisma.aluno.findFirst({
+    // tokenAcesso nulo = link revogado; não é recriado aqui
+    const aluno = await this.prisma.aluno.findFirst({
       where: { idAluno, idProfissional },
       select: {
         idAluno: true,
@@ -299,23 +343,8 @@ export class TreinosService {
       throw new NotFoundException('Aluno não encontrado');
     }
 
-    if (!aluno.tokenAcesso) {
-      const tokenAcesso = randomUUID();
-      aluno = await this.prisma.aluno.update({
-        where: { idAluno },
-        data: { tokenAcesso },
-        select: {
-          idAluno: true,
-          nome: true,
-          email: true,
-          telefone: true,
-          tokenAcesso: true,
-        },
-      });
-    }
-
     const protocolos = await this.prisma.protocoloTreino.findMany({
-      where: { idAluno, idProfissional },
+      where: { idAluno, idProfissional, excluido: false },
       orderBy: { dataInicio: 'desc' },
       include: {
         treinos: {
@@ -323,6 +352,7 @@ export class TreinosService {
           orderBy: { ordem: 'asc' },
           include: {
             exercicios: {
+              where: { ativo: true },
               orderBy: { ordem: 'asc' },
               include: {
                 exercicio: {
@@ -363,7 +393,11 @@ export class TreinosService {
     addDto: AddExercicioDto,
   ) {
     const treino = await this.prisma.treino.findFirst({
-      where: { idTreino, protocolo: { idProfissional } },
+      where: {
+        idTreino,
+        ativo: true,
+        protocolo: { idProfissional, excluido: false },
+      },
     });
     if (!treino) {
       throw new NotFoundException('Ficha de treino não encontrada');
@@ -409,8 +443,9 @@ export class TreinosService {
     const rel = await this.prisma.treinoExercicio.findFirst({
       where: {
         idTreinoExercicio,
+        ativo: true,
         treino: {
-          protocolo: { idProfissional },
+          protocolo: { idProfissional, excluido: false },
         },
       },
     });
@@ -456,8 +491,9 @@ export class TreinosService {
     const rel = await this.prisma.treinoExercicio.findFirst({
       where: {
         idTreinoExercicio,
+        ativo: true,
         treino: {
-          protocolo: { idProfissional },
+          protocolo: { idProfissional, excluido: false },
         },
       },
     });
@@ -465,15 +501,17 @@ export class TreinosService {
       throw new NotFoundException('Exercício prescrito não encontrado');
     }
 
-    return this.prisma.treinoExercicio.delete({
+    // Exclusão lógica: preserva as séries já registradas pelo aluno.
+    return this.prisma.treinoExercicio.update({
       where: { idTreinoExercicio },
+      data: { ativo: false },
     });
   }
 
   // --- PROGRESSO DE CARGAS ---
   async getProgresso(idProtocolo: number, idProfissional: number) {
     const protocolo = await this.prisma.protocoloTreino.findFirst({
-      where: { idProtocolo, idProfissional },
+      where: { idProtocolo, idProfissional, excluido: false },
       select: { idAluno: true },
     });
     if (!protocolo) {
@@ -493,6 +531,7 @@ export class TreinosService {
 
     const exerciciosPrescritos = await this.prisma.treinoExercicio.findMany({
       where: {
+        ativo: true,
         treino: {
           ativo: true,
           protocolo: {

@@ -23,6 +23,8 @@ model Profissional {
   dataCadastro   DateTime          @default(now())
   ativo          Boolean           @default(false) // Pendente de aprovação por padrão
   role           String            @default("USER") // USER ou ADMIN
+  // Sobe a cada troca/redefinição de senha: JWTs emitidos antes deixam de valer
+  versaoToken    Int               @default(0)
   
   alunos           Aluno[]
   protocolos       ProtocoloTreino[]
@@ -71,6 +73,9 @@ model ProtocoloTreino {
   dataInicio     DateTime?
   dataFim        DateTime?
   ativo          Boolean           @default(true)
+  // Exclusão lógica: apagar a linha levaria junto (cascade) as sessões e as
+  // cargas registradas pelo aluno nas fichas desta periodização.
+  excluido       Boolean           @default(false)
   tokenPublico   String?           @unique
 
   aluno          Aluno             @relation(fields: [idAluno], references: [idAluno])
@@ -152,6 +157,7 @@ model TreinoExercicio {
   descansoMaxSegundos Int?
   observacao        String?
   ordem             Int            // Controla a sequencia do exercicio na ficha (ex: 1, 2, 3...)
+  ativo             Boolean        @default(true) // Exclusão lógica: preserva as séries já registradas pelo aluno
 
   treino            Treino         @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)
   exercicio         Exercicio      @relation(fields: [idExercicio], references: [idExercicio])
