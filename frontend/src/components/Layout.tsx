@@ -9,6 +9,18 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { ViewportDebug } from './ViewportDebug';
+
+// TEMPORÁRIO (diagnóstico do teclado no iPhone): 5 toques rápidos no logo.
+let brandTaps: number[] = [];
+function countBrandTap() {
+  const now = Date.now();
+  brandTaps = [...brandTaps.filter((t) => now - t < 2000), now];
+  if (brandTaps.length >= 5) {
+    brandTaps = [];
+    window.dispatchEvent(new Event('viewport-debug-toggle'));
+  }
+}
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -99,6 +111,7 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="app-shell">
+      <ViewportDebug />
       {/* iOS install hint */}
       {showIosHint && (
         <div
@@ -151,7 +164,7 @@ export const Layout: React.FC = () => {
           >
             <Menu size={18} aria-hidden="true" />
           </button>
-          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
+          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial" onClick={countBrandTap}>
             <BrandLogo size={22} text="Treinos" />
           </NavLink>
         </div>
