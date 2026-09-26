@@ -9,6 +9,7 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import { formatDescanso } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
+import { VolumeSemanal } from '../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../utils/pdf';
 import type { PrescribedExercise, Protocolo } from '../types/treino';
 import {
@@ -765,21 +766,6 @@ export const PublicTreino: React.FC = () => {
     return s.length > 0 && s.every(item => item.completed);
   }).length;
 
-  const calculateVolume = () => {
-    if (!protocolo?.treinos) return {};
-    const volumeMap: Record<string, number> = {};
-    protocolo.treinos.forEach(treino => {
-      if (treino.exercicios) {
-        treino.exercicios.forEach(item => {
-          const grupo = item.exercicio.grupoMuscular.nome;
-          volumeMap[grupo] = (volumeMap[grupo] || 0) + item.series;
-        });
-      }
-    });
-    return volumeMap;
-  };
-
-  const volume = calculateVolume();
 
   return (
     <div className="animate-in" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-0)', color: 'var(--text-0)', paddingBottom: '5rem' }}>
@@ -1375,34 +1361,7 @@ export const PublicTreino: React.FC = () => {
 
             <MeuProgresso progresso={progresso} idTreino={activeTabId} />
 
-            {/* Volume Summary */}
-            {Object.keys(volume).length > 0 && (
-              <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
-                <span style={{ color: 'var(--text-1)', fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
-                  Volume semanal do programa:
-                </span>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {Object.entries(volume).map(([grupo, series]) => (
-                    <span 
-                      key={grupo} 
-                      className="badge" 
-                      style={{ 
-                        backgroundColor: 'var(--bg-1)', 
-                        border: '1px solid var(--border)', 
-                        color: 'var(--text-0)',
-                        fontSize: '0.7rem',
-                        height: '22px',
-                        padding: '0 0.6rem',
-                        textTransform: 'none',
-                        letterSpacing: 'normal'
-                      }}
-                    >
-                      {grupo}: <span style={{ color: 'var(--accent)', fontWeight: 600, marginLeft: '0.25rem' }}>{series} {series === 1 ? 'série' : 'séries'}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <VolumeSemanal fichas={sortedTreinos} idFichaAtual={activeTabId} />
           <TabelaProgressao variant="screen" />
           </>
         ) : (

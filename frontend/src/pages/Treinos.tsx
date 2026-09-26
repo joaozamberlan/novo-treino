@@ -16,6 +16,7 @@ import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
+import { VolumeSemanal } from '../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../utils/pdf';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 
@@ -838,17 +839,6 @@ export const Treinos: React.FC = () => {
     ? [currentFicha] 
     : sortedTreinos;
 
-  const volumeSemanalPorGrupo = (() => {
-    const acc: Record<string, number> = {};
-    activeProtocol?.treinos.forEach((t) => {
-      t.exercicios?.forEach((item) => {
-        const grupo = item.exercicio.grupoMuscular?.nome || 'Outro';
-        acc[grupo] = (acc[grupo] || 0) + (Number(item.series) || 0);
-      });
-    });
-    return Object.entries(acc).sort((a, b) => b[1] - a[1]);
-  })();
-
   return (
     <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Screen Interactive UI Wrapper (Hidden during print) */}
@@ -1076,34 +1066,7 @@ export const Treinos: React.FC = () => {
                 <span>Adicionar Exercício à Ficha</span>
               </button>
 
-              {/* Volume Footer */}
-              {volumeSemanalPorGrupo.length > 0 && (
-                <div className="volume-footer" style={{ alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-1)', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.25rem' }}>
-                    Volume semanal:
-                  </span>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {volumeSemanalPorGrupo.map(([grupo, series]) => (
-                      <span 
-                        key={grupo} 
-                        className="badge" 
-                        style={{ 
-                          backgroundColor: 'var(--bg-3)', 
-                          border: '1px solid var(--border)', 
-                          color: 'var(--text-0)',
-                          fontSize: '0.7rem',
-                          height: '22px',
-                          padding: '0 0.6rem',
-                          textTransform: 'none',
-                          letterSpacing: 'normal'
-                        }}
-                      >
-                        {grupo}: <span style={{ color: 'var(--accent)', fontWeight: 600, marginLeft: '0.25rem' }}>{series} {series === 1 ? 'série' : 'séries'}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <VolumeSemanal fichas={activeProtocol.treinos} idFichaAtual={activeFicha?.idTreino} />
             </>
           ) : (
             activeProtocol.treinos.length === 0 && (
