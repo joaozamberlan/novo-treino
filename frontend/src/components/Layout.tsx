@@ -9,18 +9,7 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import { ViewportDebug } from './ViewportDebug';
-
-// TEMPORÁRIO (diagnóstico do teclado no iPhone): 5 toques rápidos no logo.
-let brandTaps: number[] = [];
-function countBrandTap() {
-  const now = Date.now();
-  brandTaps = [...brandTaps.filter((t) => now - t < 2000), now];
-  if (brandTaps.length >= 5) {
-    brandTaps = [];
-    window.dispatchEvent(new Event('viewport-debug-toggle'));
-  }
-}
+import { ModalPortal } from './ModalPortal';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -111,45 +100,46 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <ViewportDebug />
       {/* iOS install hint */}
       {showIosHint && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowIosHint(false)}
-        >
+        <ModalPortal>
           <div
-            className="modal-content"
-            onClick={e => e.stopPropagation()}
-            style={{ textAlign: 'center' }}
+            className="modal-backdrop"
+            onClick={() => setShowIosHint(false)}
           >
-            <div style={{ 
-              width: '48px', 
-              height: '48px', 
-              borderRadius: '12px', 
-              backgroundColor: 'var(--accent-dim)', 
-              color: 'var(--accent)',
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              margin: '0 auto 1rem auto'
-            }}>
-              <Smartphone size={24} />
-            </div>
-            <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
-            <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-              Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
-              <strong>"Adicionar à Tela de Início"</strong>
-            </p>
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowIosHint(false)}
-              style={{ width: '100%' }}
+            <div
+              className="modal-content"
+              onClick={e => e.stopPropagation()}
+              style={{ textAlign: 'center' }}
             >
-              Entendido
-            </button>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--accent-dim)', 
+                color: 'var(--accent)',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                margin: '0 auto 1rem auto'
+              }}>
+                <Smartphone size={24} />
+              </div>
+              <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
+              <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
+                <strong>"Adicionar à Tela de Início"</strong>
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowIosHint(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Top Header Bar */}
@@ -164,7 +154,7 @@ export const Layout: React.FC = () => {
           >
             <Menu size={18} aria-hidden="true" />
           </button>
-          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial" onClick={countBrandTap}>
+          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
             <BrandLogo size={22} text="Treinos" />
           </NavLink>
         </div>

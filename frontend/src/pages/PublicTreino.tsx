@@ -20,6 +20,7 @@ import {
 import { BrandLogo } from '../components/BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { LAST_PUBLIC_TOKEN_KEY } from '../constants/storageKeys';
+import { ModalPortal } from '../components/ModalPortal';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -1393,105 +1394,109 @@ export const PublicTreino: React.FC = () => {
 
       {/* Modal de Confirmação para Encerrar Treino */}
       {showConfirmModal && (
-        <div className="modal-backdrop" onClick={() => setShowConfirmModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-              <AlertCircle size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-0)' }}>Encerrar Treino?</h3>
-            </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Você concluiu <strong>{totalSeriesConcluidas} de {totalSeriesTotal} séries</strong>. Deseja realmente finalizar o treino de hoje? Os pesos e repetições preenchidos serão salvos no banco de dados e usados como referência na próxima semana.
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setShowConfirmModal(false)}
-                style={{ height: '42px', minWidth: '44px', fontSize: '0.85rem' }}
-              >
-                Continuar Treinando
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  setShowConfirmModal(false);
-                  executarEncerramento();
-                }}
-                style={{ height: '42px', minWidth: '44px', fontSize: '0.85rem', fontWeight: 700 }}
-              >
-                Sim, Encerrar Treino
-              </button>
+        <ModalPortal>
+          <div className="modal-backdrop" onClick={() => setShowConfirmModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <AlertCircle size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-0)' }}>Encerrar Treino?</h3>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                Você concluiu <strong>{totalSeriesConcluidas} de {totalSeriesTotal} séries</strong>. Deseja realmente finalizar o treino de hoje? Os pesos e repetições preenchidos serão salvos no banco de dados e usados como referência na próxima semana.
+              </p>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowConfirmModal(false)}
+                  style={{ height: '42px', minWidth: '44px', fontSize: '0.85rem' }}
+                >
+                  Continuar Treinando
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    executarEncerramento();
+                  }}
+                  style={{ height: '42px', minWidth: '44px', fontSize: '0.85rem', fontWeight: 700 }}
+                >
+                  Sim, Encerrar Treino
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Modal de Celebração de Treino Encerrado */}
       {showCelebrationModal && (
-        <div className="modal-backdrop" onClick={() => setShowCelebrationModal(false)}>
-          <div className="modal-content" style={{ textAlign: 'center', padding: '2rem 1.5rem' }} onClick={e => e.stopPropagation()}>
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '50%', 
-              backgroundColor: 'rgba(45, 168, 104, 0.12)', 
-              color: 'var(--success)',
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              margin: '0 auto 1rem auto'
-            }}>
-              <CheckCircle2 size={34} strokeWidth={2.2} aria-hidden="true" />
-            </div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-0)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
-              Treino finalizado
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', marginBottom: '1.5rem', lineHeight: 1.45 }}>
-              Excelente treino! Suas cargas e repetições foram salvas no histórico. Na próxima sessão, elas aparecerão como referência na coluna <strong>Anterior</strong> para guiar sua progressão.
-            </p>
-
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '0.75rem', 
-              marginBottom: '1.5rem',
-              background: 'var(--bg-2)',
-              padding: '1rem',
-              borderRadius: 'var(--radius-m)',
-              border: '1px solid var(--border)'
-            }}>
-              <div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Séries Feitas</span>
-                <strong style={{ fontSize: '1.3rem', color: 'var(--text-0)', fontVariantNumeric: 'tabular-nums' }}>{totalSeriesConcluidas}</strong>
+        <ModalPortal>
+          <div className="modal-backdrop" onClick={() => setShowCelebrationModal(false)}>
+            <div className="modal-content" style={{ textAlign: 'center', padding: '2rem 1.5rem' }} onClick={e => e.stopPropagation()}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                borderRadius: '50%', 
+                backgroundColor: 'rgba(45, 168, 104, 0.12)', 
+                color: 'var(--success)',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                margin: '0 auto 1rem auto'
+              }}>
+                <CheckCircle2 size={34} strokeWidth={2.2} aria-hidden="true" />
               </div>
-              <div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Exercícios</span>
-                <strong style={{ fontSize: '1.3rem', color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{completedExercisesCount}</strong>
-              </div>
-            </div>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-0)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
+                Treino finalizado
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', marginBottom: '1.5rem', lineHeight: 1.45 }}>
+                Excelente treino! Suas cargas e repetições foram salvas no histórico. Na próxima sessão, elas aparecerão como referência na coluna <strong>Anterior</strong> para guiar sua progressão.
+              </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              <button
-                type="button"
-                onClick={handleIniciarProximoTreino}
-                className="btn btn-primary"
-                style={{ width: '100%', height: '46px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-              >
-                <RotateCcw size={16} aria-hidden="true" />
-                <span>Iniciar Próxima Sessão</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCelebrationModal(false)}
-                className="btn btn-secondary"
-                style={{ width: '100%', height: '42px', fontSize: '0.85rem' }}
-              >
-                Fechar
-              </button>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '0.75rem', 
+                marginBottom: '1.5rem',
+                background: 'var(--bg-2)',
+                padding: '1rem',
+                borderRadius: 'var(--radius-m)',
+                border: '1px solid var(--border)'
+              }}>
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Séries Feitas</span>
+                  <strong style={{ fontSize: '1.3rem', color: 'var(--text-0)', fontVariantNumeric: 'tabular-nums' }}>{totalSeriesConcluidas}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Exercícios</span>
+                  <strong style={{ fontSize: '1.3rem', color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{completedExercisesCount}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <button
+                  type="button"
+                  onClick={handleIniciarProximoTreino}
+                  className="btn btn-primary"
+                  style={{ width: '100%', height: '46px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  <RotateCcw size={16} aria-hidden="true" />
+                  <span>Iniciar Próxima Sessão</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCelebrationModal(false)}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', height: '42px', fontSize: '0.85rem' }}
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

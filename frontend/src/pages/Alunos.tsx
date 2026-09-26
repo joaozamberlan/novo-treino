@@ -5,6 +5,7 @@ import api from '../services/api';
 import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
+import { ModalPortal } from '../components/ModalPortal';
 
 interface Aluno {
   idAluno: number;
@@ -367,208 +368,212 @@ export const Alunos: React.FC = () => {
 
       {/* Modal de Cadastro de Aluno */}
       {showAddForm && (
-        <div 
-          className="modal-backdrop" 
-          onClick={() => setShowAddForm(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalNovoAlunoTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop" 
+            onClick={() => setShowAddForm(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalNovoAlunoTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    CADASTRO // NOVO ALUNO
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      CADASTRO // NOVO ALUNO
+                    </span>
+                  </div>
+                  <h3 id="modalNovoAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    Novo Aluno
+                  </h3>
                 </div>
-                <h3 id="modalNovoAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  Novo Aluno
-                </h3>
-              </div>
-              <button 
-                type="button"
-                className="btn btn-ghost btn-icon" 
-                onClick={() => setShowAddForm(false)} 
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddAluno} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="nomeAluno">Nome completo *</label>
-                <input
-                  id="nomeAluno"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Lucas Silva"
-                  value={nome}
-                  maxLength={120}
-                  onChange={(e) => setNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="emailAluno">E-mail</label>
-                <input
-                  id="emailAluno"
-                  type="email"
-                  className="form-input"
-                  placeholder="lucas@exemplo.com"
-                  value={email}
-                  maxLength={254}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
-                <input
-                  id="telAluno"
-                  type="tel"
-                  className="form-input"
-                  placeholder="(00) 90000-0000"
-                  value={telefone}
-                  maxLength={30}
-                  onChange={(e) => setTelefone(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button
+                <button 
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowAddForm(false)}
+                  className="btn btn-ghost btn-icon" 
+                  onClick={() => setShowAddForm(false)} 
+                  title="Fechar"
+                  aria-label="Fechar modal"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? 'Cadastrando...' : 'Cadastrar Aluno'}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleAddAluno} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="nomeAluno">Nome completo *</label>
+                  <input
+                    id="nomeAluno"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Lucas Silva"
+                    value={nome}
+                    maxLength={120}
+                    onChange={(e) => setNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="emailAluno">E-mail</label>
+                  <input
+                    id="emailAluno"
+                    type="email"
+                    className="form-input"
+                    placeholder="lucas@exemplo.com"
+                    value={email}
+                    maxLength={254}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
+                  <input
+                    id="telAluno"
+                    type="tel"
+                    className="form-input"
+                    placeholder="(00) 90000-0000"
+                    value={telefone}
+                    maxLength={30}
+                    onChange={(e) => setTelefone(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowAddForm(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? 'Cadastrando...' : 'Cadastrar Aluno'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Modal de Edição de Aluno */}
       {editingAlunoId && (
-        <div 
-          className="modal-backdrop" 
-          onClick={cancelEdit}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalEditAlunoTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop" 
+            onClick={cancelEdit}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalEditAlunoTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    CONFIGURAÇÃO // ATUALIZAR DADOS
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      CONFIGURAÇÃO // ATUALIZAR DADOS
+                    </span>
+                  </div>
+                  <h3 id="modalEditAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    Editar Aluno
+                  </h3>
                 </div>
-                <h3 id="modalEditAlunoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  Editar Aluno
-                </h3>
-              </div>
-              <button 
-                type="button"
-                className="btn btn-ghost btn-icon" 
-                onClick={cancelEdit} 
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              <div className="form-group">
-                <label className="form-label">Nome completo *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={editNome}
-                  maxLength={120}
-                  onChange={(e) => setEditNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">E-mail</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  value={editEmail}
-                  maxLength={254}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Telefone / WhatsApp</label>
-                <input
-                  type="tel"
-                  className="form-input"
-                  value={editTelefone}
-                  maxLength={30}
-                  onChange={(e) => setEditTelefone(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Status do Aluno</label>
-                <select
-                  className="form-input"
-                  value={editAtivo ? 'true' : 'false'}
-                  onChange={(e) => setEditAtivo(e.target.value === 'true')}
-                >
-                  <option value="true">Ativo</option>
-                  <option value="false">Inativo</option>
-                </select>
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button
+                <button 
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={cancelEdit}
+                  className="btn btn-ghost btn-icon" 
+                  onClick={cancelEdit} 
+                  title="Fechar"
+                  aria-label="Fechar modal"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? 'Salvando...' : 'Salvar Alterações'}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Nome completo *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editNome}
+                    maxLength={120}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">E-mail</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    value={editEmail}
+                    maxLength={254}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Telefone / WhatsApp</label>
+                  <input
+                    type="tel"
+                    className="form-input"
+                    value={editTelefone}
+                    maxLength={30}
+                    onChange={(e) => setEditTelefone(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Status do Aluno</label>
+                  <select
+                    className="form-input"
+                    value={editAtivo ? 'true' : 'false'}
+                    onChange={(e) => setEditAtivo(e.target.value === 'true')}
+                  >
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={cancelEdit}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

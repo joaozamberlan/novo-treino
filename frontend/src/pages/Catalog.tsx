@@ -9,6 +9,7 @@ import { memoryCache } from '../services/cache';
 import { toast } from 'sonner';
 import type { GrupoMuscular, Exercicio, TecnicaTreino } from '../types/treino';
 import type { Instrucao } from '../components/InstrucaoAutocomplete';
+import { ModalPortal } from '../components/ModalPortal';
 
 export const Catalog: React.FC = () => {
   const location = useLocation();
@@ -811,370 +812,378 @@ export const Catalog: React.FC = () => {
       {/* MODAL 1: EXERCÍCIO (NOVO / EDITAR) */}
       {/* ========================================================================= */}
       {showExForm && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeExModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalExercicioTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '520px' }}
+            className="modal-backdrop" 
+            onClick={closeExModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalExercicioTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {editingExId ? 'ATUALIZAÇÃO // EXERCÍCIO' : 'CADASTRO // EXERCÍCIO'}
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '520px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {editingExId ? 'ATUALIZAÇÃO // EXERCÍCIO' : 'CADASTRO // EXERCÍCIO'}
+                    </span>
+                  </div>
+                  <h3 id="modalExercicioTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    {editingExId ? 'Editar Exercício' : 'Novo Exercício'}
+                  </h3>
                 </div>
-                <h3 id="modalExercicioTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  {editingExId ? 'Editar Exercício' : 'Novo Exercício'}
-                </h3>
-              </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeExModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveExercicio} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="exNome">Nome do Exercício *</label>
-                <input
-                  id="exNome"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Supino Reto com Barra"
-                  value={exNome}
-                  maxLength={120}
-                  onChange={(e) => setExNome(e.target.value)}
-                  autoFocus
-                  required
-                />
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeExModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                  <label className="form-label" htmlFor="exGrupo" style={{ margin: 0 }}>Grupo Muscular *</label>
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    style={{ minHeight: 'unset', padding: '0.15rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                    onClick={() => setShowGrupoForm(!showGrupoForm)}
-                  >
-                    <FolderPlus size={12} />
-                    {showGrupoForm ? 'Fechar' : 'Novo Grupo'}
-                  </button>
+              <form onSubmit={handleSaveExercicio} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="exNome">Nome do Exercício *</label>
+                  <input
+                    id="exNome"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Supino Reto com Barra"
+                    value={exNome}
+                    maxLength={120}
+                    onChange={(e) => setExNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
                 </div>
 
-                {showGrupoForm && (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.65rem', animation: 'fadeIn 150ms var(--ease-out)' }}>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Nome do novo grupo..."
-                      value={newGrupoNome}
-                      maxLength={80}
-                      onChange={(e) => setNewGrupoNome(e.target.value)}
-                      style={{ flex: 1 }}
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddGrupo(e);
-                        }
-                      }}
-                    />
-                    <button 
-                      type="button" 
-                      className="btn btn-primary" 
-                      onClick={handleAddGrupo} 
-                      style={{ minHeight: 'unset', padding: '0.4rem 0.8rem', fontSize: '0.8125rem' }}
-                    >
-                      Salvar
-                    </button>
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <label className="form-label" htmlFor="exGrupo" style={{ margin: 0 }}>Grupo Muscular *</label>
                     <button 
                       type="button" 
                       className="btn btn-secondary" 
-                      onClick={() => setShowGrupoForm(false)} 
-                      style={{ minHeight: 'unset', padding: '0.4rem 0.6rem', fontSize: '0.8125rem' }}
-                      title="Cancelar"
+                      style={{ minHeight: 'unset', padding: '0.15rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                      onClick={() => setShowGrupoForm(!showGrupoForm)}
                     >
-                      <X size={14} />
+                      <FolderPlus size={12} />
+                      {showGrupoForm ? 'Fechar' : 'Novo Grupo'}
                     </button>
                   </div>
-                )}
 
-                <select
-                  id="exGrupo"
-                  className="form-input"
-                  value={exGrupoId}
-                  onChange={(e) => setExGrupoId(Number(e.target.value))}
-                  required
-                >
-                  <option value={0}>Selecione um grupo muscular...</option>
-                  {grupos.map((g) => (
-                    <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>{g.nome}</option>
-                  ))}
-                </select>
-              </div>
+                  {showGrupoForm && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.65rem', animation: 'fadeIn 150ms var(--ease-out)' }}>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Nome do novo grupo..."
+                        value={newGrupoNome}
+                        maxLength={80}
+                        onChange={(e) => setNewGrupoNome(e.target.value)}
+                        style={{ flex: 1 }}
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddGrupo(e);
+                          }
+                        }}
+                      />
+                      <button 
+                        type="button" 
+                        className="btn btn-primary" 
+                        onClick={handleAddGrupo} 
+                        style={{ minHeight: 'unset', padding: '0.4rem 0.8rem', fontSize: '0.8125rem' }}
+                      >
+                        Salvar
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary" 
+                        onClick={() => setShowGrupoForm(false)} 
+                        style={{ minHeight: 'unset', padding: '0.4rem 0.6rem', fontSize: '0.8125rem' }}
+                        title="Cancelar"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="exDesc">Descrição / Observações de Execução</label>
-                <input
-                  id="exDesc"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Escápulas aduzidas, descer até a linha do peito"
-                  value={exDesc}
-                  maxLength={1000}
-                  onChange={(e) => setExDesc(e.target.value)}
-                />
-              </div>
+                  <select
+                    id="exGrupo"
+                    className="form-input"
+                    value={exGrupoId}
+                    onChange={(e) => setExGrupoId(Number(e.target.value))}
+                    required
+                  >
+                    <option value={0}>Selecione um grupo muscular...</option>
+                    {grupos.map((g) => (
+                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>{g.nome}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="exVideo">Vídeo Demonstrativo (URL YouTube)</label>
-                <input
-                  id="exVideo"
-                  type="url"
-                  className="form-input"
-                  placeholder="https://youtube.com/watch?v=..."
-                  value={exVideo}
-                  maxLength={500}
-                  onChange={(e) => setExVideo(e.target.value)}
-                />
-              </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="exDesc">Descrição / Observações de Execução</label>
+                  <input
+                    id="exDesc"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Escápulas aduzidas, descer até a linha do peito"
+                    value={exDesc}
+                    maxLength={1000}
+                    onChange={(e) => setExDesc(e.target.value)}
+                  />
+                </div>
 
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeExModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>{editingExId ? 'Atualizar Exercício' : 'Salvar Exercício'}</span>
-                </button>
-              </div>
-            </form>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="exVideo">Vídeo Demonstrativo (URL YouTube)</label>
+                  <input
+                    id="exVideo"
+                    type="url"
+                    className="form-input"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={exVideo}
+                    maxLength={500}
+                    onChange={(e) => setExVideo(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeExModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>{editingExId ? 'Atualizar Exercício' : 'Salvar Exercício'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 2: TÉCNICA (NOVA / EDITAR) */}
       {/* ========================================================================= */}
       {showTecForm && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeTecModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalTecnicaTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop" 
+            onClick={closeTecModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTecnicaTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {editingTecId ? 'ATUALIZAÇÃO // TÉCNICA' : 'CADASTRO // TÉCNICA'}
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {editingTecId ? 'ATUALIZAÇÃO // TÉCNICA' : 'CADASTRO // TÉCNICA'}
+                    </span>
+                  </div>
+                  <h3 id="modalTecnicaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    {editingTecId ? 'Editar Técnica de Treino' : 'Nova Técnica de Treino'}
+                  </h3>
                 </div>
-                <h3 id="modalTecnicaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  {editingTecId ? 'Editar Técnica de Treino' : 'Nova Técnica de Treino'}
-                </h3>
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeTecModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeTecModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+
+              <form onSubmit={handleSaveTecnica} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="tecNome">Nome da Técnica *</label>
+                  <input
+                    id="tecNome"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Rest-Pause, Drop-set, Ponto Zero"
+                    value={tecNome}
+                    maxLength={80}
+                    onChange={(e) => setTecNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="tecDesc">Descrição Detalhada</label>
+                  <textarea
+                    id="tecDesc"
+                    className="form-input"
+                    rows={3}
+                    placeholder="Ex: Descansar de 10 a 15 segundos e continuar até nova falha concêntrica."
+                    value={tecDesc}
+                    maxLength={500}
+                    onChange={(e) => setTecDesc(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeTecModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveTecnica} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="tecNome">Nome da Técnica *</label>
-                <input
-                  id="tecNome"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Rest-Pause, Drop-set, Ponto Zero"
-                  value={tecNome}
-                  maxLength={80}
-                  onChange={(e) => setTecNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="tecDesc">Descrição Detalhada</label>
-                <textarea
-                  id="tecDesc"
-                  className="form-input"
-                  rows={3}
-                  placeholder="Ex: Descansar de 10 a 15 segundos e continuar até nova falha concêntrica."
-                  value={tecDesc}
-                  maxLength={500}
-                  onChange={(e) => setTecDesc(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeTecModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {showInsForm && (
-        <div
-          className="modal-backdrop"
-          onClick={closeInsModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalInstrucaoTitle"
-        >
+        <ModalPortal>
           <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop"
+            onClick={closeInsModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalInstrucaoTitle"
           >
-            <div className="modal-header">
-              <h3 id="modalInstrucaoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                {editingInsId ? 'Editar Instrução' : 'Nova Instrução'}
-              </h3>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={closeInsModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <h3 id="modalInstrucaoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  {editingInsId ? 'Editar Instrução' : 'Nova Instrução'}
+                </h3>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={closeInsModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveInstrucao} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="insTexto">Instrução *</label>
+                  <input
+                    id="insTexto"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Buscar a falha"
+                    value={insTexto}
+                    maxLength={200}
+                    onChange={(e) => setInsTexto(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeInsModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>{editingInsId ? 'Atualizar Instrução' : 'Salvar Instrução'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveInstrucao} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="insTexto">Instrução *</label>
-                <input
-                  id="insTexto"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Buscar a falha"
-                  value={insTexto}
-                  maxLength={200}
-                  onChange={(e) => setInsTexto(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeInsModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>{editingInsId ? 'Atualizar Instrução' : 'Salvar Instrução'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 3: GRUPO MUSCULAR (NOVO / EDITAR) */}
       {/* ========================================================================= */}
       {showGrupoTabForm && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeGrupoTabModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalGrupoTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '420px' }}
+            className="modal-backdrop" 
+            onClick={closeGrupoTabModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalGrupoTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {editingGrupoId ? 'ATUALIZAÇÃO // GRUPO' : 'CADASTRO // GRUPO'}
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '420px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {editingGrupoId ? 'ATUALIZAÇÃO // GRUPO' : 'CADASTRO // GRUPO'}
+                    </span>
+                  </div>
+                  <h3 id="modalGrupoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    {editingGrupoId ? 'Editar Grupo Muscular' : 'Novo Grupo Muscular'}
+                  </h3>
                 </div>
-                <h3 id="modalGrupoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  {editingGrupoId ? 'Editar Grupo Muscular' : 'Novo Grupo Muscular'}
-                </h3>
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeGrupoTabModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeGrupoTabModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+
+              <form onSubmit={handleSaveGrupoTab} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="grupoTabNome">Nome do Grupo Muscular *</label>
+                  <input
+                    id="grupoTabNome"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Quadríceps, Peitoral, Dorsal"
+                    value={grupoTabNome}
+                    maxLength={80}
+                    onChange={(e) => setGrupoTabNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeGrupoTabModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>{editingGrupoId ? 'Atualizar Grupo' : 'Salvar Grupo'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveGrupoTab} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="grupoTabNome">Nome do Grupo Muscular *</label>
-                <input
-                  id="grupoTabNome"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Quadríceps, Peitoral, Dorsal"
-                  value={grupoTabNome}
-                  maxLength={80}
-                  onChange={(e) => setGrupoTabNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeGrupoTabModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>{editingGrupoId ? 'Atualizar Grupo' : 'Salvar Grupo'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
     </div>

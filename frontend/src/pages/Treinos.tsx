@@ -19,6 +19,7 @@ import { FichaPdf } from '../components/FichaPdf';
 import { VolumeSemanal } from '../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../utils/pdf';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
+import { ModalPortal } from '../components/ModalPortal';
 
 interface Aluno {
   idAluno: number;
@@ -1111,505 +1112,513 @@ export const Treinos: React.FC = () => {
       {/* MODAL 2: NOVA FICHA DE TREINO */}
       {/* ========================================================================= */}
       {showTreinoModal && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeTreinoModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalTreinoTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '440px' }}
+            className="modal-backdrop" 
+            onClick={closeTreinoModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTreinoTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    ORGANIZAÇÃO // NOVA FICHA
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '440px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      ORGANIZAÇÃO // NOVA FICHA
+                    </span>
+                  </div>
+                  <h3 id="modalTreinoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    Nova Ficha de Treino
+                  </h3>
                 </div>
-                <h3 id="modalTreinoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  Nova Ficha de Treino
-                </h3>
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeTreinoModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeTreinoModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+
+              <form onSubmit={handleCreateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="treinoNomeInput">Nome da Ficha *</label>
+                  <input
+                    id="treinoNomeInput"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Treino A - Superior, PUSH, Peito e Tríceps"
+                    value={treinoNome}
+                    maxLength={120}
+                    onChange={(e) => setTreinoNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="treinoObsInput">Observações da Ficha (opcional)</label>
+                  <input
+                    id="treinoObsInput"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Foco em deltoide anterior e peitoral superior"
+                    value={treinoObs}
+                    maxLength={1000}
+                    onChange={(e) => setTreinoObs(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeTreinoModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Plus size={16} />
+                    <span>Criar Ficha</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleCreateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="treinoNomeInput">Nome da Ficha *</label>
-                <input
-                  id="treinoNomeInput"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Treino A - Superior, PUSH, Peito e Tríceps"
-                  value={treinoNome}
-                  maxLength={120}
-                  onChange={(e) => setTreinoNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="treinoObsInput">Observações da Ficha (opcional)</label>
-                <input
-                  id="treinoObsInput"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Foco em deltoide anterior e peitoral superior"
-                  value={treinoObs}
-                  maxLength={1000}
-                  onChange={(e) => setTreinoObs(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeTreinoModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Plus size={16} />
-                  <span>Criar Ficha</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 3: EDITAR / RENOMEAR FICHA */}
       {/* ========================================================================= */}
       {showEditFichaModal && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeEditFichaModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalEditFichaTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '440px' }}
+            className="modal-backdrop" 
+            onClick={closeEditFichaModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalEditFichaTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    CONFIGURAÇÃO // EDITAR FICHA
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '440px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      CONFIGURAÇÃO // EDITAR FICHA
+                    </span>
+                  </div>
+                  <h3 id="modalEditFichaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    Editar Ficha
+                  </h3>
                 </div>
-                <h3 id="modalEditFichaTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  Editar Ficha
-                </h3>
-              </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeEditFichaModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="editFichaNomeInput">Nome da Ficha *</label>
-                <input
-                  id="editFichaNomeInput"
-                  type="text"
-                  className="form-input"
-                  value={editFichaNome}
-                  maxLength={120}
-                  onChange={(e) => setEditFichaNome(e.target.value)}
-                  autoFocus
-                  required
-                />
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeEditFichaModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="editFichaObsInput">Observações da Ficha</label>
-                <input
-                  id="editFichaObsInput"
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Aquecimento articular prévio obrigatório"
-                  value={editFichaObs}
-                  maxLength={1000}
-                  onChange={(e) => setEditFichaObs(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="editFichaRodapeInput">Rodapé desta ficha (exceção)</label>
-                <textarea
-                  id="editFichaRodapeInput"
-                  className="form-input"
-                  rows={4}
-                  maxLength={1000}
-                  disabled={editFichaSemRodape}
-                  placeholder={user?.rodapeTreino ? `Em branco = usa o padrão: ${user.rodapeTreino}` : 'Em branco = usa o rodapé padrão das Configurações'}
-                  value={editFichaRodape}
-                  onChange={(e) => setEditFichaRodape(e.target.value)}
-                />
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', marginTop: '0.4rem' }}>
+              <form onSubmit={handleUpdateTreino} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editFichaNomeInput">Nome da Ficha *</label>
                   <input
-                    type="checkbox"
-                    checked={editFichaSemRodape}
-                    onChange={(e) => setEditFichaSemRodape(e.target.checked)}
+                    id="editFichaNomeInput"
+                    type="text"
+                    className="form-input"
+                    value={editFichaNome}
+                    maxLength={120}
+                    onChange={(e) => setEditFichaNome(e.target.value)}
+                    autoFocus
+                    required
                   />
-                  Não exibir rodapé nesta ficha
-                </label>
-              </div>
+                </div>
 
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeEditFichaModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>Salvar Alterações</span>
-                </button>
-              </div>
-            </form>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editFichaObsInput">Observações da Ficha</label>
+                  <input
+                    id="editFichaObsInput"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Aquecimento articular prévio obrigatório"
+                    value={editFichaObs}
+                    maxLength={1000}
+                    onChange={(e) => setEditFichaObs(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="editFichaRodapeInput">Rodapé desta ficha (exceção)</label>
+                  <textarea
+                    id="editFichaRodapeInput"
+                    className="form-input"
+                    rows={4}
+                    maxLength={1000}
+                    disabled={editFichaSemRodape}
+                    placeholder={user?.rodapeTreino ? `Em branco = usa o padrão: ${user.rodapeTreino}` : 'Em branco = usa o rodapé padrão das Configurações'}
+                    value={editFichaRodape}
+                    onChange={(e) => setEditFichaRodape(e.target.value)}
+                  />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', marginTop: '0.4rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={editFichaSemRodape}
+                      onChange={(e) => setEditFichaSemRodape(e.target.checked)}
+                    />
+                    Não exibir rodapé nesta ficha
+                  </label>
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeEditFichaModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>Salvar Alterações</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 4: PRESCREVER / EDITAR EXERCÍCIO */}
       {/* ========================================================================= */}
       {showExerciseModal && (
-        <div 
-          className="modal-backdrop" 
-          onClick={closeExerciseModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalExercisePrescriptionTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '520px' }}
+            className="modal-backdrop" 
+            onClick={closeExerciseModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalExercisePrescriptionTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {editingExercisePrescriptionId ? 'PRESCRIÇÃO // EDITAR EXERCÍCIO' : 'PRESCRIÇÃO // NOVO EXERCÍCIO'}
-                  </span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '520px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {editingExercisePrescriptionId ? 'PRESCRIÇÃO // EDITAR EXERCÍCIO' : 'PRESCRIÇÃO // NOVO EXERCÍCIO'}
+                    </span>
+                  </div>
+                  <h3 id="modalExercisePrescriptionTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    {editingExercisePrescriptionId ? 'Editar Prescrição' : `Adicionar Exercício (${activeFicha?.nome || 'Ficha'})`}
+                  </h3>
                 </div>
-                <h3 id="modalExercisePrescriptionTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  {editingExercisePrescriptionId ? 'Editar Prescrição' : `Adicionar Exercício (${activeFicha?.nome || 'Ficha'})`}
-                </h3>
+                <button 
+                  type="button" 
+                  className="modal-close" 
+                  onClick={closeExerciseModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button 
-                type="button" 
-                className="modal-close" 
-                onClick={closeExerciseModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+              <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Grupo Muscular *</label>
+                    <select
+                      className="form-input"
+                      value={selectedGrupo}
+                      onChange={(e) => {
+                        setSelectedGrupo(Number(e.target.value));
+                        setSelectedExercicio(0);
+                      }}
+                      required
+                    >
+                      <option value={0}>Selecione...</option>
+                      {catalogGrupos.map(g => (
+                        <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>
+                          {g.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Exercício *</label>
+                    <select
+                      className="form-input"
+                      value={selectedExercicio}
+                      onChange={(e) => setSelectedExercicio(Number(e.target.value))}
+                      disabled={!selectedGrupo}
+                      required
+                    >
+                      <option value={0}>{!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}</option>
+                      {catalogExercicios
+                        .filter(ex => ex.idGrupoMuscular === selectedGrupo)
+                        .map(ex => (
+                          <option key={ex.idExercicio} value={ex.idExercicio}>
+                            {ex.nome}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Séries *</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      className="form-input"
+                      value={exSeries}
+                      onChange={(e) => setExSeries(Number(e.target.value))}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Repetições *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={exReps}
+                      maxLength={30}
+                      onChange={(e) => setExReps(e.target.value)}
+                      placeholder="Ex: 8-12 ou 10"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Descanso</label>
+                    <input
+                      type="text"
+                      inputMode="text"
+                      className="form-input"
+                      value={exDescanso}
+                      onChange={(e) => setExDescanso(e.target.value)}
+                      placeholder="Ex: 60, 60-90 ou 1-3 min"
+                    />
+                  </div>
+                </div>
+
                 <div className="form-group">
-                  <label className="form-label">Grupo Muscular *</label>
+                  <label className="form-label">Técnica Avançada (opcional)</label>
                   <select
                     className="form-input"
-                    value={selectedGrupo}
-                    onChange={(e) => {
-                      setSelectedGrupo(Number(e.target.value));
-                      setSelectedExercicio(0);
-                    }}
-                    required
+                    value={selectedTecnica || ''}
+                    onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}
                   >
-                    <option value={0}>Selecione...</option>
-                    {catalogGrupos.map(g => (
-                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>
-                        {g.nome}
-                      </option>
+                    <option value="">Nenhuma (execução padrão)</option>
+                    {catalogTecnicas.map(t => (
+                      <option key={t.idTecnica} value={t.idTecnica}>{t.nome}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Exercício *</label>
-                  <select
-                    className="form-input"
-                    value={selectedExercicio}
-                    onChange={(e) => setSelectedExercicio(Number(e.target.value))}
-                    disabled={!selectedGrupo}
-                    required
-                  >
-                    <option value={0}>{!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}</option>
-                    {catalogExercicios
-                      .filter(ex => ex.idGrupoMuscular === selectedGrupo)
-                      .map(ex => (
-                        <option key={ex.idExercicio} value={ex.idExercicio}>
-                          {ex.nome}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Séries *</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    className="form-input"
-                    value={exSeries}
-                    onChange={(e) => setExSeries(Number(e.target.value))}
-                    required
+                  <label className="form-label">Instruções / Anotações de Execução</label>
+                  <InstrucaoAutocomplete
+                    value={exObs}
+                    onChange={setExObs}
+                    instrucoes={catalogInstrucoes}
+                    onSave={handleSaveInstrucao}
+                    placeholder="Ex: Buscar a falha (comece a digitar para ver sugestões)"
+                    maxLength={1000}
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Repetições *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={exReps}
-                    maxLength={30}
-                    onChange={(e) => setExReps(e.target.value)}
-                    placeholder="Ex: 8-12 ou 10"
-                    required
-                  />
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeExerciseModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} />
+                    <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
+                  </button>
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Descanso</label>
-                  <input
-                    type="text"
-                    inputMode="text"
-                    className="form-input"
-                    value={exDescanso}
-                    onChange={(e) => setExDescanso(e.target.value)}
-                    placeholder="Ex: 60, 60-90 ou 1-3 min"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Técnica Avançada (opcional)</label>
-                <select
-                  className="form-input"
-                  value={selectedTecnica || ''}
-                  onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}
-                >
-                  <option value="">Nenhuma (execução padrão)</option>
-                  {catalogTecnicas.map(t => (
-                    <option key={t.idTecnica} value={t.idTecnica}>{t.nome}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Instruções / Anotações de Execução</label>
-                <InstrucaoAutocomplete
-                  value={exObs}
-                  onChange={setExObs}
-                  instrucoes={catalogInstrucoes}
-                  onSave={handleSaveInstrucao}
-                  placeholder="Ex: Buscar a falha (comece a digitar para ver sugestões)"
-                  maxLength={1000}
-                />
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeExerciseModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <Save size={16} />
-                  <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL 5: CONFIGURAR IMPRESSÃO & GERAR PDF */}
       {/* ========================================================================= */}
       {showPrintModal && (
-        <div 
-          className="modal-backdrop" 
-          onClick={() => setShowPrintModal(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalPrintTitle"
-        >
+        <ModalPortal>
           <div 
-            className="modal-content" 
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '520px' }}
+            className="modal-backdrop" 
+            onClick={() => setShowPrintModal(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalPrintTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span className="section-label" style={{ margin: 0 }}>BACKUP OFFLINE // PDF</span>
+            <div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '520px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span className="section-label" style={{ margin: 0 }}>BACKUP OFFLINE // PDF</span>
+                  </div>
+                  <h2 id="modalPrintTitle" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
+                    Exportar PDF da Prescrição
+                  </h2>
+                  <p style={{ color: 'var(--text-1)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
+                    Gere um PDF leve para o aluno consultar a rotina de treinos na academia caso fique sem internet.
+                  </p>
                 </div>
-                <h2 id="modalPrintTitle" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
-                  Exportar PDF da Prescrição
-                </h2>
-                <p style={{ color: 'var(--text-1)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
-                  Gere um PDF leve para o aluno consultar a rotina de treinos na academia caso fique sem internet.
-                </p>
-              </div>
-              <button 
-                type="button" 
-                className="exercise-action-btn"
-                onClick={() => setShowPrintModal(false)}
-                aria-label="Fechar"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Escopo da Impressão */}
-              <div>
-                <label className="section-label" style={{ marginBottom: '0.5rem' }}>
-                  Fichas a Incluir
-                </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label 
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'flex-start', 
-                      gap: '0.65rem', 
-                      padding: '0.75rem', 
-                      borderRadius: 'var(--radius-m)',
-                      border: printScope === 'all' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                      backgroundColor: printScope === 'all' ? 'var(--accent-dim)' : 'var(--bg-1)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <input 
-                      type="radio" 
-                      name="printScope" 
-                      checked={printScope === 'all'} 
-                      onChange={() => setPrintScope('all')} 
-                      style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
-                        Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                        Inclui todas as divisões do ciclo ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
-                      </div>
-                    </div>
-                  </label>
-
-                  <label 
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'flex-start', 
-                      gap: '0.65rem', 
-                      padding: '0.75rem', 
-                      borderRadius: 'var(--radius-m)',
-                      border: printScope === 'current' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                      backgroundColor: printScope === 'current' ? 'var(--accent-dim)' : 'var(--bg-1)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <input 
-                      type="radio" 
-                      name="printScope" 
-                      checked={printScope === 'current'} 
-                      onChange={() => setPrintScope('current')} 
-                      style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
-                        Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                        Gera arquivo avulso apenas da divisão aberta no momento.
-                      </div>
-                    </div>
-                  </label>
-                </div>
+                <button 
+                  type="button" 
+                  className="exercise-action-btn"
+                  onClick={() => setShowPrintModal(false)}
+                  aria-label="Fechar"
+                >
+                  <X size={16} />
+                </button>
               </div>
 
-              {/* Opções de Conteúdo */}
-              <div>
-                <label className="section-label" style={{ marginBottom: '0.5rem' }}>
-                  Opções de Diagramação
-                </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--bg-1)', padding: '0.75rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border)' }}>
-                  {printScope === 'all' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {/* Escopo da Impressão */}
+                <div>
+                  <label className="section-label" style={{ marginBottom: '0.5rem' }}>
+                    Fichas a Incluir
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'flex-start', 
+                        gap: '0.65rem', 
+                        padding: '0.75rem', 
+                        borderRadius: 'var(--radius-m)',
+                        border: printScope === 'all' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                        backgroundColor: printScope === 'all' ? 'var(--accent-dim)' : 'var(--bg-1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <input 
+                        type="radio" 
+                        name="printScope" 
+                        checked={printScope === 'all'} 
+                        onChange={() => setPrintScope('all')} 
+                        style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
+                          Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
+                          Inclui todas as divisões do ciclo ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
+                        </div>
+                      </div>
+                    </label>
+
+                    <label 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'flex-start', 
+                        gap: '0.65rem', 
+                        padding: '0.75rem', 
+                        borderRadius: 'var(--radius-m)',
+                        border: printScope === 'current' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                        backgroundColor: printScope === 'current' ? 'var(--accent-dim)' : 'var(--bg-1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <input 
+                        type="radio" 
+                        name="printScope" 
+                        checked={printScope === 'current'} 
+                        onChange={() => setPrintScope('current')} 
+                        style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
+                          Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
+                          Gera arquivo avulso apenas da divisão aberta no momento.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Opções de Conteúdo */}
+                <div>
+                  <label className="section-label" style={{ marginBottom: '0.5rem' }}>
+                    Opções de Diagramação
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--bg-1)', padding: '0.75rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border)' }}>
+                    {printScope === 'all' && (
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={printPagePerFicha} 
+                          onChange={e => setPrintPagePerFicha(e.target.checked)} 
+                          style={{ accentColor: 'var(--accent)' }}
+                        />
+                        <span><strong>Uma página por ficha</strong> (Ideal para visualização rápida no celular)</span>
+                      </label>
+                    )}
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
                       <input 
                         type="checkbox" 
-                        checked={printPagePerFicha} 
-                        onChange={e => setPrintPagePerFicha(e.target.checked)} 
+                        checked={printGuidelines} 
+                        onChange={e => setPrintGuidelines(e.target.checked)} 
                         style={{ accentColor: 'var(--accent)' }}
                       />
-                      <span><strong>Uma página por ficha</strong> (Ideal para visualização rápida no celular)</span>
+                      <span><strong>Rodapé de cada treino</strong> (instruções do treinador, definidas em Configurações)</span>
                     </label>
-                  )}
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={printGuidelines} 
-                      onChange={e => setPrintGuidelines(e.target.checked)} 
-                      style={{ accentColor: 'var(--accent)' }}
-                    />
-                    <span><strong>Rodapé de cada treino</strong> (instruções do treinador, definidas em Configurações)</span>
-                  </label>
+                  </div>
                 </div>
-              </div>
 
-              <div className="modal-footer" style={{ margin: 0, paddingTop: '0.5rem' }}>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={() => setShowPrintModal(false)}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-primary" 
-                  onClick={handleTriggerPrint}
-                >
-                  <FileText size={16} />
-                  <span>Gerar PDF Offline</span>
-                </button>
+                <div className="modal-footer" style={{ margin: 0, paddingTop: '0.5rem' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowPrintModal(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={handleTriggerPrint}
+                  >
+                    <FileText size={16} />
+                    <span>Gerar PDF Offline</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
     </div>

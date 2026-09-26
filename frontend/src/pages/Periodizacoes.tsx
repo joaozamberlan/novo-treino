@@ -11,6 +11,7 @@ import {
   ArrowLeft, Plus, Calendar, AlertCircle,
   Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban,
 } from 'lucide-react';
+import { ModalPortal } from '../components/ModalPortal';
 
 interface Aluno {
   idAluno: number;
@@ -569,262 +570,268 @@ export const Periodizacoes: React.FC = () => {
 
       {/* MODAL: COPIAR PERIODIZAÇÃO DE OUTRO ALUNO PARA ESTE */}
       {showImport && (
-        <div
-          className="modal-backdrop"
-          onClick={closeImportModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalImportarTitle"
-        >
+        <ModalPortal>
           <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop"
+            onClick={closeImportModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalImportarTitle"
           >
-            <div className="modal-header">
-              <h3 id="modalImportarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                Copiar de outro aluno
-              </h3>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={closeImportModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <h3 id="modalImportarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Copiar de outro aluno
+                </h3>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={closeImportModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleImportarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
+                  Copia todas as fichas e exercícios da periodização escolhida para <strong>{aluno?.nome}</strong>.
+                  A cópia mantém o nome, vira a periodização atual e pode ser editada depois.
+                </p>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="alunoOrigem">Aluno de origem *</label>
+                  <select
+                    id="alunoOrigem"
+                    className="form-input"
+                    value={idAlunoOrigem}
+                    onChange={(e) => handleSelectAlunoOrigem(Number(e.target.value))}
+                    required
+                  >
+                    <option value={0} disabled>Selecione um aluno</option>
+                    {alunosOrigem.map((a) => (
+                      <option key={a.idAluno} value={a.idAluno}>
+                        {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="protocoloOrigem">Periodização *</label>
+                  <select
+                    id="protocoloOrigem"
+                    className="form-input"
+                    value={idProtocoloOrigem}
+                    onChange={(e) => setIdProtocoloOrigem(Number(e.target.value))}
+                    disabled={!idAlunoOrigem || carregandoOrigem}
+                    required
+                  >
+                    <option value={0} disabled>
+                      {carregandoOrigem
+                        ? 'Carregando...'
+                        : idAlunoOrigem && protocolosOrigem.length === 0
+                          ? 'Este aluno não tem periodizações'
+                          : 'Selecione uma periodização'}
+                    </option>
+                    {protocolosOrigem.map((pr) => (
+                      <option key={pr.idProtocolo} value={pr.idProtocolo}>
+                        {pr.nome}{pr.ativo ? ' (atual)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeImportModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={!idProtocoloOrigem || importando}>
+                    <Copy size={16} />
+                    <span>{importando ? 'Copiando...' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleImportarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
-                Copia todas as fichas e exercícios da periodização escolhida para <strong>{aluno?.nome}</strong>.
-                A cópia mantém o nome, vira a periodização atual e pode ser editada depois.
-              </p>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="alunoOrigem">Aluno de origem *</label>
-                <select
-                  id="alunoOrigem"
-                  className="form-input"
-                  value={idAlunoOrigem}
-                  onChange={(e) => handleSelectAlunoOrigem(Number(e.target.value))}
-                  required
-                >
-                  <option value={0} disabled>Selecione um aluno</option>
-                  {alunosOrigem.map((a) => (
-                    <option key={a.idAluno} value={a.idAluno}>
-                      {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="protocoloOrigem">Periodização *</label>
-                <select
-                  id="protocoloOrigem"
-                  className="form-input"
-                  value={idProtocoloOrigem}
-                  onChange={(e) => setIdProtocoloOrigem(Number(e.target.value))}
-                  disabled={!idAlunoOrigem || carregandoOrigem}
-                  required
-                >
-                  <option value={0} disabled>
-                    {carregandoOrigem
-                      ? 'Carregando...'
-                      : idAlunoOrigem && protocolosOrigem.length === 0
-                        ? 'Este aluno não tem periodizações'
-                        : 'Selecione uma periodização'}
-                  </option>
-                  {protocolosOrigem.map((pr) => (
-                    <option key={pr.idProtocolo} value={pr.idProtocolo}>
-                      {pr.nome}{pr.ativo ? ' (atual)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeImportModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={!idProtocoloOrigem || importando}>
-                  <Copy size={16} />
-                  <span>{importando ? 'Copiando...' : 'Copiar'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* MODAL: COPIAR PERIODIZAÇÃO PARA UM ALUNO */}
       {copiando && (
-        <div
-          className="modal-backdrop"
-          onClick={closeCopyModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalCopiarTitle"
-        >
+        <ModalPortal>
           <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '460px' }}
+            className="modal-backdrop"
+            onClick={closeCopyModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalCopiarTitle"
           >
-            <div className="modal-header">
-              <h3 id="modalCopiarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                Copiar Periodização
-              </h3>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={closeCopyModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleDuplicarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
-                Copia todas as fichas e exercícios de <strong>{copiando.nome}</strong> para o aluno escolhido.
-                A cópia mantém o nome, vira a periodização atual do aluno e pode ser editada depois.
-              </p>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="alunoDestino">Copiar para *</label>
-                <select
-                  id="alunoDestino"
-                  className="form-input"
-                  value={idAlunoDestino}
-                  onChange={(e) => setIdAlunoDestino(Number(e.target.value))}
-                  required
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '460px' }}
+            >
+              <div className="modal-header">
+                <h3 id="modalCopiarTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                  Copiar Periodização
+                </h3>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={closeCopyModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
                 >
-                  <option value={0} disabled>Selecione um aluno</option>
-                  {alunosDestino.map((a) => (
-                    <option key={a.idAluno} value={a.idAluno}>
-                      {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeCopyModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={!idAlunoDestino || duplicando}>
-                  <Copy size={16} />
-                  <span>{duplicando ? 'Copiando...' : 'Copiar'}</span>
-                </button>
-              </div>
-            </form>
+              <form onSubmit={handleDuplicarProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-1)' }}>
+                  Copia todas as fichas e exercícios de <strong>{copiando.nome}</strong> para o aluno escolhido.
+                  A cópia mantém o nome, vira a periodização atual do aluno e pode ser editada depois.
+                </p>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="alunoDestino">Copiar para *</label>
+                  <select
+                    id="alunoDestino"
+                    className="form-input"
+                    value={idAlunoDestino}
+                    onChange={(e) => setIdAlunoDestino(Number(e.target.value))}
+                    required
+                  >
+                    <option value={0} disabled>Selecione um aluno</option>
+                    {alunosDestino.map((a) => (
+                      <option key={a.idAluno} value={a.idAluno}>
+                        {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeCopyModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={!idAlunoDestino || duplicando}>
+                    <Copy size={16} />
+                    <span>{duplicando ? 'Copiando...' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
       {/* MODAL: PERIODIZAÇÃO (NOVA / EDITAR) */}
       {/* ========================================================================= */}
       {showFormModal && (
-        <div
-          className="modal-backdrop"
-          onClick={closeFormModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modalPeriodizacaoTitle"
-        >
+        <ModalPortal>
           <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '480px' }}
+            className="modal-backdrop"
+            onClick={closeFormModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalPeriodizacaoTitle"
           >
-            <div className="modal-header">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                  <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {editingProtocoloId ? 'ATUALIZAÇÃO // PERIODIZAÇÃO' : 'CADASTRO // PERIODIZAÇÃO'}
-                  </span>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '480px' }}
+            >
+              <div className="modal-header">
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {editingProtocoloId ? 'ATUALIZAÇÃO // PERIODIZAÇÃO' : 'CADASTRO // PERIODIZAÇÃO'}
+                    </span>
+                  </div>
+                  <h3 id="modalPeriodizacaoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
+                    {editingProtocoloId ? 'Editar Periodização' : 'Nova Periodização'}
+                  </h3>
                 </div>
-                <h3 id="modalPeriodizacaoTitle" style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
-                  {editingProtocoloId ? 'Editar Periodização' : 'Nova Periodização'}
-                </h3>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={closeFormModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={closeFormModal}
-                title="Fechar"
-                aria-label="Fechar modal"
-              >
-                <X size={18} />
-              </button>
+
+              <form onSubmit={handleSaveProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Nome do Protocolo *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Hipertrofia 12 sem."
+                    value={protoNome}
+                    maxLength={120}
+                    onChange={(e) => setProtoNome(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Objetivo</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex: Ganho de massa magra"
+                    value={protoObjetivo}
+                    maxLength={500}
+                    onChange={(e) => setProtoObjetivo(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Data Início</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={protoInicio}
+                      onChange={(e) => setProtoInicio(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Data Fim</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={protoFim}
+                      onChange={(e) => setProtoFim(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeFormModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingProtocoloId ? <Save size={16} /> : <Plus size={16} />}
+                    <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Periodização'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSaveProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Nome do Protocolo *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Hipertrofia 12 sem."
-                  value={protoNome}
-                  maxLength={120}
-                  onChange={(e) => setProtoNome(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Objetivo</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Ex: Ganho de massa magra"
-                  value={protoObjetivo}
-                  maxLength={500}
-                  onChange={(e) => setProtoObjetivo(e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Data Início</label>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={protoInicio}
-                    onChange={(e) => setProtoInicio(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Data Fim</label>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={protoFim}
-                    onChange={(e) => setProtoFim(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={closeFormModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingProtocoloId ? <Save size={16} /> : <Plus size={16} />}
-                  <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Periodização'}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );
