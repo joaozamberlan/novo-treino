@@ -63,6 +63,16 @@ export const Configuracoes: React.FC = () => {
     }
   };
 
+  // O usuário salvo no navegador pode estar incompleto (ex.: sessão iniciada
+  // antes de o login devolver telefone/Instagram). Buscar o perfil no
+  // servidor evita que o formulário abra vazio e apague esses dados ao salvar.
+  useEffect(() => {
+    api.get('/profissionais/me')
+      .then((res) => updateUser(res.data))
+      .catch((err) => console.error('Erro ao carregar perfil:', err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     document.title = 'Configurações | TreinosApp';
     if (user) {

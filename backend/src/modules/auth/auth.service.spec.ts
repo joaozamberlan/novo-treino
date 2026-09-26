@@ -57,6 +57,8 @@ describe('AuthService — autenticação', () => {
         profissao: 'PT',
         logoUrl: null,
         role: 'USER',
+        telefone: '11999990000',
+        instagram: 'treinador',
       });
 
       const result = await service.login({
@@ -66,6 +68,9 @@ describe('AuthService — autenticação', () => {
 
       expect(result.accessToken).toBe('fake.jwt.token');
       expect(result.profissional.email).toBe('treinador@ex.com');
+      // Configurações depende dos contatos vindos do login para não apagá-los
+      expect(result.profissional.telefone).toBe('11999990000');
+      expect(result.profissional.instagram).toBe('treinador');
     });
 
     it('rejeita senha inválida', async () => {

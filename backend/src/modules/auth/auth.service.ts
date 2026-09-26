@@ -163,6 +163,8 @@ export class AuthService {
         email: profesional.email,
         cref: profesional.cref,
         profissao: profesional.profissao,
+        telefone: profesional.telefone,
+        instagram: profesional.instagram,
         logoUrl: profesional.logoUrl,
         rodapeTreino: profesional.rodapeTreino,
         role: profesional.role,
