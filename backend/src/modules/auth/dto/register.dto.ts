@@ -25,9 +25,9 @@ export class RegisterDto {
   nome: string;
 
   @IsString({ message: 'O CREF deve ser uma string' })
-  @IsNotEmpty({ message: 'O CREF é obrigatório' })
+  @IsOptional()
   @MaxLength(20, { message: 'O CREF deve ter no máximo 20 caracteres' })
-  cref: string;
+  cref?: string;
 
   @IsString()
   @IsOptional()

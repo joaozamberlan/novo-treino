@@ -24,7 +24,6 @@ export const Register: React.FC = () => {
   });
 
   const crefField = useFieldValidation('', (v) => {
-    if (!v.trim()) return 'Informe seu registro CREF';
     if (v.trim().length > 20) return 'O CREF deve ter no máximo 20 caracteres';
     return null;
   });
@@ -238,7 +237,7 @@ export const Register: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div className="form-group">
-                <label className="form-label" htmlFor="cref">CREF</label>
+                <label className="form-label" htmlFor="cref">CREF <span style={{ color: 'var(--text-2)', fontWeight: 400 }}>(opcional)</span></label>
                 <div className="login-input-wrap">
                   <input
                     id="cref"

@@ -99,7 +99,7 @@ export function FichaPdf({
             <div className="print-trainer-details">
               <h1 className="print-trainer-name">{profissional?.nome || 'Personal Trainer'}</h1>
               <div className="print-trainer-cref">
-                <span className="print-tag-pill">CREF: {profissional?.cref || 'REGISTRADO'}</span>
+                {profissional?.cref && <span className="print-tag-pill">CREF: {profissional.cref}</span>}
                 <span className="print-trainer-role">{profissional?.profissao || 'Profissional de Educação Física'}</span>
               </div>
               <div className="print-trainer-contacts">
@@ -279,7 +279,7 @@ export function FichaPdf({
               <strong>TreinosApp</strong> • Prescrição Técnica Digital
             </div>
             <div className="print-footer-legal">
-              Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {profissional?.nome || 'Personal Trainer'}</strong> (CREF: {profissional?.cref || '—'})
+              Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {profissional?.nome || 'Personal Trainer'}</strong>{profissional?.cref ? ` (CREF: ${profissional.cref})` : ''}
             </div>
           </div>
 

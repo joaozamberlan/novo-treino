@@ -65,7 +65,8 @@ export class AuthService {
         email,
         senhaHash,
         nome,
-        cref,
+        // Acadêmicos de Educação Física ainda não têm CREF; a coluna é NOT NULL
+        cref: cref?.trim() ?? '',
         profissao: profissao || 'Personal Trainer',
         telefone,
         instagram,

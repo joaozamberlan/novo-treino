@@ -767,8 +767,12 @@ export const PublicTreino: React.FC = () => {
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.1rem' }}>
               <Award size={12} className="text-accent" />
               <span>{profissional.profissao}</span>
-              <span style={{ color: 'var(--text-2)' }}>|</span>
-              <span>CREF {profissional.cref}</span>
+              {profissional.cref && (
+                <>
+                  <span style={{ color: 'var(--text-2)' }}>|</span>
+                  <span>CREF {profissional.cref}</span>
+                </>
+              )}
             </div>
           </div>
           

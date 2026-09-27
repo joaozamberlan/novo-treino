@@ -241,14 +241,13 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="crefProf">CREF</label>
+              <label className="form-label" htmlFor="crefProf">CREF <span style={{ color: 'var(--text-2)', fontWeight: 400 }}>(opcional)</span></label>
               <input
                 id="crefProf"
                 type="text"
                 className="form-control"
                 value={cref}
                 onChange={(e) => setCref(e.target.value)}
-                required
               />
             </div>
           </div>
