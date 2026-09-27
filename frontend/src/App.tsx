@@ -38,8 +38,12 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // A PWA instalado a partir do link público de um aluno tem start_url "/",
     // que exige login do treinador — algo que o aluno não tem. Se este
     // navegador já visitou um link público antes, manda de volta pra lá em
-    // vez da tela de login.
-    const lastPublicToken = localStorage.getItem(LAST_PUBLIC_TOKEN_KEY);
+    // vez da tela de login. Só vale para o app instalado: numa aba normal o
+    // treinador que abriu um link público antes ficaria preso num loop.
+    const isInstalledPwa =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const lastPublicToken = isInstalledPwa ? localStorage.getItem(LAST_PUBLIC_TOKEN_KEY) : null;
     if (lastPublicToken) {
       return <Navigate to={`/v/${lastPublicToken}`} replace />;
     }
