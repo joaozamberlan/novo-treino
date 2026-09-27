@@ -3177,7 +3177,7 @@ body.light-theme .mobile-tab-bar {
 /* ── Desktop: barra encolhida com ícone e nome embaixo (estilo YouTube) ── */
 @media (min-width: 769px) {
   .app-sidebar:not(.expanded) {
-    width: 76px;
+    width: 88px;
   }
 
   .app-sidebar:not(.expanded) .sidebar-nav {
