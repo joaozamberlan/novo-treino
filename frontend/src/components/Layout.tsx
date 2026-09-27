@@ -47,7 +47,7 @@ export const Layout: React.FC = () => {
 
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (themeColorMeta) {
-      themeColorMeta.setAttribute('content', theme === 'light' ? '#f4f3ef' : '#0c0d0f');
+      themeColorMeta.setAttribute('content', theme === 'light' ? '#f4f3ef' : '#0f0f0f');
     }
   }, [theme]);
 

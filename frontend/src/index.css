@@ -3,21 +3,22 @@
    ======================================================================== */
 
 :root {
-  --bg-0: #0c0d0f;
-  --bg-1: #14161a;
-  --bg-2: #1b1e24;
-  --bg-3: #242831;
-  --border: rgba(240, 239, 234, 0.08);
-  --border-strong: rgba(240, 239, 234, 0.16);
+  /* Cinzas neutros no estilo do tema escuro do YouTube */
+  --bg-0: #0f0f0f;
+  --bg-1: #181818;
+  --bg-2: #272727;
+  --bg-3: #3f3f3f;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.20);
   --border-focus: #CF3427;
   --accent: #CF3427;
   --accent-hover: #E44436;
   --accent-soft: rgba(207, 52, 39, 0.16);
   --accent-dim: rgba(207, 52, 39, 0.06);
   --accent-border: rgba(207, 52, 39, 0.40);
-  --text-0: #f0efea;
-  --text-1: #a2a6b0;
-  --text-2: #656975;
+  --text-0: #f1f1f1;
+  --text-1: #aaaaaa;
+  --text-2: #717171;
   --danger: #f04438;
   --success: #2da868;
   --warning: #f59e0b;
@@ -201,7 +202,7 @@ textarea:focus-visible,
 .topbar {
   height: calc(52px + var(--sat));
   padding-top: var(--sat);
-  background: rgba(17, 18, 21, 0.85);
+  background: rgba(15, 15, 15, 0.85);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid var(--border);
@@ -2876,7 +2877,7 @@ body.light-theme {
   justify-content: space-around;
   height: calc(58px + var(--sab));
   padding-bottom: var(--sab);
-  background: rgba(17, 18, 21, 0.85);
+  background: rgba(15, 15, 15, 0.85);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid var(--border);
@@ -3171,6 +3172,55 @@ body.light-theme .mobile-tab-bar {
   font-size: 0.7rem;
   color: var(--text-2);
   line-height: 1.2;
+}
+
+/* ── Desktop: barra encolhida com ícone e nome embaixo (estilo YouTube) ── */
+@media (min-width: 769px) {
+  .app-sidebar:not(.expanded) {
+    width: 76px;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-nav {
+    padding: 0.25rem;
+    gap: 0.125rem;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    height: 64px;
+    padding: 0 0.125rem;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-label {
+    display: block;
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  /* O nome já aparece embaixo do ícone; o balão de hover fica redundante */
+  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]::after {
+    display: none;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-item.active {
+    box-shadow: none;
+  }
+
+  .app-sidebar:not(.expanded) .sidebar-footer > div {
+    justify-content: center;
+  }
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
