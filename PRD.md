@@ -21,7 +21,7 @@ Produção: frontend em `https://novo-treino.vercel.app`, API no Railway.
 | Persona | Quem é | Como acessa | Paga ao app? |
 |---|---|---|---|
 | **Treinador** (`Profissional`, role `USER`) | Personal trainer ou acadêmico de Educação Física (CREF opcional) | Login com e-mail e senha, depois de aprovado pelo admin | **Sim**, mensalidade (Plano Treinador) |
-| **Aluno do treinador** (`Aluno`) | Cliente de um treinador | Link público `/v/:token`, **sem login** | **Não**. Paga o treinador, fora do app |
+| **Aluno do treinador** (`Aluno`) | Cliente de um treinador | Hoje: link público `/v/:token`, **sem login**. Planejado: telefone + PIN, com app instalável ([plano](docs/plans/2026-09-30-login-aluno-pwa-design.md)) | **Não**. Paga o treinador, fora do app |
 | **Aluno independente** *(futuro)* | Pessoa que monta e acompanha o próprio treino, sem treinador | A definir (precisa de conta própria) | **Sim**, mensalidade (Plano Aluno) |
 | **Admin** (`Profissional`, role `ADMIN`) | Dono da plataforma | Mesmo login do treinador + tela `/admin` | — |
 
@@ -51,7 +51,7 @@ treinador e aluno.
 - **Monta o próprio treino como quiser:** cria e edita as próprias periodizações e fichas.
 - **Limitado a ele mesmo:** não tem alunos, **não gera links de compartilhamento** e não
   tem as funções de gestão de alunos do treinador.
-- É um produto **diferente** do aluno do treinador: este não paga nada e não precisa de conta.
+- É um produto **diferente** do aluno do treinador, que não paga nada ao app e cujo cadastro é feito pelo treinador.
 
 ### 3.3 Assinatura vencida do treinador
 A pressão recai sobre o treinador (trava a edição), **nunca de surpresa sobre o aluno**,
@@ -162,13 +162,14 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 ## 7. Fora de escopo
 
 **Hoje** (ainda não existe, mas faz parte do foco futuro):
+- Login do aluno do treinador por telefone + PIN e app instalável no iPhone
+  ([plano](docs/plans/2026-09-30-login-aluno-pwa-design.md)).
 - Cobrança de assinatura dos planos Treinador e Aluno.
 - Conta e login do aluno independente (Plano Aluno).
 
 **Não faz parte do produto** (nem no futuro):
 - Cobrança do aluno pelo treinador dentro do app, repasse ou comissão. O aluno paga o
   treinador por fora.
-- Login para o aluno do treinador: ele continua acessando só pelo link.
 
 **Fora de escopo por enquanto:**
 - Chat treinador ↔ aluno.
@@ -176,8 +177,10 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 
 ## 8. Roadmap planejado
 
-1. **Comercialização:** Plano Treinador (assinatura) e Plano Aluno (conta própria +
+1. **Login do aluno (telefone + PIN) e PWA instalável:** ver
+   [docs/plans/2026-09-30-login-aluno-pwa-design.md](docs/plans/2026-09-30-login-aluno-pwa-design.md).
+2. **Comercialização:** Plano Treinador (assinatura) e Plano Aluno (conta própria +
    assinatura), depois de respondidas as perguntas da [seção 3.4](#34-perguntas-em-aberto).
-2. **App nativo** *(a decidir se será publicado nas lojas)*: ver [docs/plans/2026-09-24-app-mobile-multiplataforma-design.md](docs/plans/2026-09-24-app-mobile-multiplataforma-design.md)
+3. **App nativo** *(a decidir se será publicado nas lojas)*: ver [docs/plans/2026-09-24-app-mobile-multiplataforma-design.md](docs/plans/2026-09-24-app-mobile-multiplataforma-design.md)
    e [task.md](task.md). Inclui Capacitor (App Store / Google Play), exclusão de conta,
    páginas de Privacidade e Termos (LGPD), push notifications e storage externo.

@@ -10,6 +10,13 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
 - [ ] `Profissional.logoUrl` e a pasta `/uploads`: a logo já vai para `LogoProfissional`;
       avaliar remover o campo e o `express.static` de `main.ts`.
 
+### Login do aluno e PWA (plano: `docs/plans/2026-09-30-login-aluno-pwa-design.md`)
+- [ ] 1. Backend: migration em `Aluno`, login por telefone + PIN, rotas `/aluno/*`, testes.
+- [ ] 2. Área do aluno (`/aluno`) e telas de entrada (escolha de perfil, login, primeiro acesso).
+- [ ] 3. Treinador: telefone obrigatório, estado do PIN na lista, Redefinir PIN.
+- [ ] 4. PWA: manifest único em `/` e remoção do `aluno.html`, do manifest por link e do `lastPublicToken`.
+- [ ] 5. Teste manual no iPhone e no Android.
+
 ### App nativo (plano: `docs/plans/2026-09-24-app-mobile-multiplataforma-design.md`)
 - [ ] 1. Instalar Capacitor (`core`, `cli`, `ios`, `android`), `capacitor.config.ts` e modo `vite build --mode native`.
 - [ ] 2. Camada `src/platform/` (storage, share, haptics, notifications, openExternal).
