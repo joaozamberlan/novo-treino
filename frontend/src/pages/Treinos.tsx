@@ -18,6 +18,7 @@ import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/desca
 import { FichaPdf } from '../components/FichaPdf';
 import { VolumeSemanal } from '../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../utils/pdf';
+import { linkWhatsApp } from '../utils/whatsapp';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -25,6 +26,7 @@ interface Aluno {
   idAluno: number;
   nome: string;
   email: string;
+  telefone?: string | null;
   tokenAcesso?: string;
 }
 
@@ -168,7 +170,6 @@ export const Treinos: React.FC = () => {
 
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
 
   const cancelEdit = () => {
     setEditingExercisePrescriptionId(null);
@@ -223,13 +224,13 @@ export const Treinos: React.FC = () => {
 
   const handleShare = () => {
     const token = activeProtocol?.tokenPublico || aluno?.tokenAcesso;
-    if (token) {
-      const url = `${window.location.origin}/v/${token}`;
-      navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      toast.success('Link desta periodização copiado!');
-      setTimeout(() => setShareCopied(false), 2000);
-    }
+    if (!token || !aluno) return;
+    const url = `${window.location.origin}/v/${token}`;
+    const primeiroNome = aluno.nome.trim().split(/\s+/)[0];
+    const mensagem =
+      `Olá, ${primeiroNome}! Segue seu protocolo *${activeProtocol?.nome ?? ''}*, é só abrir o link:\n${url}\n\n` +
+      'Pra não depender de internet durante o treino, baixa o PDF pelo link antes de começar.';
+    window.open(linkWhatsApp(aluno.telefone, mensagem), '_blank', 'noopener');
   };
 
   // Progresso de cargas: carregado ao abrir a aba (sempre atualizado)
@@ -872,7 +873,7 @@ export const Treinos: React.FC = () => {
               {(activeProtocol?.tokenPublico || aluno?.tokenAcesso) && (
                 <button className="btn btn-secondary btn-sm" onClick={handleShare}>
                   <Share2 size={14} />
-                  {shareCopied ? 'Copiado!' : 'Compartilhar'}
+                  Compartilhar
                 </button>
               )}
               {activeProtocol && (
