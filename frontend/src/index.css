@@ -5072,7 +5072,7 @@ body.light-theme .mobile-tab-bar {
 .view-switch button[aria-selected="true"] { background: var(--bg-1); color: var(--text-0); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
 .view-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-/* ── Entrada do aluno (escolha de perfil, primeiro acesso, login por PIN) ── */
+/* ── Aluno: "abrindo seu treino" (antes de saber qual tela mostrar) ────── */
 
 .aluno-acesso {
   min-height: 100dvh;
@@ -5081,165 +5081,12 @@ body.light-theme .mobile-tab-bar {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding: calc(1.5rem + var(--sat)) 1rem calc(1.5rem + var(--sab) + var(--keyboard-inset));
+  padding: 1.5rem 1rem;
   background: var(--bg-0);
   color: var(--text-0);
 }
 
-.aluno-acesso-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-top: 2.5px solid var(--accent);
-  border-radius: var(--radius-l);
-  padding: 1.5rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.aluno-acesso-marca {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-0);
-  min-width: 0;
-}
-
-.aluno-acesso-marca span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.aluno-acesso-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-m);
-  border: 1px solid var(--border);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.aluno-acesso-logo--padrao {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-2);
-  color: var(--accent);
-}
-
-.aluno-acesso-titulo {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  margin: 0;
-}
-
-.aluno-acesso-sub {
-  font-size: 0.85rem;
-  color: var(--text-1);
-  line-height: 1.5;
-  margin-top: 0.4rem;
-}
-
-.aluno-acesso-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  margin-top: 1.25rem;
-}
-
-/* 16px evita o zoom automático do iOS ao focar o campo */
-.aluno-acesso .form-input {
-  height: 48px;
-  font-size: 1rem;
-}
-
-.aluno-acesso .form-label {
-  font-size: 0.8rem;
-}
-
-.aluno-acesso .pin-input {
-  font-family: var(--font-mono);
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.5em;
-  text-align: center;
-  /* compensa o espaçamento depois do último dígito para o PIN ficar centralizado */
-  padding-left: calc(0.75rem + 0.5em);
-}
-
-.aluno-acesso-enviar {
-  height: 48px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-top: 0.25rem;
-}
-
-.aluno-acesso-link {
-  align-self: center;
-  margin-top: 1rem;
-  min-height: 44px;
-  padding: 0 0.5rem;
-  background: none;
-  border: none;
-  color: var(--accent);
-  font: 600 0.8rem var(--font);
-  cursor: pointer;
-}
-
-.aluno-acesso-aviso {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 0.75rem 0.85rem;
-  background: var(--bg-2);
-  border-radius: var(--radius-m);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--text-0);
-}
-
-.aluno-acesso-link + .aluno-acesso-aviso {
-  margin-top: 0;
-}
-
-.aluno-acesso-aviso svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.aluno-acesso-aviso--erro svg {
-  color: var(--danger);
-}
-
-.aluno-acesso-nota {
-  margin-top: 1rem;
-  font-size: 0.78rem;
-  color: var(--text-2);
-  text-align: center;
-  line-height: 1.5;
-}
-
-.aluno-acesso-rodape {
-  font-size: 0.8rem;
-  color: var(--text-1);
-}
-
-.aluno-acesso-rodape a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0.75rem;
-  color: var(--text-1);
-  font-weight: 600;
-  text-decoration: underline;
-}
+/* Lista de contas quando o telefone está com mais de um treinador */
 
 .perfil-opcoes {
   display: flex;
@@ -5399,6 +5246,8 @@ body.light-theme .mobile-tab-bar {
   text-transform: uppercase;
   text-wrap: balance;
   margin: 0;
+  /* nas telas de formulário a chamada é um <p>, que herdaria a cor de parágrafo */
+  color: var(--text-0);
 }
 
 /* A segunda metade da frase desce de linha inteira, nunca partida */
@@ -5683,5 +5532,281 @@ body.light-theme .mobile-tab-bar {
     letter-spacing: -0.03em;
     line-height: 1.2;
     margin-bottom: 0.6rem;
+  }
+}
+
+/* ── Login do aluno e primeiro acesso ────────────────────────────────────
+   Mesma base da tela de entrada (.entrada) e mesmos campos e botão do login
+   do treinador. No celular o painel de marca encolhe para o logo: o
+   formulário precisa caber acima do teclado. */
+
+.entrada--form .entrada-chamada {
+  display: none;
+}
+
+.entrada--form .entrada-escolha {
+  padding-top: clamp(1.5rem, calc(12vh - 3rem), 4rem);
+}
+
+.acesso {
+  gap: 0;
+}
+
+.acesso-treinador {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: clamp(1rem, 2.6vh, 1.5rem);
+  min-width: 0;
+}
+
+.acesso-treinador-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-1);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.acesso-treinador-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.acesso-treinador-texto span {
+  font-size: 0.75rem;
+  color: var(--text-1);
+}
+
+.acesso-treinador-texto strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acesso-titulo {
+  font-size: clamp(1.75rem, 7.5vw, 2.1rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.acesso-sub {
+  margin-top: 0.5rem;
+  max-width: 38ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-1);
+}
+
+.aluno-acesso-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: clamp(1.1rem, 3vh, 1.75rem);
+}
+
+.aluno-acesso-form .auth-error {
+  margin-bottom: 0;
+}
+
+.aluno-acesso-form .form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* 16px evita o zoom automático do iOS ao focar o campo */
+.aluno-acesso-form .login-input-wrap .form-input {
+  height: 52px;
+  font-size: 1rem;
+}
+
+.aluno-acesso-form .login-input-wrap .form-input::placeholder {
+  color: var(--text-2);
+}
+
+.aluno-acesso-form .btn-login-submit {
+  height: 52px;
+  margin-top: 0.4rem;
+}
+
+.aluno-acesso-form .btn-login-submit:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.aluno-acesso-form .btn-login-submit:focus-visible,
+.aluno-acesso-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* PIN em quatro casas */
+.pin-rotulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pin-campo {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+/* O input real cobre as casas e fica invisível; quem aparece são elas */
+.pin-campo input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  font-size: 16px;
+  cursor: text;
+}
+
+.pin-celula {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  transition: border-color 140ms var(--ease-out), background-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+}
+
+.pin-celula--cheia::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-0);
+  /* O único movimento da tela: o dígito entrando */
+  animation: pinDigito 180ms var(--ease-spring-bounce) backwards;
+}
+
+@keyframes pinDigito {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.pin-campo:focus-within .pin-celula--atual {
+  border-color: var(--accent);
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--accent-border);
+}
+
+.pin-campo--desativado {
+  opacity: 0.6;
+}
+
+.pin-campo--desativado input {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-celula--cheia::after {
+    animation: none;
+  }
+}
+
+.aluno-acesso-link {
+  min-height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: 600 0.78rem var(--font);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aluno-acesso-link:hover {
+    text-decoration: underline;
+  }
+}
+
+.aluno-acesso-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-0);
+}
+
+/* Fora do formulário (link inválido, cadastro a atualizar) o aviso é o conteúdo */
+.acesso > .aluno-acesso-aviso {
+  margin-top: 1.5rem;
+}
+
+.aluno-acesso-aviso svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aluno-acesso-aviso--erro svg {
+  color: var(--danger);
+}
+
+.aluno-acesso-nota {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+.acesso .login-footer-support a {
+  display: inline-block;
+  padding: 0.35rem 0;
+}
+
+.acesso .perfil-opcoes {
+  margin-top: 1.75rem;
+}
+
+.acesso .perfil-opcao {
+  background: var(--bg-1);
+  border-color: var(--border-strong);
+  border-radius: var(--radius-l);
+}
+
+@media (min-width: 961px) {
+  .entrada--form .entrada-chamada {
+    display: block;
+  }
+
+  .entrada--form .entrada-escolha {
+    padding-top: 2.5rem;
+  }
+
+  .acesso-titulo {
+    font-size: 1.9rem;
   }
 }

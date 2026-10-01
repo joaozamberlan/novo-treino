@@ -84,30 +84,41 @@ export const AlunoEntrar: React.FC = () => {
       titulo="Entrar no meu treino"
       subtitulo="Use o telefone cadastrado pelo seu treinador e o PIN que você criou."
       rodape={
-        <Link to="/login" onClick={() => localStorage.setItem(PERFIL_KEY, 'treinador')}>
-          Sou treinador
-        </Link>
+        <>
+          É treinador?{' '}
+          <Link to="/login" onClick={() => localStorage.setItem(PERFIL_KEY, 'treinador')}>
+            Entrar na área do treinador
+          </Link>
+        </>
       }
     >
       <form onSubmit={handleSubmit} noValidate className="aluno-acesso-form">
+        {erro && <div className="auth-error" role="alert">{erro}</div>}
+
         <CampoTelefone id="telefone" label="Telefone" value={telefone} onChange={setTelefone} disabled={enviando} autoFocus />
-        <CampoPin id="pin" label="PIN" value={pin} onChange={setPin} disabled={enviando} />
+        <CampoPin
+          id="pin"
+          label="PIN"
+          value={pin}
+          onChange={setPin}
+          disabled={enviando}
+          acao={
+            <button type="button" className="aluno-acesso-link" onClick={() => setEsqueci((v) => !v)} aria-expanded={esqueci}>
+              Esqueci meu PIN
+            </button>
+          }
+        />
+        {esqueci && (
+          <p className="aluno-acesso-aviso" role="status">
+            Peça ao seu treinador para redefinir. Ele envia o link do treino de novo e você cria um PIN novo por ele.
+          </p>
+        )}
 
-        {erro && <span className="field-error" role="alert">{erro}</span>}
-
-        <button type="submit" className="btn btn-primary aluno-acesso-enviar" disabled={enviando}>
-          {enviando ? 'Entrando…' : 'Entrar'}
+        <button type="submit" className="btn-login-submit" disabled={enviando}>
+          <span>{enviando ? 'Entrando…' : 'Entrar'}</span>
+          <ArrowRight size={16} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </form>
-
-      <button type="button" className="aluno-acesso-link" onClick={() => setEsqueci((v) => !v)} aria-expanded={esqueci}>
-        Esqueci meu PIN
-      </button>
-      {esqueci && (
-        <p className="aluno-acesso-aviso" role="status">
-          Peça ao seu treinador para redefinir. Ele envia o link do treino de novo e você cria um PIN novo por ele.
-        </p>
-      )}
 
       <p className="aluno-acesso-nota">
         Primeiro acesso? Abra o link que seu treinador enviou.

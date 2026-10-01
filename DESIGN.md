@@ -87,6 +87,8 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-footer` (sempre via `ModalPortal`) |
 | Página | `.page-header` |
 | Menus | `ActionMenu` (menu "⋯" dos cartões). `align="left"` quando o gatilho fica na borda esquerda da tela |
+| Telas de entrada | `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca` à esquerda no desktop. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
+| PIN | `CampoPin`: quatro casas (`.pin-campo`, `.pin-celula`) sobre um `<input>` real e invisível |
 | Toasts | sonner, `bottom-right`, `richColors` |
 | Ícones | lucide-react; biblioteca de exercícios usa o ícone de halter |
 

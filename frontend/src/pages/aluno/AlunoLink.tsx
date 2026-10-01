@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import alunoApi from '../../services/alunoApi';
 import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
 import { mensagemDeErro, telefoneValido } from '../../utils/alunoAcesso';
@@ -140,6 +140,8 @@ export const AlunoLink: React.FC = () => {
       }
     >
       <form onSubmit={handleSubmit} noValidate className="aluno-acesso-form">
+        {erro && <div className="auth-error" role="alert">{erro}</div>}
+
         <CampoTelefone
           id="telefone"
           label={criando ? 'Confirme seu telefone' : 'Telefone'}
@@ -154,10 +156,9 @@ export const AlunoLink: React.FC = () => {
           <CampoPin id="pin-repetido" label="Repita o PIN" value={pinRepetido} onChange={setPinRepetido} disabled={enviando} novo />
         )}
 
-        {erro && <span className="field-error" role="alert">{erro}</span>}
-
-        <button type="submit" className="btn btn-primary aluno-acesso-enviar" disabled={enviando}>
-          {enviando ? 'Aguarde…' : criando ? 'Criar PIN e abrir treino' : 'Entrar'}
+        <button type="submit" className="btn-login-submit" disabled={enviando}>
+          <span>{enviando ? 'Aguarde…' : criando ? 'Criar PIN e abrir treino' : 'Entrar'}</span>
+          <ArrowRight size={16} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </form>
 
