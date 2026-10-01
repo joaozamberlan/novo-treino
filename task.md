@@ -13,7 +13,7 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
 ### Login do aluno e PWA (plano: `docs/plans/2026-09-30-login-aluno-pwa-design.md`)
 - [x] 1. Backend: migration em `Aluno`, login por telefone + PIN, rotas `/aluno/*`, testes (branch `feat/login-aluno`).
 - [x] 2. Área do aluno (`/aluno`) e telas de entrada (escolha de perfil, login, primeiro acesso).
-- [ ] 3. Treinador: telefone obrigatório, estado do PIN na lista, Redefinir PIN.
+- [x] 3. Treinador: telefone obrigatório, estado do PIN na lista, Redefinir PIN.
 - [ ] 4. PWA: manifest único em `/`, remoção do `aluno.html` e dos rewrites do manifest por link, cache offline de `/aluno/` no service worker (o `lastPublicToken` já saiu no passo 2).
 - [ ] 5. Teste manual no iPhone e no Android.
 

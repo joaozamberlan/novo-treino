@@ -6,6 +6,10 @@ import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import { ModalPortal } from '../components/ModalPortal';
+import { mensagemDeErro, telefoneValido } from '../utils/alunoAcesso';
+import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
+
+const TELEFONE_INVALIDO = 'Informe o telefone com DDD. Ele é o login do aluno.';
 
 interface Aluno {
   idAluno: number;
@@ -13,6 +17,7 @@ interface Aluno {
   email?: string | null;
   telefone?: string | null;
   ativo: boolean;
+  acesso?: AcessoAluno;
   dataCadastro: string;
   protocolos?: { idProtocolo: number; nome: string; dataFim?: string | null }[];
 }
@@ -29,6 +34,8 @@ export const Alunos: React.FC = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  // Erro do campo telefone no cadastro e na edição (só um modal abre por vez)
+  const [telefoneErro, setTelefoneErro] = useState('');
 
   // Edit form state
   const [editingAlunoId, setEditingAlunoId] = useState<number | null>(null);
@@ -82,6 +89,10 @@ export const Alunos: React.FC = () => {
 
   const handleAddAluno = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!telefoneValido(telefone)) {
+      setTelefoneErro(TELEFONE_INVALIDO);
+      return;
+    }
     setActionLoading(true);
     setError('');
 
@@ -89,7 +100,7 @@ export const Alunos: React.FC = () => {
       const res = await api.post('/alunos', {
         nome,
         email: email || undefined,
-        telefone: telefone || undefined,
+        telefone,
       });
 
       const next = [res.data, ...alunos];
@@ -100,11 +111,16 @@ export const Alunos: React.FC = () => {
       setTelefone('');
       setShowAddForm(false);
       toast.success('Aluno cadastrado com sucesso!');
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      const errText = err.response?.data?.message || 'Erro ao adicionar aluno.';
-      setError(errText);
-      toast.error(errText);
+      const errText = mensagemDeErro(err, 'Erro ao adicionar aluno.');
+      // Telefone repetido ou inválido se corrige no próprio campo
+      if (/telefone/i.test(errText)) {
+        setTelefoneErro(errText);
+      } else {
+        setError(errText);
+        toast.error(errText);
+      }
     } finally {
       setActionLoading(false);
     }
@@ -118,6 +134,7 @@ export const Alunos: React.FC = () => {
     setEditEmail(aluno.email || '');
     setEditTelefone(aluno.telefone || '');
     setEditAtivo(aluno.ativo);
+    setTelefoneErro('');
   };
 
   const cancelEdit = () => {
@@ -130,6 +147,10 @@ export const Alunos: React.FC = () => {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAlunoId) return;
+    if (!telefoneValido(editTelefone)) {
+      setTelefoneErro(TELEFONE_INVALIDO);
+      return;
+    }
 
     setActionLoading(true);
     setError('');
@@ -137,7 +158,7 @@ export const Alunos: React.FC = () => {
     const updatedData = {
       nome: editNome,
       email: editEmail || null,
-      telefone: editTelefone || null,
+      telefone: editTelefone,
       ativo: editAtivo,
     };
 
@@ -150,11 +171,17 @@ export const Alunos: React.FC = () => {
     cancelEdit();
 
     try {
-      await api.patch(`/alunos/${targetId}`, updatedData);
+      const res = await api.patch(`/alunos/${targetId}`, updatedData);
+      // Trocar o telefone pode mudar a situação do acesso (ex.: deixou de ser inválido)
+      setAlunos((atual) => {
+        const lista = atual.map((a) => (a.idAluno === targetId ? { ...a, acesso: res.data.acesso } : a));
+        memoryCache.set('alunos', lista);
+        return lista;
+      });
       toast.success('Dados do aluno atualizados!');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erro ao atualizar aluno:', err);
-      const errText = err.response?.data?.message || 'Erro ao atualizar dados do aluno.';
+      const errText = mensagemDeErro(err, 'Erro ao atualizar dados do aluno.');
       setError(errText);
       toast.error(errText);
       fetchAlunos();
@@ -230,6 +257,7 @@ export const Alunos: React.FC = () => {
           className="btn btn-primary btn-sm"
           onClick={() => {
             setShowAddForm(true);
+            setTelefoneErro('');
             cancelEdit();
           }}
           style={{ gap: '0.35rem', minHeight: '36px', padding: '0 0.85rem' }}
@@ -306,6 +334,11 @@ export const Alunos: React.FC = () => {
                       })()}
                       {aluno.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{aluno.email}</span>}
                       {aluno.telefone && <span>{aluno.telefone}</span>}
+                      {aluno.acesso && (
+                        <span className={`badge ${ROTULO_ACESSO[aluno.acesso].classe}`} title={ROTULO_ACESSO[aluno.acesso].dica}>
+                          {ROTULO_ACESSO[aluno.acesso].texto}
+                        </span>
+                      )}
                       {!aluno.ativo && <span className="badge badge-danger">Inativo</span>}
                     </div>
                   </div>
@@ -356,7 +389,7 @@ export const Alunos: React.FC = () => {
           {!search && (
             <button
               className="btn btn-primary btn-sm"
-              onClick={() => { setShowAddForm(true); cancelEdit(); }}
+              onClick={() => { setShowAddForm(true); setTelefoneErro(''); cancelEdit(); }}
               style={{ marginTop: '0.25rem' }}
             >
               <Plus size={14} />
@@ -434,16 +467,21 @@ export const Alunos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp</label>
+                  <label className="form-label" htmlFor="telAluno">Telefone / WhatsApp *</label>
                   <input
                     id="telAluno"
                     type="tel"
-                    className="form-input"
+                    className={`form-input ${telefoneErro ? 'form-input--error' : ''}`}
                     placeholder="(00) 90000-0000"
                     value={telefone}
                     maxLength={30}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    onChange={(e) => { setTelefone(e.target.value); setTelefoneErro(''); }}
+                    required
+                    aria-describedby="telAlunoAjuda"
                   />
+                  {telefoneErro
+                    ? <span id="telAlunoAjuda" className="field-error" role="alert">{telefoneErro}</span>
+                    : <span id="telAlunoAjuda" className="field-hint">É o login do aluno: ele confirma este número ao abrir o link pela primeira vez.</span>}
                 </div>
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
@@ -532,14 +570,21 @@ export const Alunos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Telefone / WhatsApp</label>
+                  <label className="form-label" htmlFor="telAlunoEdit">Telefone / WhatsApp *</label>
                   <input
+                    id="telAlunoEdit"
                     type="tel"
-                    className="form-input"
+                    className={`form-input ${telefoneErro ? 'form-input--error' : ''}`}
+                    placeholder="(00) 90000-0000"
                     value={editTelefone}
                     maxLength={30}
-                    onChange={(e) => setEditTelefone(e.target.value)}
+                    onChange={(e) => { setEditTelefone(e.target.value); setTelefoneErro(''); }}
+                    required
+                    aria-describedby="telAlunoEditAjuda"
                   />
+                  {telefoneErro
+                    ? <span id="telAlunoEditAjuda" className="field-error" role="alert">{telefoneErro}</span>
+                    : <span id="telAlunoEditAjuda" className="field-hint">É o login do aluno: ele confirma este número ao abrir o link pela primeira vez.</span>}
                 </div>
 
                 <div className="form-group">

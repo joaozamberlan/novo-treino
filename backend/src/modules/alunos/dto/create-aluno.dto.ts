@@ -18,8 +18,9 @@ export class CreateAlunoDto {
   email?: string;
 
   // Obrigatório: é o login do aluno (telefone + PIN)
-  @IsString({ message: 'O telefone é obrigatório' })
-  @IsNotEmpty({ message: 'O telefone é obrigatório' })
+  // (o class-validator devolve as mensagens de baixo para cima: "obrigatório" vem primeiro)
   @MaxLength(30, { message: 'O telefone deve ter no máximo 30 caracteres' })
+  @IsString({ message: 'O telefone deve ser um texto' })
+  @IsNotEmpty({ message: 'O telefone é obrigatório' })
   telefone: string;
 }

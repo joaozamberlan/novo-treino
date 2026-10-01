@@ -13,9 +13,12 @@ interface Props {
   label: string; // aria-label do botão (ex.: "Ações de Protocolo 1")
   // Conteúdo visível do gatilho; sem ele, o gatilho é o ícone "…"
   trigger?: React.ReactNode;
+  // Lado do gatilho em que a lista se alinha. 'left' para gatilhos na borda
+  // esquerda da tela, onde a lista alinhada à direita sairia cortada.
+  align?: 'left' | 'right';
 }
 
-export const ActionMenu: React.FC<Props> = ({ items, label, trigger }) => {
+export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'right' }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -53,7 +56,7 @@ export const ActionMenu: React.FC<Props> = ({ items, label, trigger }) => {
         {trigger ?? <MoreHorizontal size={16} />}
       </button>
       {open && (
-        <div id={menuId} role="menu" className="action-menu-list">
+        <div id={menuId} role="menu" className={`action-menu-list${align === 'left' ? ' action-menu-list--left' : ''}`}>
           {items.map((item, i) => (
             <React.Fragment key={item.label}>
               {item.danger && i > 0 && <div className="action-menu-sep" role="separator" />}

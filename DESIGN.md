@@ -83,10 +83,10 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | Botões | `.btn` + `.btn-primary` · `.btn-secondary` · `.btn-danger` · `.btn-ghost` · `.btn-sm` · `.btn-icon` |
 | Formulário | `.form-group` · `.form-label` · `.form-row` · `.form-control` |
 | Cartões | `.card` · `.card-clickable` · `.card-flat` |
-| Badges | `.badge` + `-success` · `-danger` · `-warning` · `-accent` |
+| Badges | `.badge` + `-success` · `-danger` · `-warning` · `-accent` · `-neutral` |
 | Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-footer` (sempre via `ModalPortal`) |
 | Página | `.page-header` |
-| Menus | `ActionMenu` (menu "⋯" dos cartões) |
+| Menus | `ActionMenu` (menu "⋯" dos cartões). `align="left"` quando o gatilho fica na borda esquerda da tela |
 | Toasts | sonner, `bottom-right`, `richColors` |
 | Ícones | lucide-react; biblioteca de exercícios usa o ícone de halter |
 

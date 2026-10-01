@@ -6,10 +6,11 @@ import api from '../services/api';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { memoryCache } from '../services/cache';
 import { ActionMenu } from '../components/ActionMenu';
+import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import {
   ArrowLeft, Plus, Calendar, AlertCircle,
-  Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban,
+  Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban, KeyRound,
 } from 'lucide-react';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -18,6 +19,7 @@ interface Aluno {
   nome: string;
   email?: string | null;
   tokenAcesso?: string | null;
+  acesso?: AcessoAluno;
 }
 
 // Resumo da periodização com as contagens que a listagem devolve
@@ -339,7 +341,7 @@ export const Periodizacoes: React.FC = () => {
   const handleShare = (proto: Protocolo) => {
     const token = proto.tokenPublico || aluno?.tokenAcesso;
     if (!token) {
-      toast.error('O link deste aluno foi revogado. Use "Link do aluno → Gerar novo link".');
+      toast.error('O acesso deste aluno foi revogado. Use "Acesso do aluno → Gerar novo link".');
       return;
     }
     const url = `${window.location.origin}/v/${token}`;
@@ -370,15 +372,31 @@ export const Periodizacoes: React.FC = () => {
 
   const handleRevogarLink = async () => {
     if (!aluno) return;
-    if (!confirm(`Revogar o acesso de ${aluno.nome}? Todos os links enviados param de funcionar até você gerar um novo.`)) return;
+    if (!confirm(`Revogar o acesso de ${aluno.nome}? Ele sai do app na hora e os links enviados param de funcionar até você gerar um novo.`)) return;
     try {
       await api.post(`/alunos/${aluno.idAluno}/token/revogar`);
       invalidarCacheDoAluno();
       await loadData(false);
-      toast.success('Links revogados.');
+      toast.success('Acesso revogado.');
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao revogar links.');
+      toast.error('Erro ao revogar o acesso.');
+    }
+  };
+
+  // Para quando o aluno esquece o PIN: ele cria outro ao abrir o link de novo
+  const handleRedefinirPin = async () => {
+    if (!aluno) return;
+    if (!confirm(`Redefinir o PIN de ${aluno.nome}? Ele sai do app e cria um PIN novo ao abrir o link do treino.`)) return;
+    try {
+      await api.post(`/alunos/${aluno.idAluno}/pin/redefinir`);
+      memoryCache.invalidate('alunos');
+      invalidarCacheDoAluno();
+      await loadData(false);
+      toast.success(`PIN redefinido. Envie o link do treino de novo para ${aluno.nome} criar outro.`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao redefinir o PIN.');
     }
   };
 
@@ -439,17 +457,31 @@ export const Periodizacoes: React.FC = () => {
               <h1 style={{ margin: 0, fontSize: '1.6rem' }}>{aluno?.nome}</h1>
               <p style={{ margin: '0.15rem 0 0' }}>
                 {aluno?.email || 'Aluno'}
+                {aluno?.acesso && (
+                  <span
+                    className={`badge ${ROTULO_ACESSO[aluno.acesso].classe}`}
+                    title={ROTULO_ACESSO[aluno.acesso].dica}
+                    style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}
+                  >
+                    {ROTULO_ACESSO[aluno.acesso].texto}
+                  </span>
+                )}
                 {refreshing && <span style={{ color: 'var(--text-2)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Atualizando...</span>}
               </p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <ActionMenu
-              label={`Link do aluno ${aluno?.nome ?? ''}`}
-              trigger={<><Link2 size={16} /><span>Link do aluno</span></>}
+              label={`Acesso do aluno ${aluno?.nome ?? ''}`}
+              trigger={<><Link2 size={16} /><span>Acesso do aluno</span></>}
+              align="left"
               items={[
+                // Só há PIN para redefinir depois que o aluno criou um
+                ...(aluno?.acesso === 'PIN_CRIADO'
+                  ? [{ label: 'Redefinir PIN', icon: <KeyRound size={14} />, onClick: handleRedefinirPin }]
+                  : []),
                 { label: 'Gerar novo link', icon: <RefreshCw size={14} />, onClick: handleRegenerarLink },
-                { label: 'Revogar links', icon: <Ban size={14} />, onClick: handleRevogarLink, danger: true },
+                { label: 'Revogar acesso', icon: <Ban size={14} />, onClick: handleRevogarLink, danger: true },
               ]}
             />
             <button className="btn btn-secondary btn-sm" onClick={openImportModal}>
