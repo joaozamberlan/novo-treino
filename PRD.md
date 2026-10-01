@@ -6,9 +6,9 @@
 ## 1. Visão
 
 TreinosApp é uma plataforma para personal trainers **prescreverem fichas de treino
-estruturadas** e **compartilharem com os alunos por um link**, sem que o aluno precise
-criar conta. O aluno registra cargas e repetições durante o treino; o treinador acompanha
-o progresso.
+estruturadas** e **compartilharem com os alunos por um link**. O aluno não se cadastra:
+no primeiro acesso ele confirma o telefone e cria um PIN, e depois entra com os dois. Ele
+registra cargas e repetições durante o treino; o treinador acompanha o progresso.
 
 **Foco futuro:** comercializar o produto com dois planos pagos:
 um para **treinadores** e um para o **aluno que treina sozinho**, sem treinador
@@ -21,7 +21,7 @@ Produção: frontend em `https://novo-treino.vercel.app`, API no Railway.
 | Persona | Quem é | Como acessa | Paga ao app? |
 |---|---|---|---|
 | **Treinador** (`Profissional`, role `USER`) | Personal trainer ou acadêmico de Educação Física (CREF opcional) | Login com e-mail e senha, depois de aprovado pelo admin | **Sim**, mensalidade (Plano Treinador) |
-| **Aluno do treinador** (`Aluno`) | Cliente de um treinador | Hoje: link público `/v/:token`, **sem login**. Planejado: telefone + PIN, com app instalável ([plano](docs/plans/2026-09-30-login-aluno-pwa-design.md)) | **Não**. Paga o treinador, fora do app |
+| **Aluno do treinador** (`Aluno`) | Cliente de um treinador | Telefone + PIN. O link do treinador (`/v/:token`) serve para o primeiro acesso, quando ele cria o PIN | **Não**. Paga o treinador, fora do app |
 | **Aluno independente** *(futuro)* | Pessoa que monta e acompanha o próprio treino, sem treinador | A definir (precisa de conta própria) | **Sim**, mensalidade (Plano Aluno) |
 | **Admin** (`Profissional`, role `ADMIN`) | Dono da plataforma | Mesmo login do treinador + tela `/admin` | — |
 
@@ -113,13 +113,14 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 - Listar treinadores, aprovar/desativar, promover a admin, gerar senha temporária.
 
 ### 5.3 Alunos
-- CRUD de alunos (nome, e-mail, telefone).
-- Gerar / regenerar / revogar o token de acesso do aluno.
+- CRUD de alunos (nome, e-mail, telefone). O telefone é obrigatório: é o login do aluno.
+- Situação do acesso de cada aluno: PIN criado, aguardando 1º acesso ou telefone inválido.
+- Gerar novo link, revogar o acesso e redefinir o PIN do aluno.
 
 ### 5.4 Periodizações (`/alunos/:idAluno/periodizacoes`)
 - Navegação em "pastas": Alunos → Periodizações → Treino, com breadcrumb.
 - Criar, editar, excluir (exclusão lógica, preserva histórico), marcar como atual.
-- Compartilhar o link público de uma periodização específica (`tokenPublico`).
+- Compartilhar o link de uma periodização específica (`tokenPublico`).
 - Copiar uma periodização para outro aluno (ou o mesmo) e importar de outro aluno.
 
 ### 5.5 Montagem da ficha (`/alunos/:idAluno/treinos?periodizacao=:id`)
@@ -142,7 +143,10 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 - Encerrar treino ou iniciar nova sessão.
 - Ver progresso de cargas e recordes (PR).
 - Baixar PDF da ficha.
-- Instalar como PWA no **Android**; no **iOS** o PWA do aluno foi removido de propósito.
+- Instalar como app no **Android** e no **iPhone** (menu → Instalar app). No iPhone ele
+  entra de novo com telefone e PIN ao abrir o app pela primeira vez.
+- Abrir a última ficha vista **sem internet**; séries marcadas offline são enviadas quando
+  a conexão volta.
 
 ### 5.8 Progresso de cargas
 - Histórico da **melhor série** (maior carga, desempate por reps) das últimas 12 sessões por exercício.
@@ -162,8 +166,6 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 ## 7. Fora de escopo
 
 **Hoje** (ainda não existe, mas faz parte do foco futuro):
-- Login do aluno do treinador por telefone + PIN e app instalável no iPhone
-  ([plano](docs/plans/2026-09-30-login-aluno-pwa-design.md)).
 - Cobrança de assinatura dos planos Treinador e Aluno.
 - Conta e login do aluno independente (Plano Aluno).
 
@@ -177,7 +179,8 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 
 ## 8. Roadmap planejado
 
-1. **Login do aluno (telefone + PIN) e PWA instalável:** ver
+1. **Login do aluno (telefone + PIN) e PWA instalável:** construído na branch
+   `feat/login-aluno`; falta o teste em aparelho e a publicação. Ver
    [docs/plans/2026-09-30-login-aluno-pwa-design.md](docs/plans/2026-09-30-login-aluno-pwa-design.md).
 2. **Comercialização:** Plano Treinador (assinatura) e Plano Aluno (conta própria +
    assinatura), depois de respondidas as perguntas da [seção 3.4](#34-perguntas-em-aberto).

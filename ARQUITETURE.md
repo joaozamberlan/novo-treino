@@ -34,7 +34,7 @@ novo-workout/
 │   │   ├── services/   api.ts e alunoApi.ts (axios), cache.ts (cache em memória SWR)
 │   │   ├── utils/      descanso, pdf, periodo, progresso, rodape
 │   │   └── index.css   design system inteiro (tokens + componentes)
-│   ├── vite.config.ts  PWA + plugin que gera aluno.html
+│   ├── vite.config.ts  PWA (manifest único e regras de cache do service worker)
 │   └── vercel.json     rewrites e headers de segurança
 └── docs/               planos de design, identidade visual, logos
 ```
@@ -157,11 +157,19 @@ sonner (toasts), lucide-react (ícones), html2pdf.js, vite-plugin-pwa.
 - Sem biblioteca de estado global; estado local por página.
 
 ### 4.3 PWA e iOS
-- Manifest global com `start_url: "/"` (área do treinador).
-- Build gera `aluno.html` = `index.html` **sem manifest** e com `noindex`, servido pela
-  Vercel em `/v/:token`. No iOS o aluno não instala PWA.
-- Manifest por link: `/v/:token/manifest.webmanifest` → rewrite para `/publico/manifest/:token`.
-- Service worker: estáticos cache-first; `/publico/` network-first (5s); API autenticada network-only.
+- **Um manifest só**, com `start_url: "/"`, para treinador e aluno. No iPhone o app
+  instalado abre sempre na raiz e tem armazenamento separado do Safari; por isso quem
+  decide a tela é a raiz, pela sessão (ver 4.2), e o aluno entra com telefone + PIN de
+  dentro do app.
+- Service worker (`vite.config.ts`), com a origem da API lida de `VITE_API_URL` no build:
+  - estáticos: cache-first;
+  - `GET /aluno/*` (menos `/aluno/auth/`): network-first com 5 s de espera, guardado por
+    24 h no cache `api-aluno`. É o que faz a última ficha abrir sem internet;
+  - `/publico/` (logo): network-first;
+  - resto da API (treinador): network-only.
+- O cache `api-aluno` é apagado quando o aluno sai ou entra em outra conta
+  (`AlunoAuthContext`).
+- Séries marcadas sem internet ficam no `localStorage` e são reenviadas quando a conexão volta.
 - "Instalar app" fica no menu da área do aluno logado (prompt no Android, instruções no iPhone).
 
 ### 4.4 PDF

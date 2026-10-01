@@ -33,11 +33,17 @@ seção correspondente, com data.
 - **Progresso conta séries feitas mesmo sem "Encerrar treino"**, porque o aluno esquece
   de encerrar. Agrupa por exercício do catálogo para seguir entre periodizações.
 - **Descanso pode ser faixa** ("1-3 min"): `descansoSegundos` + `descansoMaxSegundos`.
-- **Aluno não instala PWA no iOS**: o Safari usa o manifest do HTML inicial, cujo
-  `start_url` é a área do treinador. Solução: `aluno.html` sem manifest em `/v/:token`.
-  No Android a instalação continua.
-- **PWA instalado sem login volta ao último link público**, mas só no modo standalone.
-  Numa aba normal isso prendia o treinador num loop.
+- **Login do aluno por telefone + PIN** (em vez de só o link). Motivo: no iPhone o app
+  instalado sempre abre na raiz do site e não enxerga nada do Safari, então seis tentativas
+  de fazer o ícone abrir o link do aluno falharam (manifest por link, `aluno.html` sem
+  manifest, "último link visitado"). Com login, o aluno entra de dentro do app. O link
+  passou a servir só para o primeiro acesso, quando ele cria o PIN. *(2026-09-30)*
+- **PIN, e não código por SMS/WhatsApp:** sem custo por mensagem. Se o aluno esquece, o
+  treinador redefine e reenvia o link. *(2026-09-30)*
+- **Protocolos anteriores são somente leitura para o aluno:** ele consulta fichas e
+  histórico, mas só registra cargas no protocolo atual. *(2026-09-30)*
+- **"Inativo" não bloqueia o login do aluno**, como já não bloqueava o link. Para cortar o
+  acesso, o treinador usa "Revogar acesso". *(2026-09-30)*
 
 ## Decisões técnicas
 
@@ -58,8 +64,12 @@ seção correspondente, com data.
 
 ## Armadilhas conhecidas
 
-- Mudar o domínio da API exige atualizar a CSP do `frontend/vercel.json` e o rewrite do manifest.
-- O service worker não pode servir `index.html` em `/v/*` (`navigateFallbackDenylist`).
+- Mudar o domínio da API exige atualizar a CSP do `frontend/vercel.json`. As regras de
+  cache do service worker leem a origem de `VITE_API_URL` no build.
+- O `backend/.env` local aponta para o banco de **produção**. Não rodar `prisma migrate dev`
+  nem subir o backend local sem trocar o `DATABASE_URL`.
+- As migrations antigas não rodam do zero (o banco foi baselined). Para um banco local de
+  teste, usar `prisma db push`.
 - Cache em memória (`memoryCache`) vazava dados entre alunos: sempre usar chaves com o id
   do aluno/periodização e invalidar após mutações.
 - Migrations `20260919_*` recuperaram exercícios que tinham sumido do catálogo; não

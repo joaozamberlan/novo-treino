@@ -1,87 +1,84 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
-// O Safari do iPhone lê o <link rel="manifest"> do HTML inicial ao adicionar à tela de
-// início; o manifest global tem start_url "/" (área do treinador, exige login). Para as
-// rotas /v/:token geramos aluno.html: o mesmo index.html, sem o manifest e sem as metas
-// que fazem o iOS tratar o atalho como app (o aluno não tem PWA no iPhone). Também
-// troca o robots para noindex: a página mostra o nome e o treino do aluno.
-const alunoHtmlPlugin = (): Plugin => ({
-  name: 'aluno-html-without-manifest',
-  apply: 'build',
-  enforce: 'post',
-  closeBundle() {
-    const indexPath = resolve(__dirname, 'dist/index.html')
-    if (!existsSync(indexPath)) return
-    const html = readFileSync(indexPath, 'utf-8')
-      .replace(/<link rel="manifest"[^>]*>/g, '')
-      .replace(/<meta name="apple-mobile-web-app-(capable|status-bar-style)"[^>]*>/g, '')
-      .replace(/<meta name="robots"[^>]*>/g, '<meta name="robots" content="noindex, nofollow" />')
-    writeFileSync(resolve(__dirname, 'dist/aluno.html'), html)
-  },
-})
+const escaparRegex = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [
-    react(),
-    alunoHtmlPlugin(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
-      manifest: {
-        name: 'TreinosApp',
-        short_name: 'TreinosApp',
-        description: 'Prescrição e acompanhamento de treinos com seu personal',
-        theme_color: '#0d0d0d',
-        background_color: '#0d0d0d',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        orientation: 'portrait',
-        icons: [
-          {
-            src: 'pwa-icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-          {
-            src: 'pwa-icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
-      },
-      workbox: {
-        // Cache estáticos (JS, CSS, fontes) — cache-first
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // /v/:token é servido como aluno.html (sem manifest) pelo Vercel; o fallback
-        // do SW devolveria o index.html, com o manifest global.
-        navigateFallbackDenylist: [/^\/v\//],
-        runtimeCaching: [
-          {
-            // Rotas públicas do aluno — network-first (progresso sempre atualizado)
-            urlPattern: /\/publico\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-publico',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 },
+export default defineConfig(({ mode }) => {
+  // Mesma origem que services/api.ts usa; o service worker precisa dela para
+  // saber quais requisições são da área do aluno.
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const apiOrigin = new URL(env.VITE_API_URL || 'http://localhost:3000').origin
+
+  return {
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+        // Um manifest só, para treinador e aluno. O app instalado abre sempre na
+        // raiz; quem decide a tela é o RequireAuth (App.tsx), pela sessão.
+        manifest: {
+          name: 'TreinosApp',
+          short_name: 'TreinosApp',
+          description: 'Prescrição e acompanhamento de treinos com seu personal',
+          theme_color: '#0d0d0d',
+          background_color: '#0d0d0d',
+          display: 'standalone',
+          scope: '/',
+          start_url: '/',
+          orientation: 'portrait',
+          icons: [
+            {
+              src: 'pwa-icon-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any maskable',
             },
-          },
-          {
-            // API autenticada — network-only (sem cache)
-            urlPattern: ({ url }) =>
-              url.hostname.includes('railway.app'),
-            handler: 'NetworkOnly',
-          },
-        ],
-      },
-    }),
-  ],
+            {
+              src: 'pwa-icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
+        },
+        workbox: {
+          // Cache estáticos (JS, CSS, fontes) — cache-first
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          runtimeCaching: [
+            {
+              // Leituras da área do aluno — network-first: sempre o dado novo
+              // quando há rede, e a última ficha vista quando a academia não
+              // tem sinal. O login (/aluno/auth) nunca é guardado. O cache é
+              // apagado quando o aluno sai ou troca de conta (AlunoAuthContext).
+              urlPattern: new RegExp(`^${escaparRegex(apiOrigin)}/aluno/(?!auth/)`),
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-aluno',
+                networkTimeoutSeconds: 5,
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 },
+              },
+            },
+            {
+              // Logo do treinador (tela de login do aluno e PDF)
+              urlPattern: new RegExp(`^${escaparRegex(apiOrigin)}/publico/`),
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-publico',
+                networkTimeoutSeconds: 5,
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 },
+              },
+            },
+            {
+              // Resto da API (área do treinador) — network-only (sem cache)
+              urlPattern: new RegExp(`^${escaparRegex(apiOrigin)}/`),
+              handler: 'NetworkOnly',
+            },
+          ],
+        },
+      }),
+    ],
+  }
 })

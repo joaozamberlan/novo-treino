@@ -23,7 +23,7 @@ hábito, a regra vence.
 - **Idioma:** domínio, rotas, modelos, mensagens de UI e comentários em **português**.
   Identificadores técnicos genéricos podem ficar em inglês.
 - **Siga o estilo do arquivo:** mesma densidade de comentários, nomes e idioma do código ao redor.
-- **Comentários explicam o porquê**, não o quê (ex.: por que existe `aluno.html`).
+- **Comentários explicam o porquê**, não o quê (ex.: por que a raiz do site roteia pela sessão).
 - TypeScript estrito; evitar `any` em código novo.
 - Backend formatado com Prettier (`backend/.prettierrc`); lint nos dois pacotes antes de commitar.
 
@@ -33,7 +33,9 @@ hábito, a regra vence.
   (`@GetProfissional`), nunca do body/query.
 - DTOs com class-validator; o `ValidationPipe` usa `whitelist`. Campos de posse enviados
   pelo cliente devem ser rejeitados.
-- Rotas `/publico/*` validam a cadeia inteira `token → aluno → treino → sessão → exercício`.
+- Rotas `/aluno/*` usam sempre o aluno do JWT (nunca um id da URL ou do body) e validam
+  a cadeia inteira `aluno → treino → sessão → exercício`.
+- O link do treinador (`/v/:token`) nunca devolve dados do treino sem login.
 - Erros via exceções do Nest (`NotFoundException`, etc.) com mensagem em pt-BR; nunca vazar
   stack, SQL ou caminhos.
 - Não logar headers, body, tokens nem senhas (`common/utils/redact.ts`).
@@ -53,7 +55,11 @@ hábito, a regra vence.
 - Animações respeitam `prefers-reduced-motion` (`MotionConfig reducedMotion="user"`).
 - Feedback ao usuário por `toast` (sonner), não `alert()`.
 - Após mutação, invalide o `memoryCache` do prefixo afetado.
-- Não quebrar o fluxo iOS do aluno: `/v/:token` servido por `aluno.html`, sem manifest.
+- Não quebrar o app instalado do aluno: ele abre na raiz (`/`) e tem armazenamento
+  próprio no iPhone. A raiz precisa continuar levando ao login do aluno, e o login precisa
+  funcionar sem o link.
+- Resposta de `/aluno/*` guardada pelo service worker é de uma conta: apagar o cache
+  `api-aluno` ao sair ou trocar de conta.
 - Novo domínio externo (API, imagens, fontes) exige atualizar a CSP em `frontend/vercel.json`.
 
 ## 5. Segurança

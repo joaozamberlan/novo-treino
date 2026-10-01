@@ -28,6 +28,15 @@ interface AlunoAuthContextData {
 
 const AlunoAuthContext = createContext<AlunoAuthContextData>({} as AlunoAuthContextData);
 
+// O service worker guarda as últimas respostas de /aluno/* para o treino
+// abrir sem internet (cache 'api-aluno', vite.config.ts). Elas são de uma
+// conta: ao sair ou trocar de conta, saem do aparelho junto.
+function limparCacheOffline() {
+  if ('caches' in window) {
+    caches.delete('api-aluno').catch(() => undefined);
+  }
+}
+
 function lerContaSalva(): ContaAluno | null {
   try {
     const salva = localStorage.getItem(ALUNO_CONTA_KEY);
@@ -42,6 +51,7 @@ export const AlunoAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const entrar = useCallback(({ accessToken, aluno, profissional }: ContaComToken) => {
     const nova = { aluno, profissional };
+    limparCacheOffline();
     localStorage.setItem(ALUNO_TOKEN_KEY, accessToken);
     localStorage.setItem(ALUNO_CONTA_KEY, JSON.stringify(nova));
     localStorage.setItem(PERFIL_KEY, 'aluno');
@@ -51,6 +61,7 @@ export const AlunoAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const sair = useCallback(() => {
     localStorage.removeItem(ALUNO_TOKEN_KEY);
     localStorage.removeItem(ALUNO_CONTA_KEY);
+    limparCacheOffline();
     setConta(null);
   }, []);
 
