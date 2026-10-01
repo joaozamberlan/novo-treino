@@ -64,6 +64,9 @@ seção correspondente, com data.
 
 ## Armadilhas conhecidas
 
+- No app instalado do iPhone a página começa **atrás da barra de status** (hora, Wi-Fi).
+  Todo cabeçalho no topo da tela precisa reservar `var(--sat)` e mais uma folga, senão fica
+  coberto e não dá para rolar até ele. No navegador comum `--sat` é 0 e o defeito não aparece.
 - Mudar o domínio da API exige atualizar a CSP do `frontend/vercel.json`. As regras de
   cache do service worker leem a origem de `VITE_API_URL` no build.
 - O `backend/.env` local aponta para o banco de **produção**. Não rodar `prisma migrate dev`

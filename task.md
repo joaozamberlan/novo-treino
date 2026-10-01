@@ -15,8 +15,9 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
 - [x] 2. Área do aluno (`/aluno`) e telas de entrada (escolha de perfil, login, primeiro acesso).
 - [x] 3. Treinador: telefone obrigatório, estado do PIN na lista, Redefinir PIN.
 - [x] 4. PWA: manifest único em `/`, remoção do `aluno.html` e dos rewrites do manifest por link, cache offline de `/aluno/` no service worker.
-- [ ] 5. Teste manual no iPhone e no Android (precisa de um endereço publicado: preview da Vercel + backend e banco de teste).
-- [ ] 6. Publicar: aplicar a migration `add_login_aluno` em produção e subir backend e frontend juntos.
+- [x] 5. Teste manual no iPhone: app instalado abre o treino do aluno (confirmado em 2026-09-30).
+- [ ] 5b. Conferir no iPhone o topo da área do treinador depois do ajuste de folga, e testar no Android.
+- [x] 6. Publicado em produção em 2026-09-30 (migration `add_login_aluno` aplicada).
 
 ### App nativo (plano: `docs/plans/2026-09-24-app-mobile-multiplataforma-design.md`)
 - [ ] 1. Instalar Capacitor (`core`, `cli`, `ios`, `android`), `capacitor.config.ts` e modo `vite build --mode native`.
