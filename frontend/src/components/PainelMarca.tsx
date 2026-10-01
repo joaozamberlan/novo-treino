@@ -1,18 +1,27 @@
 import React from 'react';
 import { Check, Timer } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { useTopoEscuro } from '../hooks/useTopoEscuro';
 
 interface Props {
   // 'h1' na tela em que a chamada é o título; nas telas de formulário ela é
   // só texto de marca ('p') e o título é o do formulário.
   chamadaComo?: 'h1' | 'p';
+  // Cabeçalho da tela, mostrado dentro do painel no celular (ver AlunoAcessoShell)
+  children?: React.ReactNode;
 }
 
 // Painel de marca das telas de entrada (escolha de perfil, login do aluno,
 // primeiro acesso): logo, chamada e a ficha de exercício da tela de login.
-export const PainelMarca: React.FC<Props> = ({ chamadaComo: Chamada = 'p' }) => (
-  <section className="entrada-marca">
+// É sempre escuro (.painel-escuro), qualquer que seja o tema da página.
+export const PainelMarca: React.FC<Props> = ({ chamadaComo: Chamada = 'p', children }) => {
+  useTopoEscuro();
+
+  return (
+  <section className="entrada-marca painel-escuro">
     <BrandLogo size={24} text="Treinos" className="entrada-logo" />
+
+    {children}
 
     <div className="entrada-chamada">
       <Chamada className="entrada-titulo">
@@ -43,7 +52,7 @@ export const PainelMarca: React.FC<Props> = ({ chamadaComo: Chamada = 'p' }) => 
         <div className="mock-badge-num">2</div>
         <div><strong>10 reps</strong></div>
         <div>32 kg</div>
-        <div style={{ color: 'var(--text-2)' }}>RIR 1</div>
+        <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
         <div className="entrada-mock-feito"><Check size={14} strokeWidth={3} /></div>
       </div>
       <div className="login-mock-row entrada-mock-atual">
@@ -55,4 +64,5 @@ export const PainelMarca: React.FC<Props> = ({ chamadaComo: Chamada = 'p' }) => 
       </div>
     </div>
   </section>
-);
+  );
+};

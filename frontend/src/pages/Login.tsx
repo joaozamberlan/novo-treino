@@ -3,8 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, Sparkles, X } from 'lucide-react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
+import { useTema } from '../hooks/useTema';
+import { useTopoEscuro } from '../hooks/useTopoEscuro';
 
 export const Login: React.FC = () => {
+  // O formulário segue o tema salvo; o painel de marca é sempre escuro
+  useTema();
+  useTopoEscuro();
   const emailField = useFieldValidation('', (v) => {
     if (!v.trim()) return 'Informe seu e-mail';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'E-mail inválido';
@@ -54,7 +59,7 @@ export const Login: React.FC = () => {
   return (
     <div className="login-wrapper">
       {/* ─── Left Panel: High Impact Brand & Interactive Mockup ─── */}
-      <div className="login-left-panel">
+      <div className="login-left-panel painel-escuro">
         <div className="login-brand-header">
           <div className="login-brand-pill">
             TREINOS APP • PRESCRIÇÃO PROFISSIONAL
@@ -65,6 +70,13 @@ export const Login: React.FC = () => {
           <p className="login-hero-desc">
             Organize periodizações, registre cargas e volumes sem atrito e entregue prescrições limpas e diretas aos seus alunos.
           </p>
+
+          {/* No celular o painel vira uma faixa escura e leva o título da tela */}
+          <div className="login-mobile-head">
+            <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
+            <h2 className="login-form-title">Entrar na plataforma</h2>
+            <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
+          </div>
         </div>
 
         {/* Live Interactive Workout Card Mockup */}
@@ -92,7 +104,7 @@ export const Login: React.FC = () => {
             <div className="mock-badge-num">2</div>
             <div><strong>10 reps</strong></div>
             <div>32 kg</div>
-            <div style={{ color: 'var(--text-2)' }}>RIR 1</div>
+            <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
             <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Check size={14} strokeWidth={3} />
             </div>
@@ -102,8 +114,8 @@ export const Login: React.FC = () => {
             <div className="mock-badge-num" style={{ background: 'var(--accent)', color: '#fff' }}>3</div>
             <div><strong>8-10 reps</strong></div>
             <div>34 kg</div>
-            <div style={{ color: 'var(--accent)', fontWeight: 700 }}>REST-PAUSE</div>
-            <div style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
+            <div style={{ color: 'var(--accent-text)', fontWeight: 700 }}>REST-PAUSE</div>
+            <div style={{ color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
               <Clock size={12} strokeWidth={2.5} />
               <span>90s</span>
             </div>
@@ -130,9 +142,11 @@ export const Login: React.FC = () => {
       {/* ─── Right Panel: Form Box ─── */}
       <div className="login-right-panel">
         <div className="login-form-container">
-          <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
-          <h2 className="login-form-title">Entrar na plataforma</h2>
-          <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
+          <div className="login-desktop-head">
+            <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
+            <h2 className="login-form-title">Entrar na plataforma</h2>
+            <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
+          </div>
 
           {error && (
             <div className="auth-error" role="alert">
@@ -174,7 +188,7 @@ export const Login: React.FC = () => {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: 'var(--accent)',
+                    color: 'var(--accent-text)',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',

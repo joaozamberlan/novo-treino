@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
@@ -23,6 +23,15 @@ export const AlunoEntrar: React.FC = () => {
   useEffect(() => {
     document.title = 'Entrar | TreinosApp';
   }, []);
+
+  // Erro do servidor limpa o PIN; quando o campo volta a ficar ativo, o foco vai para ele
+  const focarPin = useRef(false);
+  useEffect(() => {
+    if (!enviando && focarPin.current) {
+      focarPin.current = false;
+      document.getElementById('pin')?.focus();
+    }
+  }, [enviando]);
 
   if (conta) return <Navigate to="/aluno" replace />;
 
@@ -51,6 +60,7 @@ export const AlunoEntrar: React.FC = () => {
     } catch (err) {
       setPin('');
       setErro(mensagemDeErro(err, 'Telefone ou PIN incorretos.'));
+      focarPin.current = true;
     } finally {
       setEnviando(false);
     }
@@ -63,7 +73,7 @@ export const AlunoEntrar: React.FC = () => {
           {contas.map((c) => (
             <button key={c.aluno.idAluno} type="button" className="perfil-opcao" onClick={() => abrir(c)}>
               {c.profissional.logoUrl ? (
-                <img src={c.profissional.logoUrl} alt="" className="perfil-opcao-icone" />
+                <img src={c.profissional.logoUrl} alt="" width={40} height={40} className="perfil-opcao-icone" />
               ) : (
                 <span className="perfil-opcao-icone">{c.profissional.nome.charAt(0).toUpperCase()}</span>
               )}

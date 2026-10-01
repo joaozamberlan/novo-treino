@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Timer } from 'lucide-react';
 import { PainelMarca } from '../components/PainelMarca';
 import { useTema } from '../hooks/useTema';
@@ -9,17 +9,14 @@ import { PERFIL_KEY, type Perfil } from '../constants/storageKeys';
 // nunca ter entrado neste aparelho. A escolha fica guardada: da próxima vez a
 // raiz vai direto para o login certo.
 export const Entrada: React.FC = () => {
-  const navigate = useNavigate();
   useTema();
 
   useEffect(() => {
     document.title = 'TreinosApp';
   }, []);
 
-  const escolher = (perfil: Perfil) => {
-    localStorage.setItem(PERFIL_KEY, perfil);
-    navigate(perfil === 'aluno' ? '/aluno/entrar' : '/login');
-  };
+  // A escolha fica guardada para a raiz ir direto ao login certo da próxima vez
+  const lembrar = (perfil: Perfil) => localStorage.setItem(PERFIL_KEY, perfil);
 
   return (
     <div className="entrada animate-in">
@@ -29,7 +26,7 @@ export const Entrada: React.FC = () => {
         <div className="entrada-escolha-conteudo">
           <h2 className="entrada-pergunta">Como você usa o TreinosApp?</h2>
 
-          <button type="button" className="entrada-opcao" onClick={() => escolher('aluno')}>
+          <Link to="/aluno/entrar" className="entrada-opcao" onClick={() => lembrar('aluno')}>
             <span className="entrada-opcao-topo">
               <span className="entrada-opcao-texto">
                 <strong>Sou aluno</strong>
@@ -44,9 +41,9 @@ export const Entrada: React.FC = () => {
               <span className="entrada-amostra-dado"><b>10</b> reps</span>
               <span className="entrada-amostra-check"><Check size={14} strokeWidth={3} /></span>
             </span>
-          </button>
+          </Link>
 
-          <button type="button" className="entrada-opcao" onClick={() => escolher('treinador')}>
+          <Link to="/login" className="entrada-opcao" onClick={() => lembrar('treinador')}>
             <span className="entrada-opcao-topo">
               <span className="entrada-opcao-texto">
                 <strong>Sou treinador</strong>
@@ -60,7 +57,7 @@ export const Entrada: React.FC = () => {
               <span className="entrada-amostra-dado"><b>3</b> × <b>8-12</b></span>
               <span className="entrada-amostra-descanso"><Timer size={11} strokeWidth={2.5} />90s</span>
             </span>
-          </button>
+          </Link>
         </div>
       </main>
     </div>

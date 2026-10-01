@@ -33,6 +33,7 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | `--border` / `--border-strong` | branco 10% / 20% | preto 10% / 20% | divisórias |
 | `--accent` | `#CF3427` | `#BA281A` | ação primária, foco, estado ativo |
 | `--accent-hover` | `#E44436` | `#D13322` | hover da ação primária |
+| `--accent-text` | `#E65E52` (calculado) | igual ao `--accent` | vermelho em **texto pequeno**. O `--accent` puro dá só 3,5:1 sobre o fundo escuro |
 | `--accent-soft` / `-dim` / `-border` | alfas do accent | alfas do accent | fundos e bordas de destaque |
 | `--text-0` / `-1` / `-2` | `#f1f1f1` / `#aaa` / `#717171` | `#121316` / `#565963` / `#868a95` | texto primário / secundário / terciário |
 | `--danger` | `#f04438` | `#d92d20` | erro, excluir |
@@ -68,6 +69,18 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 `--sat/--sab/--sal/--sar` = `env(safe-area-inset-*)`; `--keyboard-inset` é atualizado por
 `useMobileViewportFix` para manter ações de modal acima do teclado no iOS.
 
+### Contraste
+- Texto pequeno: no mínimo **4,5:1**. Texto grande (≥ 24px, ou ≥ 18,66px em negrito): **3:1**.
+- Medir, não julgar no olho. Pares que já falharam e não devem voltar:
+  `--text-2` em texto pequeno (3,1:1 no claro, 3,6:1 no escuro) e `--accent` em texto
+  pequeno sobre fundo escuro (3,5:1). Usar `--text-1` e `--accent-text`.
+- Não pôr brilho ou degradê colorido atrás de texto vermelho: derruba o contraste.
+
+### Painel escuro
+`.painel-escuro` reaplica os tokens do tema escuro dentro de um bloco, qualquer que seja o
+tema da página. É o que mantém o painel de marca preto com vermelho ao lado de um
+formulário claro.
+
 ## 4. Layout
 
 - **Desktop (≥ 921px):** sidebar à esquerda, recolhível, com rótulos visíveis mesmo
@@ -87,7 +100,7 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-footer` (sempre via `ModalPortal`) |
 | Página | `.page-header` |
 | Menus | `ActionMenu` (menu "⋯" dos cartões). `align="left"` quando o gatilho fica na borda esquerda da tela |
-| Telas de entrada | `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca` à esquerda no desktop. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
+| Telas de entrada | Sempre divididas: painel de marca **preto com vermelho** (`.painel-escuro`) e formulário no tema da página. No desktop o painel fica à esquerda; no celular vira uma faixa no topo com o título da tela. Nunca uma tela toda clara. `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca`. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
 | PIN | `CampoPin`: quatro casas (`.pin-campo`, `.pin-celula`) sobre um `<input>` real e invisível |
 | Toasts | sonner, `bottom-right`, `richColors` |
 | Ícones | lucide-react; biblioteca de exercícios usa o ícone de halter |

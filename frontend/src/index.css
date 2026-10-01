@@ -2,7 +2,11 @@
    DESIGN SYSTEM — High-density professional tool (Apple & UI/UX Pro Max)
    ======================================================================== */
 
-:root {
+/* Cores do tema escuro. Valem na raiz e, de novo, dentro de .painel-escuro:
+   o painel de marca das telas de entrada é sempre escuro, mesmo com o resto
+   da página no tema claro. */
+:root,
+.painel-escuro {
   /* Cinzas neutros no estilo do tema escuro do YouTube */
   --bg-0: #0f0f0f;
   --bg-1: #181818;
@@ -19,11 +23,22 @@
   --text-0: #f1f1f1;
   --text-1: #aaaaaa;
   --text-2: #717171;
+  /* Vermelho para texto pequeno: o --accent puro dá 3,5:1 sobre o fundo
+     escuro; clareado chega a 5:1 (mínimo para texto pequeno: 4,5:1) */
+  --accent-text: color-mix(in srgb, var(--accent-hover) 85%, var(--text-0));
   --danger: #f04438;
   --success: #2da868;
   --warning: #f59e0b;
   --pr-gold: #e5a93c;
   --pr-gold-soft: rgba(229, 169, 60, 0.14);
+
+  /* Fallback aliases */
+  --bg-tertiary: var(--bg-3);
+  --text-primary: var(--text-0);
+  --text-muted: var(--text-2);
+}
+
+:root {
   --radius-s: 6px;
   --radius-m: 8px;
   --radius-l: 12px;
@@ -51,11 +66,6 @@
      account for (see useMobileViewportFix) — 0 unless iOS Safari has a
      keyboard open, since Android/Chrome resizes the layout viewport itself. */
   --keyboard-inset: 0px;
-
-  /* Fallback aliases */
-  --bg-tertiary: var(--bg-3);
-  --text-primary: var(--text-0);
-  --text-muted: var(--text-2);
 }
 
 body.light-theme {
@@ -74,6 +84,7 @@ body.light-theme {
   --text-0: #121316;
   --text-1: #565963;
   --text-2: #868a95;
+  --accent-text: var(--accent);
   --danger: #d92d20;
   --success: #2da868;
   --warning: #dc6803;
@@ -3741,8 +3752,9 @@ body.light-theme .mobile-tab-bar {
 }
 
 .login-left-panel {
-  background: radial-gradient(circle at 10% 20%, rgba(207, 52, 39, 0.08) 0%, transparent 45%),
+  background: radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 46%),
               linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
+  color: var(--text-0);
   border-right: 1px solid var(--border-strong);
   padding: 3.5rem 3rem;
   display: flex;
@@ -3752,10 +3764,71 @@ body.light-theme .mobile-tab-bar {
   overflow: hidden;
 }
 
+/* Cabeçalho do formulário dentro do painel escuro: só existe no celular */
+.login-mobile-head {
+  display: none;
+}
+
+/* No celular o painel vira uma faixa escura no topo com a marca e o título
+   da tela; a ficha e os textos longos ficam para o desktop. */
 @media (max-width: 960px) {
+  .login-wrapper {
+    grid-template-rows: auto 1fr;
+  }
+
   .login-left-panel {
+    display: block;
+    border-right: 0;
+    padding: calc(1.5rem + var(--sat)) 1.25rem 1.75rem;
+  }
+
+  .login-left-panel .login-hero-title,
+  .login-left-panel .login-hero-desc,
+  .login-left-panel .login-card-preview,
+  .login-left-panel .login-left-footer {
     display: none;
   }
+
+  .login-left-panel .login-brand-pill {
+    margin-bottom: 1.25rem;
+  }
+
+  .login-mobile-head {
+    display: block;
+  }
+
+  .login-mobile-head .login-form-sub {
+    margin-bottom: 0;
+  }
+
+  .login-desktop-head {
+    display: none;
+  }
+}
+
+/* Texto pequeno sobre o painel escuro: vermelho e cinza com contraste ≥ 4,5:1 */
+.painel-escuro .login-brand-pill,
+.painel-escuro .login-form-eyebrow,
+.painel-escuro .login-card-tag,
+.painel-escuro .mock-pr-tag,
+.painel-escuro .entrada-mock-atual > div:nth-child(4),
+.painel-escuro .entrada-mock-descanso {
+  color: var(--accent-text);
+}
+
+/* Título vermelho do painel: o tom mais claro dá 4,4:1 sobre o preto (o
+   --accent puro dá 3,5:1) e ainda passa de 3:1 em cima do brilho. */
+.painel-escuro .entrada-titulo span,
+.painel-escuro .login-hero-title span {
+  color: var(--accent-hover);
+}
+
+.painel-escuro .login-tech-feature {
+  color: var(--text-1);
+}
+
+.painel-escuro .login-tech-feature svg {
+  stroke: var(--accent-text);
 }
 
 .login-brand-header {
@@ -3928,9 +4001,37 @@ body.light-theme .mobile-tab-bar {
 @media (max-width: 960px) {
   .login-right-panel {
     max-height: none;
-    min-height: 100dvh;
-    padding: 2rem 1.25rem 3rem;
+    padding: 1.75rem 1.25rem calc(2.5rem + var(--sab));
   }
+
+  .login-right-panel .login-form-container {
+    margin: 0;
+  }
+}
+
+/* Lado claro das telas de entrada: texto de apoio e placeholder com
+   contraste ≥ 4,5:1 (o --text-2 dá 3,1:1 sobre o fundo claro) */
+.login-right-panel .login-footer-support,
+.login-right-panel .field-hint,
+.entrada-escolha .login-footer-support,
+.entrada-escolha .field-hint {
+  color: var(--text-1);
+}
+
+.login-right-panel .form-input::placeholder,
+.entrada-escolha .form-input::placeholder {
+  color: color-mix(in srgb, var(--text-1) 85%, var(--bg-1));
+  opacity: 1;
+}
+
+.login-right-panel .auth-error,
+.entrada-escolha .auth-error {
+  color: color-mix(in srgb, var(--danger) 80%, var(--text-0));
+}
+
+.btn-login-submit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .login-form-container {
@@ -3949,7 +4050,7 @@ body.light-theme .mobile-tab-bar {
   font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--accent);
+  color: var(--accent-text);
   text-transform: uppercase;
   margin-bottom: 0.35rem;
   display: flex;
@@ -5214,9 +5315,7 @@ body.light-theme .mobile-tab-bar {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(circle at 10% 12%, var(--accent-soft) 0%, transparent 46%),
-    linear-gradient(160deg, var(--bg-1) 0%, var(--bg-0) 62%);
+  background: var(--bg-0);
   color: var(--text-0);
 }
 
@@ -5227,11 +5326,17 @@ body.light-theme .mobile-tab-bar {
 
 /* Os espaços verticais acompanham a altura da tela: apertados num celular
    pequeno (sem rolagem), folgados num alto (sem um vazio no meio). */
+/* Sempre escuro (.painel-escuro), com o brilho vermelho no canto: é a metade
+   "preta com vermelho" da tela; a escolha ou o formulário ficam na clara. */
 .entrada-marca {
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, calc(12vh - 3.75rem), 3.5rem);
-  padding: calc(clamp(1rem, calc(8vh - 2.25rem), 2.75rem) + var(--sat)) 1.25rem 0;
+  padding: calc(clamp(1rem, calc(8vh - 2.25rem), 2.75rem) + var(--sat)) 1.25rem clamp(1.25rem, 4vh, 2.5rem);
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 46%),
+    linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
+  color: var(--text-0);
 }
 
 .entrada-logo {
@@ -5304,7 +5409,7 @@ body.light-theme .mobile-tab-bar {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(1.25rem, calc(14vh - 4rem), 4.5rem) 1.25rem calc(1.25rem + var(--sab));
+  padding: clamp(1.25rem, calc(10vh - 3rem), 3rem) 1.25rem calc(1.25rem + var(--sab));
 }
 
 .entrada-escolha-conteudo {
@@ -5335,6 +5440,7 @@ body.light-theme .mobile-tab-bar {
   color: var(--text-0);
   font-family: var(--font);
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   transition:
     transform 140ms var(--ease-out),
@@ -5489,7 +5595,6 @@ body.light-theme .mobile-tab-bar {
   .entrada {
     display: grid;
     grid-template-columns: 1.15fr 1fr;
-    background: var(--bg-0);
   }
 
   .entrada-marca {
@@ -5497,9 +5602,6 @@ body.light-theme .mobile-tab-bar {
     gap: 2.5rem;
     padding: 3.5rem 3rem;
     border-right: 1px solid var(--border-strong);
-    background:
-      radial-gradient(circle at 10% 20%, var(--accent-soft) 0%, transparent 45%),
-      linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
   }
 
   .entrada-titulo {
@@ -5544,8 +5646,23 @@ body.light-theme .mobile-tab-bar {
   display: none;
 }
 
+.entrada--form .entrada-marca {
+  gap: clamp(1rem, 3vh, 1.5rem);
+  padding-bottom: clamp(1.1rem, 3vh, 1.75rem);
+}
+
 .entrada--form .entrada-escolha {
-  padding-top: clamp(1.5rem, calc(12vh - 3rem), 4rem);
+  padding-top: 1.5rem;
+}
+
+/* O cabeçalho (treinador, título, subtítulo) é desenhado duas vezes: na faixa
+   escura no celular e na coluna do formulário no desktop. */
+.acesso-cabecalho--desktop {
+  display: none;
+}
+
+.acesso-cabecalho .acesso-sub {
+  color: var(--text-1);
 }
 
 .acesso {
@@ -5617,8 +5734,7 @@ body.light-theme .mobile-tab-bar {
 .aluno-acesso-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: clamp(1.1rem, 3vh, 1.75rem);
+  gap: 0.9rem;
 }
 
 .aluno-acesso-form .auth-error {
@@ -5737,7 +5853,7 @@ body.light-theme .mobile-tab-bar {
   padding: 0;
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: 600 0.78rem var(--font);
   cursor: pointer;
 }
@@ -5763,7 +5879,7 @@ body.light-theme .mobile-tab-bar {
 
 /* Fora do formulário (link inválido, cadastro a atualizar) o aviso é o conteúdo */
 .acesso > .aluno-acesso-aviso {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .aluno-acesso-aviso svg {
@@ -5788,7 +5904,7 @@ body.light-theme .mobile-tab-bar {
 }
 
 .acesso .perfil-opcoes {
-  margin-top: 1.75rem;
+  margin-top: 0;
 }
 
 .acesso .perfil-opcao {
@@ -5802,8 +5918,22 @@ body.light-theme .mobile-tab-bar {
     display: block;
   }
 
+  .entrada--form .entrada-marca {
+    gap: 2.5rem;
+    padding-bottom: 3.5rem;
+  }
+
   .entrada--form .entrada-escolha {
     padding-top: 2.5rem;
+  }
+
+  .acesso-cabecalho--celular {
+    display: none;
+  }
+
+  .acesso-cabecalho--desktop {
+    display: block;
+    margin-bottom: 1.75rem;
   }
 
   .acesso-titulo {

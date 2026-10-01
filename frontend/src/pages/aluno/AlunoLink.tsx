@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import alunoApi from '../../services/alunoApi';
@@ -44,6 +44,15 @@ export const AlunoLink: React.FC = () => {
       });
     return () => { cancelado = true; };
   }, [token]);
+
+  // Erro do servidor limpa o PIN; quando o campo volta a ficar ativo, o foco vai para ele
+  const focarPin = useRef(false);
+  useEffect(() => {
+    if (!enviando && focarPin.current) {
+      focarPin.current = false;
+      document.getElementById('pin')?.focus();
+    }
+  }, [enviando]);
 
   if (erroLink) {
     return (
@@ -124,6 +133,7 @@ export const AlunoLink: React.FC = () => {
       // 409: o PIN foi criado em outro aparelho enquanto esta tela estava aberta
       if (criando && status === 409) setAcesso({ ...acesso, estado: 'LOGIN' });
       setErro(mensagemDeErro(err, criando ? 'Não foi possível criar o PIN.' : 'Telefone ou PIN incorretos.'));
+      focarPin.current = true;
     } finally {
       setEnviando(false);
     }

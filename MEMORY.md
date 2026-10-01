@@ -6,6 +6,9 @@ seção correspondente, com data.
 
 ## Preferências do dono do produto
 
+- **Tela toda branca é "pobre".** As telas de entrada (`/entrada`, `/aluno/entrar`,
+  `/login`, `/register`) são divididas: painel de marca preto com vermelho e formulário
+  claro. Uma versão com fundo claro em tudo foi rejeitada. *(2026-10-01)*
 - **Só o que foi pedido.** Propostas com tabela nova, campo `semanaAtual`, botões de
   avançar semana e lógica de "em que semana o aluno está" foram rejeitadas. A tabela de
   progressão semanal é uma cópia literal (semanas 1–5) no link público e no PDF, sem saber
