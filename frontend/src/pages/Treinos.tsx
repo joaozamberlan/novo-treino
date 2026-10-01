@@ -10,7 +10,7 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import {
   ArrowLeft, Plus,
   Trash2, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical, Timer, MessageSquareText
+  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical, Timer, MessageSquareText, MessageCircle, Copy
 } from 'lucide-react';
 import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
@@ -19,6 +19,7 @@ import { FichaPdf } from '../components/FichaPdf';
 import { VolumeSemanal } from '../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../utils/pdf';
 import { linkWhatsApp } from '../utils/whatsapp';
+import { ActionMenu } from '../components/ActionMenu';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -222,13 +223,21 @@ export const Treinos: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleShare = () => {
-    const token = activeProtocol?.tokenPublico || aluno?.tokenAcesso;
-    if (!token || !aluno) return;
-    const url = `${window.location.origin}/v/${token}`;
+  const tokenDoLink = activeProtocol?.tokenPublico || aluno?.tokenAcesso;
+  const linkDoAluno = tokenDoLink ? `${window.location.origin}/v/${tokenDoLink}` : null;
+
+  const handleCopiarLink = () => {
+    if (!linkDoAluno) return;
+    navigator.clipboard.writeText(linkDoAluno);
+    toast.success('Link desta periodização copiado!');
+  };
+
+  const handleCompartilharWhatsApp = () => {
+    if (!linkDoAluno || !aluno) return;
     const primeiroNome = aluno.nome.trim().split(/\s+/)[0];
     const mensagem =
-      `Olá, ${primeiroNome}! Segue seu protocolo *${activeProtocol?.nome ?? ''}*, é só abrir o link:\n${url}\n\n` +
+      `Olá, ${primeiroNome}! Segue seu protocolo *${activeProtocol?.nome ?? ''}*, é só abrir o link:\n${linkDoAluno}\n\n` +
+      'Pra entrar, use seu celular e seu PIN de 4 dígitos. Se for seu primeiro acesso, você cria o PIN na hora.\n\n' +
       'Pra não depender de internet durante o treino, baixa o PDF pelo link antes de começar.';
     window.open(linkWhatsApp(aluno.telefone, mensagem), '_blank', 'noopener');
   };
@@ -870,11 +879,16 @@ export const Treinos: React.FC = () => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {(activeProtocol?.tokenPublico || aluno?.tokenAcesso) && (
-                <button className="btn btn-secondary btn-sm" onClick={handleShare}>
-                  <Share2 size={14} />
-                  Compartilhar
-                </button>
+              {linkDoAluno && (
+                <ActionMenu
+                  label="Compartilhar o treino com o aluno"
+                  trigger={<><Share2 size={14} /><span>Compartilhar</span></>}
+                  align="left"
+                  items={[
+                    { label: 'Enviar no WhatsApp', icon: <MessageCircle size={14} />, onClick: handleCompartilharWhatsApp },
+                    { label: 'Copiar link', icon: <Copy size={14} />, onClick: handleCopiarLink },
+                  ]}
+                />
               )}
               {activeProtocol && (
                 <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
