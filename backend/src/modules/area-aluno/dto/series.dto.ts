@@ -11,7 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-// Rotas públicas não têm login: os limites de tamanho impedem que um único
+// Os limites de tamanho impedem que um único
 // request dispare milhares de upserts no banco.
 const MAX_SERIES_POR_EXERCICIO = 30;
 const MAX_EXERCICIOS_POR_SESSAO = 40;

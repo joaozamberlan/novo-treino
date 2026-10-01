@@ -3,13 +3,13 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { EncerrarSessaoDto, SalvarSeriesDto } from './series.dto';
 
-// As rotas /publico não têm login: o body é validado pelo ValidationPipe
+// O body das rotas /aluno/sessao é validado pelo ValidationPipe
 // global (whitelist + transform), reproduzido aqui direto contra os DTOs.
 async function valida<T extends object>(cls: new () => T, body: unknown) {
   return validate(plainToInstance(cls, body) as object, { whitelist: true });
 }
 
-describe('DTOs públicos de séries', () => {
+describe('DTOs de séries do aluno', () => {
   it('aceita séries válidas, com campos nulos ou ausentes', async () => {
     const errors = await valida(SalvarSeriesDto, {
       series: [

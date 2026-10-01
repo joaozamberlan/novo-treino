@@ -10,7 +10,8 @@
 - O frontend **nunca** acessa o banco; tudo passa pela API.
 - Dois tipos de acesso à API:
   - **Treinador/admin**: JWT no header `Authorization: Bearer`.
-  - **Aluno**: rotas `/publico/*`, autorizadas apenas pelo token do link.
+  - **Aluno**: rotas `/aluno/*`, com JWT próprio obtido por telefone + PIN. O link do
+    treinador serve só para o primeiro acesso.
 
 ## 2. Estrutura do repositório
 
@@ -21,7 +22,7 @@ novo-workout/
 │   ├── src/
 │   │   ├── common/     filtros, interceptors, DTO de paginação, utils
 │   │   ├── constants/  default-catalog.ts (catálogo semeado no cadastro)
-│   │   ├── modules/    auth, profissionais (+admin), alunos, exercicios, treinos, publico
+│   │   ├── modules/    auth, profissionais (+admin), alunos, exercicios, treinos, area-aluno, publico
 │   │   └── prisma/     PrismaService
 │   └── railway.toml
 ├── frontend/           SPA React
@@ -61,7 +62,9 @@ class-validator, helmet, `@nestjs/throttler`. Node ≥ 22.
 | alunos | `/alunos` | JWT | CRUD + `token/regenerar`, `token/revogar` |
 | exercicios | `/exercicios` | JWT | grupos, exercícios, técnicas, instruções, `seed` |
 | treinos | `/treinos` | JWT | protocolos, fichas, prescrições, `duplicar`, `progresso`, `volume` |
-| publico | `/publico` | throttle 30/min, **sem JWT** | treino, sessão, séries, progresso, logo, manifest |
+| area-aluno (login) | `/aluno/auth` | throttle 5/min, sem JWT | `acesso/:token`, `primeiro-acesso`, `login` |
+| area-aluno | `/aluno` | JWT do aluno | `me`, protocolos, progresso, sessão, séries |
+| publico | `/publico` | throttle 30/min, **sem JWT** | só a logo do treinador |
 
 Limite global: 60 req/min por IP.
 
@@ -72,18 +75,26 @@ Limite global: 60 req/min por IP.
 - Login compara contra um hash "dummy" quando o e-mail não existe (sem timing side-channel).
 - E-mails normalizados (trim + lowercase).
 - `JWT_SECRET` obrigatório: a app não sobe sem ele.
+- **Aluno:** JWT `{ sub: idAluno, tipo: 'aluno', ver }` de 90 dias, renovado por
+  `GET /aluno/me`. Estratégia `jwt-aluno` separada; cada lado só aceita o seu `tipo`.
+  PIN de 4 dígitos com bcrypt; 5 erros bloqueiam o aluno por 15 minutos.
 
 ### 3.4 Posse de dados (multi-tenant)
 - Todo recurso pertence a um `idProfissional`; os services sempre filtram por ele.
 - DTOs **rejeitam** campos de posse (`idProfissional`, etc.) vindos do cliente
   (`ownership-fields-rejected.spec.ts`).
-- Rotas públicas seguem a cadeia `token → aluno → treino → sessão → exercício`,
-  validando cada elo (`publico.service.ts`).
+- Rotas do aluno seguem a cadeia `aluno (do JWT) → treino → sessão → exercício`,
+  validando cada elo (`area-aluno.service.ts`). Escrita só no protocolo atual; os
+  anteriores são somente leitura.
+- A API `/alunos` nunca devolve `pinHash` nem os contadores de tentativa.
 
-### 3.5 Tokens do aluno
+### 3.5 Link e login do aluno
 - `ProtocoloTreino.tokenPublico`: link de **uma periodização** específica (formato atual).
-- `Aluno.tokenAcesso`: link antigo, resolve para a periodização ativa (compatibilidade).
-- Revogar/regenerar invalida os links enviados.
+- `Aluno.tokenAcesso`: link antigo (compatibilidade).
+- O link não abre mais o treino: prova a posse no **primeiro acesso**, quando o aluno
+  confirma o telefone e cria o PIN. Depois o login é telefone + PIN.
+- `Aluno.telefoneLogin`: telefone só com dígitos e DDI (`common/utils/telefone.ts`).
+- Revogar o acesso ou redefinir o PIN sobe `Aluno.versaoToken` e derruba as sessões.
 
 ### 3.6 Modelo de dados (resumo)
 
@@ -105,7 +116,7 @@ Detalhes relevantes:
 - Limites em `treinos/dto/limites.ts`: `MAX_SERIES = 30`, `MAX_DESCANSO_SEGUNDOS = 3600`.
 
 ### 3.7 Progresso (`treinos/progresso.ts`)
-Resposta única para `GET /treinos/progresso/:idProtocolo` e `GET /publico/progresso/:token`.
+Resposta única para `GET /treinos/progresso/:idProtocolo` e `GET /aluno/progresso/:idProtocolo`.
 Agrupa por `idExercicio` (atravessa periodizações), últimas 12 sessões, melhor série por sessão.
 O frontend espelha os tipos em `frontend/src/utils/progresso.ts`.
 

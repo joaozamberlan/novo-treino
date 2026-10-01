@@ -56,12 +56,21 @@ model Aluno {
   dataCadastro   DateTime          @default(now())
   ativo          Boolean           @default(true)
   tokenAcesso    String?           @unique
+  // Login do aluno (telefone + PIN). telefoneLogin é o telefone só com dígitos
+  // e DDI; `telefone` continua como o treinador digitou.
+  telefoneLogin   String?
+  pinHash         String?          // null = o aluno ainda não criou o PIN
+  // Sobe ao redefinir o PIN ou revogar o acesso: JWTs do aluno emitidos antes deixam de valer
+  versaoToken     Int              @default(0)
+  pinTentativas   Int              @default(0)
+  pinBloqueadoAte DateTime?
 
   profissional   Profissional      @relation(fields: [idProfissional], references: [idProfissional])
   protocolos     ProtocoloTreino[]
   sessoes        SessaoTreino[]
 
   @@index([idProfissional])
+  @@index([telefoneLogin])
 }
 
 model ProtocoloTreino {

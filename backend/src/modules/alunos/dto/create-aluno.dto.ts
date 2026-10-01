@@ -17,8 +17,9 @@ export class CreateAlunoDto {
   @MaxLength(254, { message: 'O e-mail deve ter no máximo 254 caracteres' })
   email?: string;
 
-  @IsString()
-  @IsOptional()
+  // Obrigatório: é o login do aluno (telefone + PIN)
+  @IsString({ message: 'O telefone é obrigatório' })
+  @IsNotEmpty({ message: 'O telefone é obrigatório' })
   @MaxLength(30, { message: 'O telefone deve ter no máximo 30 caracteres' })
-  telefone?: string;
+  telefone: string;
 }

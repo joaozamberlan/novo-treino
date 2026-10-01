@@ -75,22 +75,28 @@ A unicidade de `telefoneLogin` por treinador é validada no service.
 
 | Rota | Guard | O que faz |
 |---|---|---|
+| `GET /aluno/auth/acesso/:token` | throttle 30/min | O que o link deve mostrar: `estado` (`CRIAR_PIN`, `LOGIN` ou `ATUALIZAR_CADASTRO`), primeiro nome, treinador e o protocolo do link. Não devolve dados do treino |
 | `POST /aluno/auth/primeiro-acesso` | throttle 5/min | `{ token, telefone, pin }`. Confere o telefone com o cadastro do aluno do link, exige que ainda não haja PIN, grava o `pinHash`, devolve a sessão |
 | `POST /aluno/auth/login` | throttle 5/min | `{ telefone, pin }`. Devolve uma sessão por cadastro de aluno que bater (uma, ou várias para o aluno escolher) |
 | `GET /aluno/me` | JWT aluno | Nome, treinador, logo. Devolve token renovado quando o atual está perto de vencer |
 | `GET /aluno/protocolos` | JWT aluno | Protocolo atual e anteriores (não excluídos) |
+| `GET /aluno/protocolos/atual` | JWT aluno | Fichas do protocolo atual (`protocolo: null` se não houver) |
 | `GET /aluno/protocolos/:id` | JWT aluno | Fichas de um protocolo do próprio aluno |
 | `GET /aluno/progresso/:id` | JWT aluno | Histórico de cargas |
 | `/aluno/sessao/...` | JWT aluno | Obter/criar sessão, salvar séries, marcar exercício, remover série extra, encerrar, nova sessão |
 | `POST /alunos/:id/pin/redefinir` | JWT treinador | Zera `pinHash`, tentativas e bloqueio; sobe `versaoToken` |
 
 - **JWT do aluno:** `{ sub: idAluno, tipo: 'aluno', ver }`, 90 dias. Estratégia própria
-  (`jwt-aluno`) que recarrega o aluno e rejeita se inativo, se `ver !== versaoToken` ou se
-  o treinador estiver inativo. A `JwtStrategy` do treinador já recusa `tipo !== 'profissional'`.
-- **Reaproveitamento:** os métodos de `publico.service.ts` (sessão, séries, progresso)
-  passam a receber o aluno já identificado, em vez de resolver pelo token do link.
-- **Rotas `/publico/*` atuais:** deixam de devolver dados do treino. Respondem 401 com o
-  motivo (`CRIAR_PIN` ou `LOGIN`) mais o mínimo para montar a tela (nome e logo do treinador).
+  (`jwt-aluno`) que recarrega o aluno e rejeita se `ver !== versaoToken`. A `JwtStrategy`
+  do treinador já recusa `tipo !== 'profissional'`.
+- **Aluno ou treinador marcado como inativo:** não bloqueia o acesso, como já era no link
+  público. Para cortar o acesso de um aluno o treinador usa **Revogar acesso**.
+- **Reaproveitamento:** a lógica de sessão, séries e progresso saiu de
+  `publico.service.ts` para `modules/area-aluno/area-aluno.service.ts` e recebe o aluno já
+  identificado, em vez de resolver pelo token do link.
+- **Rotas `/publico/*`:** as de treino, sessão, progresso e manifest foram removidas. Só
+  fica `GET /publico/logo/:idProfissional`. O que o link precisa saber vem de
+  `GET /aluno/auth/acesso/:token`.
 - **`POST /alunos/:id/token/revogar`:** passa a subir também o `versaoToken` do aluno.
 - **`/publico/manifest/:token`:** removida.
 
@@ -141,12 +147,13 @@ Quem já instalou no Android pelo link antigo continua abrindo em `/v/:token`, q
 | Risco | Proteção |
 |---|---|
 | Adivinhar o PIN | 5 erros seguidos bloqueiam o aluno por 15 min; throttle de 5/min por IP |
-| Descobrir se um telefone está cadastrado | Mensagem única e comparação contra hash "dummy" (mesmo padrão do login do treinador) |
+| Descobrir se um telefone está cadastrado | Mensagem única e comparação contra hash "dummy" (mesmo padrão do login do treinador). Telefone que não é de nenhum aluno também "bloqueia" após 5 erros (contador em memória), para o aviso de bloqueio não revelar quais números existem |
 | Link encaminhado | No 1º acesso o telefone tem de bater com o cadastro; telefone errado conta como tentativa |
 | Token trocado entre aluno e treinador | Cada estratégia só aceita o seu `tipo` |
 | Aluno ver dados de outro | Rotas `/aluno/*` usam o `idAluno` do JWT; o protocolo tem de ser dele e não excluído |
 | Escrita em protocolo antigo | Recusada no backend |
-| PIN/telefone em logs | Campos incluídos em `common/utils/redact.ts` |
+| PIN/telefone em logs | O log de acesso não registra body nem headers, só método, rota, status e duração |
+| Hash do PIN vazar para o treinador | A API `/alunos` remove `pinHash`, tentativas e bloqueio da resposta e devolve só `acesso` (`PIN_CRIADO`, `AGUARDANDO_PRIMEIRO_ACESSO`, `TELEFONE_INVALIDO`) |
 
 **Risco aceito:** quem tiver o link e souber o telefone, antes de o aluno criar o PIN,
 consegue criar o PIN no lugar dele. O treinador resolve com Redefinir PIN.

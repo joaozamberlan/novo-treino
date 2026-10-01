@@ -11,7 +11,7 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
       avaliar remover o campo e o `express.static` de `main.ts`.
 
 ### Login do aluno e PWA (plano: `docs/plans/2026-09-30-login-aluno-pwa-design.md`)
-- [ ] 1. Backend: migration em `Aluno`, login por telefone + PIN, rotas `/aluno/*`, testes.
+- [x] 1. Backend: migration em `Aluno`, login por telefone + PIN, rotas `/aluno/*`, testes (branch `feat/login-aluno`).
 - [ ] 2. Área do aluno (`/aluno`) e telas de entrada (escolha de perfil, login, primeiro acesso).
 - [ ] 3. Treinador: telefone obrigatório, estado do PIN na lista, Redefinir PIN.
 - [ ] 4. PWA: manifest único em `/` e remoção do `aluno.html`, do manifest por link e do `lastPublicToken`.

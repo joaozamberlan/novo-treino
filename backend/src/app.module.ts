@@ -11,6 +11,7 @@ import { ExerciciosModule } from './modules/exercicios/exercicios.module';
 import { TreinosModule } from './modules/treinos/treinos.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PublicoModule } from './modules/publico/publico.module';
+import { AreaAlunoModule } from './modules/area-aluno/area-aluno.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PublicoModule } from './modules/publico/publico.module';
     ExerciciosModule,
     TreinosModule,
     PublicoModule,
+    AreaAlunoModule,
   ],
   controllers: [AppController],
   providers: [

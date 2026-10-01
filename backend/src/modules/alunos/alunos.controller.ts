@@ -86,6 +86,15 @@ export class AlunosController {
     return this.alunosService.regenerateToken(id, profissional.idProfissional);
   }
 
+  // Apaga o PIN do aluno (ele cria outro no próximo acesso pelo link).
+  @Post(':id/pin/redefinir')
+  async redefinirPin(
+    @Param('id', ParseIntPipe) id: number,
+    @GetProfissional() profissional: Profissional,
+  ) {
+    return this.alunosService.redefinirPin(id, profissional.idProfissional);
+  }
+
   // Revoga o link público sem gerar um novo.
   @Post(':id/token/revogar')
   async revokeToken(

@@ -6,6 +6,6 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [AuthModule],
   controllers: [AlunosController],
-  providers: [AlunosService]
+  providers: [AlunosService],
 })
 export class AlunosModule {}
