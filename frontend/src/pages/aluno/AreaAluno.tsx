@@ -802,8 +802,9 @@ export const AreaAluno: React.FC = () => {
         <FichaPdf profissional={profissional} aluno={aluno} protocolo={protocolo} />
       )}
 
-      {/* Personal Trainer Branding Header */}
-      <header style={{ backgroundColor: 'var(--bg-1)', borderBottom: '1px solid var(--border)', borderTop: '2.5px solid var(--accent)', padding: '1rem' }}>
+      {/* Personal Trainer Branding Header. No app instalado do iPhone a página
+          começa atrás da barra de status (hora, Wi-Fi): --sat reserva esse espaço. */}
+      <header style={{ backgroundColor: 'var(--bg-1)', borderBottom: '1px solid var(--border)', borderTop: '2.5px solid var(--accent)', padding: 'calc(1rem + var(--sat)) 1rem 1rem' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {profissional.logoUrl ? (
             <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
@@ -818,20 +819,21 @@ export const AreaAluno: React.FC = () => {
             <h2 style={{ fontSize: '0.95rem', fontWeight: '700', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {profissional.nome}
             </h2>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.1rem' }}>
-              <Award size={12} className="text-accent" />
-              <span>{profissional.profissao}</span>
+            {/* Em tela estreita o CREF desce para a linha de baixo em vez de
+                passar por cima dos botões ao lado */}
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0 0.5rem', marginTop: '0.1rem' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Award size={12} className="text-accent" style={{ flexShrink: 0 }} />
+                {profissional.profissao}
+              </span>
               {profissional.cref && (
-                <>
-                  <span style={{ color: 'var(--text-2)' }}>|</span>
-                  <span>CREF {profissional.cref}</span>
-                </>
+                <span style={{ whiteSpace: 'nowrap' }}>CREF {profissional.cref}</span>
               )}
             </div>
           </div>
           
           {/* Contact shortcuts */}
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
             {protocolo && (
               <button
                 onClick={handleDownloadPdf}
