@@ -1,5 +1,5 @@
-// Tipos do domínio de treino compartilhados entre a área do treinador e o link
-// público do aluno — as duas APIs devolvem o mesmo formato de periodização.
+// Tipos do domínio de treino compartilhados entre a área do treinador e a área
+// do aluno — as duas APIs devolvem o mesmo formato de periodização.
 
 export interface GrupoMuscular {
   idGrupoMuscular: number;

@@ -1,5 +1,5 @@
 // Tipos e regras do progresso de cargas (mesma resposta em
-// GET /treinos/progresso/:idProtocolo e GET /publico/progresso/:token).
+// GET /treinos/progresso/:idProtocolo e GET /aluno/progresso/:idProtocolo).
 
 export interface SerieFeita {
   numeroSerie: number;

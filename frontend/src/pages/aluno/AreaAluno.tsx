@@ -1,26 +1,29 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MeuProgresso } from '../components/Progresso';
-import type { Progresso } from '../utils/progresso';
-import { RodapeTreino } from '../components/RodapeTreino';
-import { rodapeEfetivo } from '../utils/rodape';
-import { TabelaProgressao } from '../components/TabelaProgressao';
-import { useParams } from 'react-router-dom';
-import api from '../services/api';
+import { MeuProgresso } from '../../components/Progresso';
+import type { Progresso } from '../../utils/progresso';
+import { RodapeTreino } from '../../components/RodapeTreino';
+import { rodapeEfetivo } from '../../utils/rodape';
+import { TabelaProgressao } from '../../components/TabelaProgressao';
+import { useSearchParams } from 'react-router-dom';
+import alunoApi from '../../services/alunoApi';
 import { toast } from 'sonner';
-import { formatDescanso } from '../utils/descanso';
-import { FichaPdf } from '../components/FichaPdf';
-import { VolumeSemanal } from '../components/VolumeSemanal';
-import { baixarPdfDoTreino } from '../utils/pdf';
-import type { PrescribedExercise, Protocolo } from '../types/treino';
+import { formatDescanso } from '../../utils/descanso';
+import { FichaPdf } from '../../components/FichaPdf';
+import { VolumeSemanal } from '../../components/VolumeSemanal';
+import { baixarPdfDoTreino } from '../../utils/pdf';
+import type { PrescribedExercise, Protocolo, ProtocoloResumo } from '../../types/treino';
 import {
   Award, Phone, Video, FileText,
   Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
-  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download
+  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download, LogOut, Smartphone
 } from 'lucide-react';
-import { BrandLogo } from '../components/BrandLogo';
-import { usePWAInstall } from '../hooks/usePWAInstall';
-import { LAST_PUBLIC_TOKEN_KEY } from '../constants/storageKeys';
-import { ModalPortal } from '../components/ModalPortal';
+import { BrandLogo } from '../../components/BrandLogo';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { useTema } from '../../hooks/useTema';
+import { ModalPortal } from '../../components/ModalPortal';
+import { ActionMenu, type ActionMenuItem } from '../../components/ActionMenu';
+import { mensagemDeErro } from '../../utils/alunoAcesso';
+import { useAlunoAuth } from '../../contexts/AlunoAuthContext';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -51,12 +54,19 @@ interface Profissional {
   rodapeTreino?: string | null;
 }
 
-interface PublicData {
-  aluno: { nome: string };
+// GET /aluno/me
+interface Perfil {
+  aluno: { idAluno: number; nome: string };
   profissional: Profissional;
+}
+
+// Fichas de um protocolo, guardadas junto com o pedido que as trouxe
+// (`para` = ?protocolo= da URL; null = protocolo atual). Enquanto `para` for
+// diferente do que a URL pede, a tela mostra "carregando".
+interface FichasCarregadas {
+  para: number | null;
   protocolo: Protocolo | null;
   isAtual: boolean;
-  linkAtualToken: string | null;
 }
 
 interface ExerciseSetEntry {
@@ -109,12 +119,30 @@ const isIosDevice = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
   (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
-export const PublicTreino: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
-  const [data, setData] = useState<PublicData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches ||
+  (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+// Área do aluno logado (telefone + PIN): fichas do protocolo atual com
+// registro de cargas, e os protocolos anteriores em somente leitura.
+export const AreaAluno: React.FC = () => {
+  const { sair, renovarToken } = useAlunoAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?protocolo=ID abre um protocolo específico; sem ele, o atual
+  const idProtocoloParam = Number(searchParams.get('protocolo')) || null;
+
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [protocolos, setProtocolos] = useState<ProtocoloResumo[]>([]);
+  const [fichas, setFichas] = useState<FichasCarregadas | null>(null);
+  const [erro, setErro] = useState<{ para: number | null; mensagem: string } | null>(null);
+  const [tentativa, setTentativa] = useState(0);
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
+  const [showIosHint, setShowIosHint] = useState(false);
+  const [progresso, setProgresso] = useState<Progresso | null>(null);
+
+  const carregando = !perfil || !fichas || fichas.para !== idProtocoloParam;
+  const error = erro && erro.para === idProtocoloParam ? erro.mensagem : '';
+  const somenteLeitura = !!fichas && !fichas.isAtual;
 
   // Progresso persistido no servidor
   const [sessaoId, setSessaoId] = useState<number | null>(null);
@@ -193,9 +221,9 @@ export const PublicTreino: React.FC = () => {
 
   const syncSetsToServer = async (idTreinoExercicio: number, setsToSync: ExerciseSetEntry[], targetSessaoId?: number) => {
     const activeSessao = targetSessaoId || sessaoId;
-    if (!activeSessao || !token) return false;
+    if (!activeSessao) return false;
     try {
-      await api.post(`/publico/sessao/${token}/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
+      await alunoApi.post(`/aluno/sessao/${activeSessao}/exercicio/${idTreinoExercicio}/series`, {
         series: setsToSync.map(s => {
           const kgClean = s.kg ? String(s.kg).trim().replace(',', '.') : '';
           const repsClean = s.reps ? String(s.reps).trim() : '';
@@ -216,6 +244,21 @@ export const PublicTreino: React.FC = () => {
       return true;
     } catch (err) {
       console.error('Erro ao sincronizar séries com o servidor:', err);
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      // 401: sessão encerrada (o app já voltou para o login). 403: o treinador
+      // trocou o protocolo atual. Reenviar não resolve nenhum dos dois.
+      if (status === 401 || status === 403) {
+        if (status === 403) {
+          toast.error(mensagemDeErro(err, 'Este protocolo não é mais o atual.'), { id: 'protocolo-leitura' });
+          setTentativa((n) => n + 1);
+        }
+        setSeriesPendentes((prev) => {
+          const next = { ...prev };
+          delete next[idTreinoExercicio];
+          return next;
+        });
+        return false;
+      }
       setSeriesPendentes((prev) => ({ ...prev, [idTreinoExercicio]: activeSessao }));
       return false;
     }
@@ -402,9 +445,9 @@ export const PublicTreino: React.FC = () => {
     const remaining = current.slice(0, -1);
     commitSets(item.idTreinoExercicio, remaining);
 
-    if (sessaoId && token) {
+    if (sessaoId) {
       try {
-        await api.delete(`/publico/sessao/${token}/${sessaoId}/exercicio/${item.idTreinoExercicio}/series/${last.setNumber}`);
+        await alunoApi.delete(`/aluno/sessao/${sessaoId}/exercicio/${item.idTreinoExercicio}/series/${last.setNumber}`);
         syncSetsToServer(item.idTreinoExercicio, remaining);
       } catch (err) {
         console.error('Erro ao remover série extra:', err);
@@ -412,30 +455,11 @@ export const PublicTreino: React.FC = () => {
     }
   };
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'light';
-  });
-
-  // Toggle theme class on body
-  useEffect(() => {
-    if (theme === 'light') {
-      document.body.classList.add('light-theme');
-    } else {
-      document.body.classList.remove('light-theme');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('theme', next);
-      return next;
-    });
-  };
+  const { theme, toggleTheme } = useTema();
 
   const { canInstall, install } = usePWAInstall();
 
-  const handleDownloadPdf = () => baixarPdfDoTreino(data?.aluno?.nome);
+  const handleDownloadPdf = () => baixarPdfDoTreino(perfil?.aluno.nome);
 
   // Timer states
   const [timerDuration, setTimerDuration] = useState<number | null>(null);
@@ -446,69 +470,61 @@ export const PublicTreino: React.FC = () => {
   // decrementa voltava atrasado.
   const timerEndRef = useRef(0);
 
-  // O manifest global tem start_url "/" (área do treinador, exige login).
-  // - iOS: o aluno não tem PWA (o atalho do Safari abria a raiz e caía no login), então
-  //   ficam sem manifest e sem botão de instalar.
-  // - Demais navegadores: manifest deste link, servido pelo backend via rewrite do Vercel.
+  // Dados do aluno e do treinador + lista de protocolos
   useEffect(() => {
-    if (!token) return;
-    const existing = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
-    const originalHref = existing?.getAttribute('href') ?? null;
-
-    if (isIosDevice()) {
-      existing?.remove();
-      return () => {
-        if (existing) document.head.appendChild(existing);
-      };
-    }
-
-    const target = existing ?? document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'manifest' }));
-    target.setAttribute('href', `/v/${token}/manifest.webmanifest`);
-
-    return () => {
-      if (originalHref !== null) target.setAttribute('href', originalHref);
-      else target.remove();
-    };
-  }, [token]);
-
-  useEffect(() => {
-    const fetchPublicData = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await api.get(`/publico/treinos/${token}`);
-        setData(res.data);
-        if (token) localStorage.setItem(LAST_PUBLIC_TOKEN_KEY, token);
-
-        const alunoNome = res.data.aluno?.nome ? res.data.aluno.nome.split(' ')[0] : 'Aluno';
-        const protocoloNome = res.data.protocolo?.nome || 'Treino';
-        document.title = `${protocoloNome} — ${alunoNome} | TreinosApp`;
-        
-        const treinos = res.data.protocolo?.treinos || [];
-        if (treinos.length > 0) {
-          const sorted = [...treinos].sort((a: any, b: any) => a.ordem - b.ordem);
-          setActiveTabId(sorted[0].idTreino);
-        }
-      } catch (err: any) {
+    let cancelado = false;
+    Promise.all([alunoApi.get('/aluno/me'), alunoApi.get('/aluno/protocolos')])
+      .then(([me, lista]) => {
+        if (cancelado) return;
+        if (me.data.accessToken) renovarToken(me.data.accessToken);
+        setPerfil({ aluno: me.data.aluno, profissional: me.data.profissional });
+        setProtocolos(lista.data);
+      })
+      .catch((err) => {
+        if (cancelado) return;
         console.error(err);
-        setError(err.response?.data?.message || 'Ficha de treino não encontrada ou expirada.');
-      } finally {
-        setLoading(false);
-      }
-    };
+        setErro({ para: idProtocoloParam, mensagem: mensagemDeErro(err, 'Não foi possível carregar seu treino.') });
+      });
+    return () => { cancelado = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renovarToken, tentativa]);
 
-    if (token) {
-      fetchPublicData();
-    }
-  }, [token]);
+  // Fichas do protocolo pedido na URL (o atual, quando ela não diz outro)
+  useEffect(() => {
+    let cancelado = false;
+    alunoApi.get(idProtocoloParam ? `/aluno/protocolos/${idProtocoloParam}` : '/aluno/protocolos/atual')
+      .then((res) => {
+        if (cancelado) return;
+        const protocolo: Protocolo | null = res.data.protocolo;
+        const primeira = protocolo ? [...protocolo.treinos].sort((a, b) => a.ordem - b.ordem)[0] : undefined;
+
+        // Estado da sessão é da ficha anterior: começa limpo no protocolo novo
+        setSessaoId(null);
+        setHistoricoAnterior(null);
+        setSessaoConcluida(false);
+        setFinalizadoEm(null);
+        setSetsProgressMap({});
+        setProgresso(null);
+        setActiveTabId(primeira?.idTreino ?? null);
+        setErro(null);
+        setFichas({ para: idProtocoloParam, protocolo, isAtual: !!res.data.isAtual });
+      })
+      .catch((err) => {
+        if (cancelado) return;
+        console.error(err);
+        // Protocolo excluído pelo treinador (ou link antigo): cai no atual
+        if (idProtocoloParam && err.response?.status === 404) {
+          setSearchParams({}, { replace: true });
+          return;
+        }
+        setErro({ para: idProtocoloParam, mensagem: mensagemDeErro(err, 'Não foi possível carregar seu treino.') });
+      });
+    return () => { cancelado = true; };
+  }, [idProtocoloParam, tentativa, setSearchParams]);
 
   useEffect(() => {
-    if (data?.aluno) {
-      document.title = `Treino: ${data.aluno.nome} | TreinosApp`;
-    } else {
-      document.title = 'Ficha de Treino | TreinosApp';
-    }
-  }, [data]);
+    document.title = perfil ? `Treino: ${perfil.aluno.nome} | TreinosApp` : 'Meu treino | TreinosApp';
+  }, [perfil]);
 
   // Countdown timer logic
   useEffect(() => {
@@ -562,9 +578,8 @@ export const PublicTreino: React.FC = () => {
 
   // ── Sessão persistida no servidor ──────────────────────────────
   const fetchSessao = async (idTreino: number) => {
-    if (!token) return;
     try {
-      const res = await api.get(`/publico/sessao/${token}/${idTreino}`);
+      const res = await alunoApi.get(`/aluno/sessao/${idTreino}`);
       setSessaoId(res.data.idSessao);
       setSessaoConcluida(!!res.data.concluida);
       setFinalizadoEm(res.data.finalizadoEm || null);
@@ -602,24 +617,25 @@ export const PublicTreino: React.FC = () => {
     }
   };
 
-  // Busca sessão sempre que o treino ativo muda
+  // Busca sessão sempre que o treino ativo muda. Protocolo anterior é somente
+  // leitura: não tem sessão para abrir (o servidor recusaria).
   useEffect(() => {
-    if (activeTabId !== null) {
+    if (activeTabId !== null && !somenteLeitura) {
       fetchSessao(activeTabId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTabId]);
+  }, [activeTabId, somenteLeitura]);
 
   // Progresso de cargas: recarrega ao trocar de ficha e ao encerrar o treino
-  const [progresso, setProgresso] = useState<Progresso | null>(null);
+  const idProtocoloAberto = fichas?.protocolo?.idProtocolo ?? null;
   useEffect(() => {
-    if (!token) return;
+    if (!idProtocoloAberto) return;
     let cancelado = false;
-    api.get(`/publico/progresso/${token}`)
+    alunoApi.get(`/aluno/progresso/${idProtocoloAberto}`)
       .then((res) => { if (!cancelado) setProgresso(res.data); })
       .catch((err) => console.error('Erro ao carregar progresso:', err));
     return () => { cancelado = true; };
-  }, [token, activeTabId, sessaoConcluida]);
+  }, [idProtocoloAberto, activeTabId, sessaoConcluida]);
 
   // Troca de aba: limpa lista antes de buscar nova sessão
   const handleTabChange = (idTreino: number) => {
@@ -642,7 +658,7 @@ export const PublicTreino: React.FC = () => {
   };
 
   const executarEncerramento = async () => {
-    if (!sessaoId || !token || endingWorkout) return;
+    if (!sessaoId || endingWorkout) return;
     setEndingWorkout(true);
     try {
       if ('vibrate' in navigator) {
@@ -668,7 +684,7 @@ export const PublicTreino: React.FC = () => {
         };
       });
 
-      const res = await api.post(`/publico/sessao/${token}/${sessaoId}/encerrar`, {
+      const res = await alunoApi.post(`/aluno/sessao/${sessaoId}/encerrar`, {
         exercicios: exerciciosPayload,
       });
 
@@ -684,12 +700,12 @@ export const PublicTreino: React.FC = () => {
   };
 
   const handleIniciarProximoTreino = async () => {
-    if (!token || activeTabId === null) return;
+    if (activeTabId === null) return;
     try {
       setShowCelebrationModal(false);
       setSetsProgressMap({});
 
-      const res = await api.post(`/publico/sessao/${token}/${activeTabId}/nova`);
+      const res = await alunoApi.post(`/aluno/sessao/${activeTabId}/nova`);
       setSessaoId(res.data.idSessao);
       setSessaoConcluida(false);
       setFinalizadoEm(null);
@@ -699,7 +715,30 @@ export const PublicTreino: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (error) {
+    return (
+      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', gap: '1rem', backgroundColor: 'var(--bg-0)', textAlign: 'center' }}>
+        <AlertCircle size={40} className="text-danger" />
+        <h1>Não foi possível abrir seu treino</h1>
+        <p style={{ maxWidth: '400px' }}>{error}</p>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ height: '44px' }}
+            onClick={() => { setErro(null); setTentativa((n) => n + 1); }}
+          >
+            Tentar de novo
+          </button>
+          <button type="button" className="btn btn-secondary" style={{ height: '44px' }} onClick={sair}>
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (carregando) {
     return (
       <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '1rem', backgroundColor: 'var(--bg-0)', color: 'var(--text-1)' }}>
         <RefreshCw className="animate-spin" size={24} />
@@ -708,17 +747,32 @@ export const PublicTreino: React.FC = () => {
     );
   }
 
-  if (error || !data) {
-    return (
-      <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', gap: '1rem', backgroundColor: 'var(--bg-0)', textAlign: 'center' }}>
-        <AlertCircle size={40} className="text-danger" />
-        <h1>Erro no Acesso</h1>
-        <p style={{ maxWidth: '400px' }}>{error || 'Link de treino inválido ou expirado. Verifique com seu Personal Trainer.'}</p>
-      </div>
-    );
-  }
+  const { aluno, profissional } = perfil;
+  const { protocolo, isAtual } = fichas;
+  const protocoloAtual = protocolos.find((p) => p.ativo);
 
-  const { aluno, profissional, protocolo, isAtual, linkAtualToken } = data;
+  const abrirProtocolo = (idProtocolo: number) => {
+    const escolhido = protocolos.find((p) => p.idProtocolo === idProtocolo);
+    setSearchParams(escolhido?.ativo ? {} : { protocolo: String(idProtocolo) });
+  };
+
+  const instalarNoIos = isIosDevice() && !isStandalone();
+  const menu: ActionMenuItem[] = [
+    ...(canInstall || instalarNoIos
+      ? [{
+          label: 'Instalar app',
+          icon: <Download size={14} aria-hidden="true" />,
+          onClick: () => (canInstall ? install() : setShowIosHint(true)),
+        }]
+      : []),
+    {
+      label: theme === 'dark' ? 'Modo claro' : 'Modo escuro',
+      icon: theme === 'dark' ? <Sun size={14} aria-hidden="true" /> : <Moon size={14} aria-hidden="true" />,
+      onClick: toggleTheme,
+    },
+    { label: 'Sair', icon: <LogOut size={14} aria-hidden="true" />, onClick: sair, danger: true },
+  ];
+
   const activeFicha = protocolo?.treinos.find(t => t.idTreino === activeTabId);
   const sortedTreinos = protocolo?.treinos ? [...protocolo.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const sortedExercicios = activeFicha?.exercicios ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
@@ -778,25 +832,6 @@ export const PublicTreino: React.FC = () => {
           
           {/* Contact shortcuts */}
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            {canInstall && (
-              <button
-                onClick={install}
-                className="topbar-btn"
-                title="Instalar app"
-                aria-label="Instalar aplicativo no dispositivo"
-                style={{ color: 'var(--accent)' }}
-              >
-                <Download size={16} aria-hidden="true" />
-              </button>
-            )}
-            <button
-              onClick={toggleTheme}
-              className="topbar-btn"
-              title={theme === 'dark' ? "Ativar modo claro" : "Ativar modo escuro"}
-              aria-label={theme === 'dark' ? "Alternar para modo claro" : "Alternar para modo escuro"}
-            >
-              {theme === 'dark' ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
-            </button>
             {protocolo && (
               <button
                 onClick={handleDownloadPdf}
@@ -831,12 +866,33 @@ export const PublicTreino: React.FC = () => {
                 <InstagramIcon width={16} height={16} aria-hidden="true" />
               </a>
             )}
+            <ActionMenu label="Mais opções" items={menu} />
           </div>
         </div>
       </header>
 
       <main style={{ maxWidth: '600px', margin: '1.25rem auto 0 auto', padding: '0 1rem' }}>
         
+        {/* Protocolo atual e anteriores */}
+        {protocolos.length > 1 && (
+          <div className="protocolo-seletor">
+            <label className="form-label" htmlFor="protocolo">Protocolo</label>
+            <select
+              id="protocolo"
+              className="form-input"
+              value={protocolo?.idProtocolo ?? ''}
+              onChange={(e) => abrirProtocolo(Number(e.target.value))}
+            >
+              {!protocolo && <option value="" disabled>Sem protocolo atual</option>}
+              {protocolos.map((p) => (
+                <option key={p.idProtocolo} value={p.idProtocolo}>
+                  {p.nome}{p.ativo ? ' (atual)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Student welcome & Active protocol details */}
         <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
@@ -853,29 +909,15 @@ export const PublicTreino: React.FC = () => {
           </div>
 
           {!isAtual && (
-            <div style={{
-              marginTop: '0.75rem',
-              padding: '0.65rem 0.85rem',
-              borderRadius: 'var(--radius-m)',
-              border: '1px solid var(--warning)',
-              backgroundColor: 'rgba(245, 158, 11, 0.08)',
-              fontSize: '0.8rem',
-              color: 'var(--text-0)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.35rem',
-            }}>
+            <div className="protocolo-leitura-aviso">
               <span>
-                <strong>Periodização encerrada</strong>
-                {protocolo?.dataFim ? ` em ${formatDataPtBr(protocolo.dataFim.split('T')[0])}` : ''} — este link mostra um histórico, não o treino atual.
+                <strong>Protocolo anterior</strong>
+                {protocolo?.dataFim ? `, encerrado em ${formatDataPtBr(protocolo.dataFim.split('T')[0])}` : ''}. Você pode consultar as fichas e o histórico, mas as cargas são registradas só no protocolo atual.
               </span>
-              {linkAtualToken && (
-                <a
-                  href={`/v/${linkAtualToken}`}
-                  style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'underline' }}
-                >
-                  Ver periodização atual →
-                </a>
+              {protocoloAtual && (
+                <button type="button" onClick={() => setSearchParams({})}>
+                  Ver protocolo atual →
+                </button>
               )}
             </div>
           )}
@@ -1065,9 +1107,10 @@ export const PublicTreino: React.FC = () => {
                         borderRadius: 'var(--radius-s)'
                       }}>
                         <span>Meta prescrita: <strong>{item.series} séries × {item.repeticoes}</strong></span>
-                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{completedSetsCount} de {sets.length} concluídas</span>
+                        {isAtual && <span style={{ fontVariantNumeric: 'tabular-nums' }}>{completedSetsCount} de {sets.length} concluídas</span>}
                       </div>
 
+                      {isAtual && (<>
                       {/* Header com data do treino anterior, se houver */}
                       {historicoAnterior?.data && historicoAnterior.exercicios?.[item.idTreinoExercicio]?.length ? (
                         <div style={{
@@ -1256,6 +1299,7 @@ export const PublicTreino: React.FC = () => {
                           ) : null}
                         </div>
                       </div>
+                      </>)}
                     </div>
                   );
                 })
@@ -1269,7 +1313,7 @@ export const PublicTreino: React.FC = () => {
             <RodapeTreino texto={rodapeEfetivo(activeFicha?.rodape, profissional.rodapeTreino)} variant="screen" />
 
             {/* Action Bar: Encerrar Treino / Treino Finalizado */}
-            {sortedExercicios.length > 0 && (
+            {isAtual && sortedExercicios.length > 0 && (
               sessaoConcluida ? (
                 <div className="workout-completed-banner">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -1406,6 +1450,45 @@ export const PublicTreino: React.FC = () => {
             }} 
           />
         </div>
+      )}
+
+      {/* Instalar no iPhone: o Safari não tem botão de instalar, só o menu Compartilhar */}
+      {showIosHint && (
+        <ModalPortal>
+          <div className="modal-backdrop" onClick={() => setShowIosHint(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--accent-dim)',
+                color: 'var(--accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem auto'
+              }}>
+                <Smartphone size={24} aria-hidden="true" />
+              </div>
+              <h3 style={{ marginBottom: '0.5rem' }}>Instalar no iPhone</h3>
+              <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '0.75rem' }}>
+                Toque em <strong>Compartilhar</strong> na barra do Safari e depois em{' '}
+                <strong>"Adicionar à Tela de Início"</strong>.
+              </p>
+              <p style={{ color: 'var(--text-1)', fontSize: '0.8rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                Ao abrir o app pela primeira vez, entre de novo com seu telefone e PIN.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowIosHint(false)}
+                style={{ width: '100%', height: '44px' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </ModalPortal>
       )}
 
       {/* Modal de Confirmação para Encerrar Treino */}

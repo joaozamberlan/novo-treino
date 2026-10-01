@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import api, { setOnUnauthorized } from '../services/api';
 import { memoryCache } from '../services/cache';
+import { PERFIL_KEY } from '../constants/storageKeys';
 
 interface Profissional {
   idProfissional: number;
@@ -64,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     memoryCache.clear();
     localStorage.setItem('@TreinosApp:token', accessToken);
     localStorage.setItem('@TreinosApp:user', JSON.stringify(profissional));
+    localStorage.setItem(PERFIL_KEY, 'treinador');
 
     setUser(profissional);
   };

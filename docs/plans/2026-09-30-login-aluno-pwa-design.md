@@ -134,6 +134,9 @@ As duas sessões podem coexistir no mesmo aparelho; em `/` a do treinador tem pr
   o cache é limpo no logout.
 - `X-Robots-Tag: noindex` e `Referrer-Policy: no-referrer` também em `/aluno`.
 
+**Estado:** o botão Instalar app, o roteamento da raiz e a remoção do
+`LAST_PUBLIC_TOKEN_KEY` entraram no passo 2. Falta o que mexe em build e deploy.
+
 **Limpeza** (deixa de ser necessário):
 - `alunoHtmlPlugin` e o `aluno.html` em `vite.config.ts`;
 - rewrites de `/v/:token` e do manifest por link em `vercel.json`;

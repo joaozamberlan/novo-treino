@@ -5055,3 +5055,289 @@ body.light-theme .mobile-tab-bar {
 .view-switch button { font: 600 0.8rem var(--font); color: var(--text-1); background: none; border: 0; border-radius: var(--radius-s); padding: 0.4rem 0.9rem; cursor: pointer; }
 .view-switch button[aria-selected="true"] { background: var(--bg-1); color: var(--text-0); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
 .view-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ── Entrada do aluno (escolha de perfil, primeiro acesso, login por PIN) ── */
+
+.aluno-acesso {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: calc(1.5rem + var(--sat)) 1rem calc(1.5rem + var(--sab) + var(--keyboard-inset));
+  background: var(--bg-0);
+  color: var(--text-0);
+}
+
+.aluno-acesso-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-top: 2.5px solid var(--accent);
+  border-radius: var(--radius-l);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.aluno-acesso-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-0);
+  min-width: 0;
+}
+
+.aluno-acesso-marca span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-acesso-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.aluno-acesso-logo--padrao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  color: var(--accent);
+}
+
+.aluno-acesso-titulo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.aluno-acesso-sub {
+  font-size: 0.85rem;
+  color: var(--text-1);
+  line-height: 1.5;
+  margin-top: 0.4rem;
+}
+
+.aluno-acesso-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+/* 16px evita o zoom automático do iOS ao focar o campo */
+.aluno-acesso .form-input {
+  height: 48px;
+  font-size: 1rem;
+}
+
+.aluno-acesso .form-label {
+  font-size: 0.8rem;
+}
+
+.aluno-acesso .pin-input {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-align: center;
+  /* compensa o espaçamento depois do último dígito para o PIN ficar centralizado */
+  padding-left: calc(0.75rem + 0.5em);
+}
+
+.aluno-acesso-enviar {
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.aluno-acesso-link {
+  align-self: center;
+  margin-top: 1rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: 600 0.8rem var(--font);
+  cursor: pointer;
+}
+
+.aluno-acesso-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bg-2);
+  border-radius: var(--radius-m);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-0);
+}
+
+.aluno-acesso-link + .aluno-acesso-aviso {
+  margin-top: 0;
+}
+
+.aluno-acesso-aviso svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aluno-acesso-aviso--erro svg {
+  color: var(--danger);
+}
+
+.aluno-acesso-nota {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.aluno-acesso-rodape {
+  font-size: 0.8rem;
+  color: var(--text-1);
+}
+
+.aluno-acesso-rodape a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  color: var(--text-1);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.perfil-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.perfil-opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 68px;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  color: var(--text-0);
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), border-color var(--transition), background-color var(--transition);
+}
+
+.perfil-opcao:active {
+  transform: scale(0.98);
+}
+
+.perfil-opcao:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .perfil-opcao:hover {
+    border-color: var(--accent-border);
+    background: var(--accent-dim);
+  }
+}
+
+.perfil-opcao > svg {
+  flex-shrink: 0;
+  color: var(--text-2);
+}
+
+.perfil-opcao-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-m);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 800;
+  object-fit: cover;
+}
+
+.perfil-opcao-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.perfil-opcao-texto strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.perfil-opcao-texto span {
+  font-size: 0.78rem;
+  color: var(--text-1);
+  line-height: 1.35;
+}
+
+/* ── Área do aluno: seletor de protocolo e modo somente leitura ─────────── */
+
+.protocolo-seletor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.protocolo-seletor select {
+  height: 44px;
+  font-size: 1rem;
+}
+
+.protocolo-leitura-aviso {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--warning);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  font-size: 0.8rem;
+  color: var(--text-0);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.protocolo-leitura-aviso button {
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: 700 0.8rem var(--font);
+  text-decoration: underline;
+  cursor: pointer;
+}

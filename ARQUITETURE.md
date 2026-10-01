@@ -29,9 +29,9 @@ novo-workout/
 │   ├── src/
 │   │   ├── pages/      uma página por rota
 │   │   ├── components/ Layout, FichaPdf, Progresso, VolumeSemanal, ...
-│   │   ├── contexts/   AuthContext
+│   │   ├── contexts/   AuthContext (treinador), AlunoAuthContext (aluno)
 │   │   ├── hooks/      useMobileViewportFix, usePWAInstall, useFieldValidation
-│   │   ├── services/   api.ts (axios), cache.ts (cache em memória SWR)
+│   │   ├── services/   api.ts e alunoApi.ts (axios), cache.ts (cache em memória SWR)
 │   │   ├── utils/      descanso, pdf, periodo, progresso, rodape
 │   │   └── index.css   design system inteiro (tokens + componentes)
 │   ├── vite.config.ts  PWA + plugin que gera aluno.html
@@ -130,7 +130,10 @@ sonner (toasts), lucide-react (ícones), html2pdf.js, vite-plugin-pwa.
 | Rota | Página | Acesso |
 |---|---|---|
 | `/login`, `/register` | Login, Register | público |
-| `/v/:token` | PublicTreino | público (aluno) |
+| `/entrada` | Entrada (escolha "Sou aluno / Sou treinador") | público |
+| `/v/:token` | aluno/AlunoLink (primeiro acesso ou login) | público |
+| `/aluno/entrar` | aluno/AlunoEntrar (telefone + PIN) | público |
+| `/aluno?protocolo=` | aluno/AreaAluno | aluno |
 | `/` | Home | treinador |
 | `/alunos` | Alunos | treinador |
 | `/alunos/:idAluno/periodizacoes` | Periodizacoes | treinador |
@@ -144,6 +147,11 @@ sonner (toasts), lucide-react (ícones), html2pdf.js, vite-plugin-pwa.
 
 ### 4.2 Estado e dados
 - `AuthContext`: token em `localStorage` (`@TreinosApp:token`); 401 em request autenticada → logout.
+- `AlunoAuthContext` + `services/alunoApi.ts`: sessão do aluno em chaves próprias
+  (`@TreinosApp:alunoToken`), separada da do treinador; as duas podem coexistir no mesmo aparelho.
+- **Raiz sem sessão de treinador** (`RequireAuth`): aluno logado → `/aluno`; senão o login
+  do último perfil usado no aparelho (`@TreinosApp:perfil`); quem nunca entrou → `/entrada`.
+  É isso que faz o app instalado funcionar para o aluno, já que ele sempre abre em `/`.
 - `services/cache.ts`: cache em memória com stale-while-revalidate entre telas;
   invalidar por prefixo após mutações.
 - Sem biblioteca de estado global; estado local por página.
@@ -154,7 +162,7 @@ sonner (toasts), lucide-react (ícones), html2pdf.js, vite-plugin-pwa.
   Vercel em `/v/:token`. No iOS o aluno não instala PWA.
 - Manifest por link: `/v/:token/manifest.webmanifest` → rewrite para `/publico/manifest/:token`.
 - Service worker: estáticos cache-first; `/publico/` network-first (5s); API autenticada network-only.
-- PWA instalado sem login → volta para o último link público visto (`lastPublicToken`).
+- "Instalar app" fica no menu da área do aluno logado (prompt no Android, instruções no iPhone).
 
 ### 4.4 PDF
 `components/FichaPdf.tsx` + `utils/pdf.ts` com html2pdf.js, usado pelo treinador e pelo aluno.

@@ -227,6 +227,9 @@ export const Login: React.FC = () => {
           <div className="login-footer-support">
             Não possui uma conta? <Link to="/register">Criar conta</Link>
           </div>
+          <div className="login-footer-support">
+            É aluno? <Link to="/aluno/entrar">Entrar no meu treino</Link>
+          </div>
         </div>
       </div>
 
