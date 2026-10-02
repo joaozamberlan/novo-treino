@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { PageTransition } from './PageTransition';
 import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Settings, LogOut, User, Shield, Users, Menu, Home, 
-  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell, Folder, Sliders, ListChecks 
+  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { ModalPortal } from './ModalPortal';
+
+// Abas da Biblioteca: as três ficam na mesma rota e mudam pelo ?tab=
+const SUBITENS_BIBLIOTECA = [
+  { tab: 'exercicios', rotulo: 'Exercícios' },
+  { tab: 'grupos', rotulo: 'Grupos Musculares' },
+  { tab: 'tecnicas', rotulo: 'Técnicas de Treino' },
+];
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -250,8 +257,13 @@ export const Layout: React.FC = () => {
             <div className="sidebar-group">
               <button 
                 type="button"
-                className={`sidebar-item sidebar-item-header ${isExerciciosRoute ? 'active' : ''}`}
+                // Com o grupo aberto quem fica marcado é o subitem da página;
+                // fechado (ou com a barra recolhida), o próprio grupo.
+                className={`sidebar-item sidebar-item-header ${
+                  isExerciciosRoute ? (isExpanded && isLibraryOpen ? 'ancestral' : 'active') : ''
+                }`}
                 data-tooltip="Biblioteca"
+                aria-expanded={isExpanded && isLibraryOpen}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isExpanded) {
@@ -275,43 +287,27 @@ export const Layout: React.FC = () => {
                 />
               </button>
 
+              {/* Link, e não NavLink: as três abas moram na mesma rota (/exercicios),
+                  e o NavLink marcaria as três como ativas ao mesmo tempo. */}
               {isLibraryOpen && (
                 <div className="sidebar-submenu">
-                  <NavLink 
-                    to="/exercicios?tab=exercicios" 
-                    className={`sidebar-subitem ${isExerciciosRoute && (!currentTab || currentTab === 'exercicios') ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.innerWidth <= 768) setIsExpanded(false);
-                    }}
-                  >
-                    <ListChecks size={13} />
-                    <span>Exercícios</span>
-                  </NavLink>
-
-                  <NavLink 
-                    to="/exercicios?tab=grupos" 
-                    className={`sidebar-subitem ${isExerciciosRoute && currentTab === 'grupos' ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.innerWidth <= 768) setIsExpanded(false);
-                    }}
-                  >
-                    <Folder size={13} />
-                    <span>Grupos Musculares</span>
-                  </NavLink>
-
-                  <NavLink 
-                    to="/exercicios?tab=tecnicas" 
-                    className={`sidebar-subitem ${isExerciciosRoute && currentTab === 'tecnicas' ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.innerWidth <= 768) setIsExpanded(false);
-                    }}
-                  >
-                    <Sliders size={13} />
-                    <span>Técnicas de Treino</span>
-                  </NavLink>
+                  {SUBITENS_BIBLIOTECA.map(({ tab, rotulo }) => {
+                    const ativo = isExerciciosRoute && (currentTab ?? 'exercicios') === tab;
+                    return (
+                      <Link
+                        key={tab}
+                        to={`/exercicios?tab=${tab}`}
+                        className={`sidebar-subitem ${ativo ? 'active' : ''}`}
+                        aria-current={ativo ? 'page' : undefined}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.innerWidth <= 768) setIsExpanded(false);
+                        }}
+                      >
+                        {rotulo}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -343,39 +339,42 @@ export const Layout: React.FC = () => {
             </NavLink>
           </nav>
 
-          <div 
-            className="sidebar-footer" 
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate('/configuracoes');
-              if (window.innerWidth <= 768) setIsExpanded(false);
-            }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', minWidth: 0, flex: 1 }}>
+          {/* O cartão do usuário leva às configurações; Sair é um botão à parte */}
+          <div className="sidebar-footer">
+            <Link
+              to="/configuracoes"
+              className="sidebar-user"
+              aria-label={`${user?.nome ?? 'Minha conta'}: abrir configurações`}
+              title={user?.nome}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.innerWidth <= 768) setIsExpanded(false);
+              }}
+            >
               <div className="sidebar-avatar">
                 {user?.logoUrl ? (
-                  <img src={user.logoUrl} alt="" />
+                  <img src={user.logoUrl} alt="" width={32} height={32} />
                 ) : (
-                  <User size={14} />
+                  <User size={15} aria-hidden="true" />
                 )}
               </div>
               <div className="sidebar-user-details">
                 <span className="sidebar-user-name">{user?.nome}</span>
                 <span className="sidebar-user-role">{user?.cref || 'Personal Trainer'}</span>
               </div>
-            </div>
+            </Link>
             {isExpanded && (
-              <button 
-                className="exercise-action-btn danger" 
+              <button
+                type="button"
+                className="sidebar-sair"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLogout();
                 }}
                 title="Sair"
-                style={{ marginLeft: '0.5rem', flexShrink: 0 }}
+                aria-label="Sair da conta"
               >
-                <LogOut size={14} />
+                <LogOut size={16} aria-hidden="true" />
               </button>
             )}
           </div>

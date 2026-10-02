@@ -2872,10 +2872,11 @@ body.light-theme {
   display: none;
 }
 
+/* Mesmo fundo da página e sem linha na borda: a barra é uma coluna da tela,
+   não um painel contornado. Quem separa é o espaço e o estado dos itens. */
 .app-sidebar {
   width: 52px;
-  background: var(--bg-1);
-  border-right: 1px solid var(--border);
+  background: var(--bg-0);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -2949,24 +2950,32 @@ body.light-theme .mobile-tab-bar {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem;
+  gap: 2px;
+  padding: 0.75rem 0.75rem 0.5rem;
   flex: 1;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 0 0.65rem;
-  border-radius: var(--radius-s);
+  padding: 0 0.75rem;
+  border-radius: var(--radius-m);
   color: var(--text-1);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
-  height: 38px;
+  height: 40px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+}
+
+/* O anel de foco fica por dentro do item: por fora ele vazava da barra */
+.sidebar-item:focus-visible,
+.sidebar-subitem:focus-visible,
+.sidebar-user:focus-visible,
+.sidebar-sair:focus-visible {
+  outline-offset: -2px;
 }
 
 .sidebar-item:active {
@@ -2975,8 +2984,8 @@ body.light-theme .mobile-tab-bar {
 
 .sidebar-item svg {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .sidebar-label {
@@ -3036,14 +3045,26 @@ body.light-theme .mobile-tab-bar {
   }
 }
 
+/* Página atual: fundo neutro, texto forte e só o ícone em vermelho. Antes
+   eram três efeitos juntos (fundo rosa, texto vermelho e barra na esquerda). */
 .sidebar-item.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  box-shadow: inset 3px 0 0 var(--accent);
-  font-weight: 700;
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-weight: 600;
 }
 
-.sidebar-item.active svg {
+.sidebar-item.active svg:not(.sidebar-chevron) {
+  color: var(--accent);
+}
+
+/* Grupo aberto com uma página dele ativa: quem fica marcado é o subitem;
+   o grupo só ganha o texto forte e o ícone. */
+.sidebar-item.ancestral {
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+.sidebar-item.ancestral svg:not(.sidebar-chevron) {
   color: var(--accent);
 }
 
@@ -3064,7 +3085,9 @@ body.light-theme .mobile-tab-bar {
 
 .sidebar-chevron {
   margin-left: auto;
-  color: var(--text-2);
+  width: 14px !important;
+  height: 14px !important;
+  color: var(--text-1);
   transition: transform 180ms var(--ease-out);
   display: none;
 }
@@ -3077,11 +3100,7 @@ body.light-theme .mobile-tab-bar {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-left: 0.5rem;
-  margin-top: 2px;
-  margin-bottom: 2px;
-  margin-left: 1.15rem;
-  border-left: 1.5px solid var(--border);
+  margin: 2px 0 0.25rem;
   overflow: hidden;
   animation: fadeIn 160ms var(--ease-out);
 }
@@ -3090,26 +3109,20 @@ body.light-theme .mobile-tab-bar {
   display: none;
 }
 
+/* O texto do subitem começa na mesma coluna do rótulo do grupo:
+   0.75rem (recuo do item) + 18px (ícone) + 0.75rem (espaço) */
 .sidebar-subitem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.6rem;
-  border-radius: var(--radius-s);
+  padding: 0 0.75rem 0 calc(1.5rem + 18px);
+  border-radius: var(--radius-m);
   color: var(--text-1);
   text-decoration: none;
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  height: 32px;
+  height: 34px;
   transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
   user-select: none;
-}
-
-.sidebar-subitem svg {
-  flex-shrink: 0;
-  width: 13px;
-  height: 13px;
-  color: var(--text-2);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -3117,44 +3130,70 @@ body.light-theme .mobile-tab-bar {
     background: var(--bg-2);
     color: var(--text-0);
   }
-  .sidebar-subitem:hover svg {
-    color: var(--text-0);
-  }
 }
 
 .sidebar-subitem.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.sidebar-subitem.active svg {
-  color: var(--accent);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-weight: 600;
 }
 
 .sidebar-footer {
-  border-top: 1px solid var(--border);
-  padding: 0.5rem;
   display: flex;
   align-items: center;
-  cursor: pointer;
-  transition: background-color 140ms var(--ease-out);
-  height: 52px;
-  overflow: hidden;
+  gap: 2px;
+  padding: 0.5rem 0.5rem 0.75rem;
   user-select: none;
 }
 
+.sidebar-user {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-m);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease-out);
+}
+
+.sidebar-sair {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
+}
+
+.sidebar-sair:active {
+  transform: scale(0.94);
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .sidebar-footer:hover {
+  .sidebar-user:hover {
     background: var(--bg-2);
+  }
+
+  .sidebar-sair:hover {
+    background: var(--bg-2);
+    color: var(--danger);
   }
 }
 
 .sidebar-avatar {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--bg-3);
+  background: var(--bg-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3171,7 +3210,8 @@ body.light-theme .mobile-tab-bar {
 }
 
 .sidebar-user-details {
-  margin-left: 0.75rem;
+  margin-left: 0.65rem;
+  min-width: 0;
   display: none;
   flex-direction: column;
   white-space: nowrap;
@@ -3183,16 +3223,21 @@ body.light-theme .mobile-tab-bar {
 }
 
 .sidebar-user-name {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-0);
-  line-height: 1.2;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* --text-1: o --text-2 dava 3,1:1 neste tamanho de letra */
 .sidebar-user-role {
-  font-size: 0.7rem;
-  color: var(--text-2);
-  line-height: 1.2;
+  font-size: 0.72rem;
+  color: var(--text-1);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Desktop: barra encolhida com ícone e nome embaixo (estilo YouTube) ── */
@@ -3202,14 +3247,14 @@ body.light-theme .mobile-tab-bar {
   }
 
   .app-sidebar:not(.expanded) .sidebar-nav {
-    padding: 0.25rem;
-    gap: 0.125rem;
+    padding: 0.5rem 0.375rem;
+    gap: 2px;
   }
 
   .app-sidebar:not(.expanded) .sidebar-item {
     flex-direction: column;
     justify-content: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     height: 64px;
     padding: 0 0.125rem;
   }
@@ -3219,6 +3264,7 @@ body.light-theme .mobile-tab-bar {
     height: 20px;
   }
 
+  /* line-height 1.3: com 1 a cedilha de "Configurações" saía cortada */
   .app-sidebar:not(.expanded) .sidebar-label {
     display: block;
     margin: 0;
@@ -3227,7 +3273,7 @@ body.light-theme .mobile-tab-bar {
     text-overflow: ellipsis;
     font-size: 0.625rem;
     font-weight: 500;
-    line-height: 1;
+    line-height: 1.3;
   }
 
   /* O nome já aparece embaixo do ícone; o balão de hover fica redundante */
@@ -3235,12 +3281,13 @@ body.light-theme .mobile-tab-bar {
     display: none;
   }
 
-  .app-sidebar:not(.expanded) .sidebar-item.active {
-    box-shadow: none;
+  .app-sidebar:not(.expanded) .sidebar-footer {
+    padding: 0.5rem 0.375rem 0.75rem;
   }
 
-  .app-sidebar:not(.expanded) .sidebar-footer > div {
+  .app-sidebar:not(.expanded) .sidebar-user {
     justify-content: center;
+    padding: 0;
   }
 }
 
@@ -3728,13 +3775,17 @@ body.light-theme .mobile-tab-bar {
 
   .topbar,
   .modal-content,
-  .app-sidebar,
   .mobile-tab-bar,
   .btn,
   .form-input,
   select.form-input {
     border-width: 1.5px;
     border-color: var(--border-strong);
+  }
+
+  /* Sem contorno no uso normal; em alto contraste a separação volta a ser uma linha */
+  .app-sidebar {
+    border-right: 1.5px solid var(--border-strong);
   }
 }
 

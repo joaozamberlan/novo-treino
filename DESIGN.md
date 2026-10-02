@@ -84,7 +84,11 @@ formulário claro.
 ## 4. Layout
 
 - **Desktop (≥ 921px):** sidebar à esquerda, recolhível, com rótulos visíveis mesmo
-  recolhida.
+  recolhida. Ela tem o mesmo fundo da página e **nenhuma linha de contorno**: é uma
+  coluna da tela, não um painel.
+- **Itens da sidebar:** um tratamento por estado. Página atual = fundo neutro (`--bg-2`),
+  texto forte e só o ícone em vermelho. Nada de fundo rosa, texto vermelho e barra na
+  esquerda juntos. No grupo aberto (Biblioteca), marca-se o subitem, não o grupo.
 - **Mobile:** tab bar inferior (respeita `--sab`), topbar com logo.
 - Breakpoints usados: 420, 640, 768, 860, 920/921, 960px. Preferir estes a criar novos.
 - Navegação em pastas com `Breadcrumb`: Alunos / Aluno / Periodizações / Ciclo.
