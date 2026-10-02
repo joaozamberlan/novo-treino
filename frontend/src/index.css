@@ -2132,7 +2132,7 @@ body.light-theme {
   /* Hide screen-only interactive chrome */
   .app-sidebar,
   .app-topbar,
-  .sidebar-backdrop-mobile,
+  .sidebar-backdrop,
   .no-print,
   .modal-backdrop,
   [data-sonner-toaster],
@@ -2868,15 +2868,44 @@ body.light-theme {
   position: relative;
 }
 
-.sidebar-backdrop-mobile {
-  display: none;
+/* Escurece o conteúdo enquanto o menu está aberto. Começa abaixo da barra do
+   topo, que continua clara e clicável (é nela que fica o botão de fechar). */
+.sidebar-backdrop {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.62);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out), visibility 200ms var(--ease-out);
 }
 
-/* Mesmo fundo da página e sem linha na borda: a barra é uma coluna da tela,
-   não um painel contornado. Quem separa é o espaço e o estado dos itens. */
+body.light-theme .sidebar-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-backdrop.visivel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-backdrop {
+    transition: none;
+  }
+}
+
+/* Uma superfície própria e uma única linha na borda direita separam a barra
+   do conteúdo. Sem linhas em cima e embaixo: é uma divisória, não uma moldura. */
 .app-sidebar {
   width: 52px;
-  background: var(--bg-0);
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -2945,6 +2974,16 @@ body.light-theme .mobile-tab-bar {
 
 .app-sidebar.expanded {
   width: 240px;
+}
+
+/* Desktop: aberto, o menu passa por cima do conteúdo em vez de empurrá-lo.
+   A margem negativa mantém o espaço que ele ocupa igual ao da barra recolhida
+   (88px), então nada na tela se desloca ao abrir ou fechar. */
+@media (min-width: 769px) {
+  .app-sidebar.expanded {
+    margin-right: calc(88px - 240px);
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.18);
+  }
 }
 
 .sidebar-nav {
@@ -3328,7 +3367,7 @@ body.light-theme .mobile-tab-bar {
   }
 
   /* Sidebar drawer replaced by the bottom tab bar on mobile */
-  .sidebar-backdrop-mobile,
+  .sidebar-backdrop,
   .app-sidebar,
   .menu-toggle-btn {
     display: none !important;
@@ -3762,7 +3801,7 @@ body.light-theme .mobile-tab-bar {
     -webkit-backdrop-filter: none;
   }
 
-  .sidebar-backdrop-mobile {
+  .sidebar-backdrop {
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: none;
   }
@@ -3783,7 +3822,6 @@ body.light-theme .mobile-tab-bar {
     border-color: var(--border-strong);
   }
 
-  /* Sem contorno no uso normal; em alto contraste a separação volta a ser uma linha */
   .app-sidebar {
     border-right: 1.5px solid var(--border-strong);
   }

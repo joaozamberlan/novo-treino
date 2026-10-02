@@ -29,12 +29,9 @@ export const Layout: React.FC = () => {
   const { canInstall, install } = usePWAInstall();
   const [showIosHint, setShowIosHint] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(() => isExerciciosRoute);
-  const [isExpanded, setIsExpanded] = useState(() => {
-    const saved = localStorage.getItem('sidebar-expanded');
-    // Default expanded on desktop (≥1024px) unless user explicitly collapsed it
-    if (saved !== null) return saved === 'true';
-    return window.innerWidth >= 1024;
-  });
+  // O menu aberto é uma camada por cima da tela, com o resto escurecido. Por
+  // isso sempre começa recolhido e fecha ao navegar, em vez de ficar salvo.
+  const [isExpanded, setIsExpanded] = useState(false);
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
@@ -91,19 +88,18 @@ export const Layout: React.FC = () => {
 
   const toggleSidebar = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsExpanded(prev => {
-      const next = !prev;
-      localStorage.setItem('sidebar-expanded', String(next));
-      return next;
-    });
+    setIsExpanded(prev => !prev);
   };
 
-  const handleSidebarClick = () => {
-    if (!isExpanded) {
-      setIsExpanded(true);
-      localStorage.setItem('sidebar-expanded', 'true');
-    }
-  };
+  // Esc fecha o menu aberto, como num modal
+  useEffect(() => {
+    if (!isExpanded) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExpanded(false);
+    };
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
+  }, [isExpanded]);
 
   return (
     <div className="app-shell">
@@ -157,6 +153,7 @@ export const Layout: React.FC = () => {
             onClick={toggleSidebar}
             title={isExpanded ? "Recolher menu" : "Expandir menu"}
             aria-label={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
+            aria-expanded={isExpanded}
             style={{ marginRight: '0.25rem' }}
           >
             <Menu size={18} aria-hidden="true" />
@@ -214,26 +211,20 @@ export const Layout: React.FC = () => {
 
       {/* Main Layout containing Sidebar and Page Content */}
       <div className="main-layout">
-        {/* Backdrop for mobile drawer */}
-        {isExpanded && (
-          <div 
-            className="sidebar-backdrop-mobile"
-            onClick={() => setIsExpanded(false)}
-            aria-hidden="true"
-          />
-        )}
-        <aside 
-          className={`app-sidebar ${isExpanded ? 'expanded' : ''}`}
-          onClick={handleSidebarClick}
-          style={{ cursor: isExpanded ? 'default' : 'pointer' }}
-        >
+        {/* Escurece o resto da tela enquanto o menu está aberto; clicar fecha */}
+        <div
+          className={`sidebar-backdrop ${isExpanded ? 'visivel' : ''}`}
+          onClick={() => setIsExpanded(false)}
+          aria-hidden="true"
+        />
+        <aside className={`app-sidebar ${isExpanded ? 'expanded' : ''}`}>
           <nav className="sidebar-nav">
             <NavLink 
               to="/" 
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
               data-tooltip="Início"
               onClick={() => {
-                if (window.innerWidth <= 768) setIsExpanded(false);
+                setIsExpanded(false);
               }}
               end
             >
@@ -246,7 +237,7 @@ export const Layout: React.FC = () => {
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
               data-tooltip="Alunos"
               onClick={() => {
-                if (window.innerWidth <= 768) setIsExpanded(false);
+                setIsExpanded(false);
               }}
             >
               <Users size={16} />
@@ -268,7 +259,6 @@ export const Layout: React.FC = () => {
                   e.stopPropagation();
                   if (!isExpanded) {
                     setIsExpanded(true);
-                    localStorage.setItem('sidebar-expanded', 'true');
                     setIsLibraryOpen(true);
                   } else {
                     setIsLibraryOpen(prev => !prev);
@@ -301,7 +291,7 @@ export const Layout: React.FC = () => {
                         aria-current={ativo ? 'page' : undefined}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.innerWidth <= 768) setIsExpanded(false);
+                          setIsExpanded(false);
                         }}
                       >
                         {rotulo}
@@ -318,7 +308,7 @@ export const Layout: React.FC = () => {
                 className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
                 data-tooltip="Administração"
                 onClick={() => {
-                  if (window.innerWidth <= 768) setIsExpanded(false);
+                  setIsExpanded(false);
                 }}
               >
                 <Shield size={16} />
@@ -331,7 +321,7 @@ export const Layout: React.FC = () => {
               className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
               data-tooltip="Configurações"
               onClick={() => {
-                if (window.innerWidth <= 768) setIsExpanded(false);
+                setIsExpanded(false);
               }}
             >
               <Settings size={16} />
@@ -348,7 +338,7 @@ export const Layout: React.FC = () => {
               title={user?.nome}
               onClick={(e) => {
                 e.stopPropagation();
-                if (window.innerWidth <= 768) setIsExpanded(false);
+                setIsExpanded(false);
               }}
             >
               <div className="sidebar-avatar">

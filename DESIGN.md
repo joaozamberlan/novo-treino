@@ -84,8 +84,11 @@ formulário claro.
 ## 4. Layout
 
 - **Desktop (≥ 921px):** sidebar à esquerda, recolhível, com rótulos visíveis mesmo
-  recolhida. Ela tem o mesmo fundo da página e **nenhuma linha de contorno**: é uma
-  coluna da tela, não um painel.
+  recolhida (88px). Tem superfície própria (`--bg-1`) e **uma única linha** na borda
+  direita: uma divisória, não uma moldura.
+- **Menu aberto:** passa por cima do conteúdo (240px, com sombra) e o resto da tela
+  escurece (`.sidebar-backdrop`), abaixo da barra do topo. O conteúdo não se desloca.
+  Fecha ao clicar no fundo, com Esc ou ao navegar; sempre começa recolhido.
 - **Itens da sidebar:** um tratamento por estado. Página atual = fundo neutro (`--bg-2`),
   texto forte e só o ícone em vermelho. Nada de fundo rosa, texto vermelho e barra na
   esquerda juntos. No grupo aberto (Biblioteca), marca-se o subitem, não o grupo.
