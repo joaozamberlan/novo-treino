@@ -106,20 +106,10 @@ export const Layout: React.FC = () => {
     return () => window.removeEventListener('keydown', aoTeclar);
   }, [isExpanded]);
 
+  // Só o que é da conta. Tema e instalar ficam visíveis na barra: são coisas
+  // que a pessoa procura com o olho, e escondidas no avatar ninguém acha.
   const menuDaConta: ActionMenuItem[] = [
     { label: 'Configurações', icon: <Settings size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
-    {
-      label: theme === 'dark' ? 'Modo claro' : 'Modo escuro',
-      icon: theme === 'dark' ? <Sun size={14} aria-hidden="true" /> : <Moon size={14} aria-hidden="true" />,
-      onClick: toggleTheme,
-    },
-    ...(canInstall || showIosInstall
-      ? [{
-          label: 'Instalar app',
-          icon: <Download size={14} aria-hidden="true" />,
-          onClick: () => (canInstall ? install() : setShowIosHint(true)),
-        }]
-      : []),
     { label: 'Sair', icon: <LogOut size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
   ];
 
@@ -188,7 +178,27 @@ export const Layout: React.FC = () => {
         </div>
 
         <div className="topbar-right">
-          {/* Conta: o avatar abre o menu com configurações, tema, instalar e sair */}
+          {(canInstall || showIosInstall) && (
+            <button
+              type="button"
+              className="topbar-btn"
+              onClick={() => (canInstall ? install() : setShowIosHint(true))}
+              title="Instalar app"
+              aria-label="Instalar aplicativo no dispositivo"
+            >
+              <Download size={18} aria-hidden="true" />
+            </button>
+          )}
+          <button
+            type="button"
+            className="topbar-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+            aria-label={theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
+          >
+            {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+          </button>
+          {/* Conta: o avatar abre o menu com configurações e sair */}
           <ActionMenu
             label={`Conta de ${user?.nome ?? 'treinador'}`}
             triggerClassName="topbar-avatar"
