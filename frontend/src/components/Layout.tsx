@@ -4,10 +4,11 @@ import { PageTransition } from './PageTransition';
 import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  Settings, LogOut, User, Shield, Users, Menu, Home, 
+  Settings, LogOut, Shield, Users, Menu, Home, 
   Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { ActionMenu, type ActionMenuItem } from './ActionMenu';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { ModalPortal } from './ModalPortal';
 
@@ -49,9 +50,13 @@ export const Layout: React.FC = () => {
       document.body.classList.remove('light-theme');
     }
 
+    // A barra do topo é escura nos dois temas, então a barra do navegador (e a
+    // de status no celular) acompanha esse escuro. O --bg-0 da raiz é sempre o
+    // do tema escuro: o tema claro só troca os tokens a partir do <body>.
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeColorMeta) {
-      themeColorMeta.setAttribute('content', theme === 'light' ? '#f4f3ef' : '#0f0f0f');
+    const escuro = getComputedStyle(document.documentElement).getPropertyValue('--bg-0').trim();
+    if (themeColorMeta && escuro) {
+      themeColorMeta.setAttribute('content', escuro);
     }
   }, [theme]);
 
@@ -101,6 +106,23 @@ export const Layout: React.FC = () => {
     return () => window.removeEventListener('keydown', aoTeclar);
   }, [isExpanded]);
 
+  const menuDaConta: ActionMenuItem[] = [
+    { label: 'Configurações', icon: <Settings size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
+    {
+      label: theme === 'dark' ? 'Modo claro' : 'Modo escuro',
+      icon: theme === 'dark' ? <Sun size={14} aria-hidden="true" /> : <Moon size={14} aria-hidden="true" />,
+      onClick: toggleTheme,
+    },
+    ...(canInstall || showIosInstall
+      ? [{
+          label: 'Instalar app',
+          icon: <Download size={14} aria-hidden="true" />,
+          onClick: () => (canInstall ? install() : setShowIosHint(true)),
+        }]
+      : []),
+    { label: 'Sair', icon: <LogOut size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
+  ];
+
   return (
     <div className="app-shell">
       {/* iOS install hint */}
@@ -146,7 +168,9 @@ export const Layout: React.FC = () => {
       )}
 
       {/* Top Header Bar */}
-      <header className="topbar">
+      {/* Sempre escura (.painel-escuro), nos dois temas: o mesmo preto com
+          vermelho das telas de entrada */}
+      <header className="topbar painel-escuro">
         <div className="topbar-left">
           <button
             className="topbar-btn menu-toggle-btn"
@@ -164,47 +188,25 @@ export const Layout: React.FC = () => {
         </div>
 
         <div className="topbar-right">
-          {/* Botão instalar PWA — Android/Chrome */}
-          {canInstall && (
-            <button
-              className="topbar-btn"
-              onClick={install}
-              title="Instalar app"
-              aria-label="Instalar aplicativo no dispositivo"
-              style={{ color: 'var(--accent)' }}
-            >
-              <Download size={18} aria-hidden="true" />
-            </button>
-          )}
-          {/* Botão instalar PWA — iOS (instrução manual) */}
-          {showIosInstall && !canInstall && (
-            <button
-              className="topbar-btn"
-              onClick={() => setShowIosHint(true)}
-              title="Instalar app no iPhone"
-              aria-label="Instruções para instalar no iPhone"
-              style={{ color: 'var(--accent)' }}
-            >
-              <Download size={18} aria-hidden="true" />
-            </button>
-          )}
-          <button 
-            className="topbar-btn" 
-            onClick={toggleTheme} 
-            title={theme === 'dark' ? "Ativar modo claro" : "Ativar modo escuro"}
-            aria-label={theme === 'dark' ? "Alternar para modo claro" : "Alternar para modo escuro"}
-          >
-            {theme === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-          </button>
-          <div className="topbar-divider" aria-hidden="true" />
-          <button 
-            className="topbar-btn" 
-            onClick={handleLogout} 
-            title="Sair"
-            aria-label="Sair da conta"
-          >
-            <LogOut size={18} aria-hidden="true" />
-          </button>
+          {/* Conta: o avatar abre o menu com configurações, tema, instalar e sair */}
+          <ActionMenu
+            label={`Conta de ${user?.nome ?? 'treinador'}`}
+            triggerClassName="topbar-avatar"
+            trigger={
+              user?.logoUrl ? (
+                <img src={user.logoUrl} alt="" width={32} height={32} />
+              ) : (
+                <span aria-hidden="true">{(user?.nome ?? '?').charAt(0).toUpperCase()}</span>
+              )
+            }
+            header={
+              <>
+                <strong>{user?.nome}</strong>
+                <span>{user?.cref ? `CREF ${user.cref}` : user?.profissao || 'Personal Trainer'}</span>
+              </>
+            }
+            items={menuDaConta}
+          />
         </div>
       </header>
 
@@ -328,46 +330,6 @@ export const Layout: React.FC = () => {
               <span className="sidebar-label">Configurações</span>
             </NavLink>
           </nav>
-
-          {/* O cartão do usuário leva às configurações; Sair é um botão à parte */}
-          <div className="sidebar-footer">
-            <Link
-              to="/configuracoes"
-              className="sidebar-user"
-              aria-label={`${user?.nome ?? 'Minha conta'}: abrir configurações`}
-              title={user?.nome}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(false);
-              }}
-            >
-              <div className="sidebar-avatar">
-                {user?.logoUrl ? (
-                  <img src={user.logoUrl} alt="" width={32} height={32} />
-                ) : (
-                  <User size={15} aria-hidden="true" />
-                )}
-              </div>
-              <div className="sidebar-user-details">
-                <span className="sidebar-user-name">{user?.nome}</span>
-                <span className="sidebar-user-role">{user?.cref || 'Personal Trainer'}</span>
-              </div>
-            </Link>
-            {isExpanded && (
-              <button
-                type="button"
-                className="sidebar-sair"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLogout();
-                }}
-                title="Sair"
-                aria-label="Sair da conta"
-              >
-                <LogOut size={16} aria-hidden="true" />
-              </button>
-            )}
-          </div>
         </aside>
 
         <main className="content-area">

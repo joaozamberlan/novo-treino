@@ -217,7 +217,9 @@ textarea:focus-visible,
   --topbar-respiro: min(var(--sat), 12px);
   height: calc(52px + var(--sat) + var(--topbar-respiro));
   padding-top: calc(var(--sat) + var(--topbar-respiro));
-  background: rgba(15, 15, 15, 0.85);
+  /* Sempre escura (o elemento leva .painel-escuro). Quase opaca: por cima de
+     uma página clara, 85% deixava o preto acinzentado. */
+  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid var(--border);
@@ -235,9 +237,84 @@ textarea:focus-visible,
   transform: translateZ(0);
 }
 
-body.light-theme .topbar {
-  background: rgba(255, 255, 255, 0.92);
-  border-top: 2.5px solid var(--accent);
+/* Avatar da conta: abre o menu com configurações, tema, instalar e sair */
+.topbar-avatar {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-avatar:active {
+  transform: scale(0.94);
+}
+
+.topbar-avatar > img,
+.topbar-avatar > span {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--border-strong);
+  transition: box-shadow 140ms var(--ease-out);
+}
+
+.topbar-avatar > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.topbar-avatar[aria-expanded="true"] > img,
+.topbar-avatar[aria-expanded="true"] > span {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .topbar-avatar:hover > img,
+  .topbar-avatar:hover > span {
+    box-shadow: 0 0 0 2px var(--border-strong);
+  }
+}
+
+.action-menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.55rem 0.7rem 0.6rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.35;
+}
+
+.action-menu-header strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-menu-header span {
+  font-size: 0.72rem;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-left {
@@ -271,13 +348,6 @@ body.light-theme .topbar {
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
-}
-
-.topbar-divider {
-  width: 1px;
-  height: 18px;
-  background-color: var(--border-strong);
-  margin: 0 0.25rem;
 }
 
 .topbar-search {
@@ -3011,9 +3081,7 @@ body.light-theme .mobile-tab-bar {
 
 /* O anel de foco fica por dentro do item: por fora ele vazava da barra */
 .sidebar-item:focus-visible,
-.sidebar-subitem:focus-visible,
-.sidebar-user:focus-visible,
-.sidebar-sair:focus-visible {
+.sidebar-subitem:focus-visible {
   outline-offset: -2px;
 }
 
@@ -3177,108 +3245,6 @@ body.light-theme .mobile-tab-bar {
   font-weight: 600;
 }
 
-.sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 0.5rem 0.5rem 0.75rem;
-  user-select: none;
-}
-
-.sidebar-user {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 0.375rem;
-  border-radius: var(--radius-m);
-  color: inherit;
-  text-decoration: none;
-  transition: background-color 140ms var(--ease-out);
-}
-
-.sidebar-sair {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: var(--radius-m);
-  background: transparent;
-  color: var(--text-1);
-  cursor: pointer;
-  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
-}
-
-.sidebar-sair:active {
-  transform: scale(0.94);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .sidebar-user:hover {
-    background: var(--bg-2);
-  }
-
-  .sidebar-sair:hover {
-    background: var(--bg-2);
-    color: var(--danger);
-  }
-}
-
-.sidebar-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-  font-size: 0.75rem;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.sidebar-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.sidebar-user-details {
-  margin-left: 0.65rem;
-  min-width: 0;
-  display: none;
-  flex-direction: column;
-  white-space: nowrap;
-}
-
-.app-sidebar.expanded .sidebar-user-details {
-  display: flex;
-  animation: fadeIn 160ms var(--ease-out) forwards;
-}
-
-.sidebar-user-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-0);
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* --text-1: o --text-2 dava 3,1:1 neste tamanho de letra */
-.sidebar-user-role {
-  font-size: 0.72rem;
-  color: var(--text-1);
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ── Desktop: barra encolhida com ícone e nome embaixo (estilo YouTube) ── */
 @media (min-width: 769px) {
   .app-sidebar:not(.expanded) {
@@ -3320,14 +3286,7 @@ body.light-theme .mobile-tab-bar {
     display: none;
   }
 
-  .app-sidebar:not(.expanded) .sidebar-footer {
-    padding: 0.5rem 0.375rem 0.75rem;
-  }
 
-  .app-sidebar:not(.expanded) .sidebar-user {
-    justify-content: center;
-    padding: 0;
-  }
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */

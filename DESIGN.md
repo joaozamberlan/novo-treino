@@ -92,7 +92,12 @@ formulário claro.
 - **Itens da sidebar:** um tratamento por estado. Página atual = fundo neutro (`--bg-2`),
   texto forte e só o ícone em vermelho. Nada de fundo rosa, texto vermelho e barra na
   esquerda juntos. No grupo aberto (Biblioteca), marca-se o subitem, não o grupo.
-- **Mobile:** tab bar inferior (respeita `--sab`), topbar com logo.
+- **Barra do topo:** sempre escura (`.painel-escuro`), nos dois temas, com o filete
+  vermelho em cima: o mesmo preto com vermelho das telas de entrada. Nunca vermelha: o
+  vermelho fica reservado para ação principal, item ativo e erro.
+- **Conta:** o avatar no canto direito abre o menu com Configurações, tema, Instalar app
+  e Sair. Ações raras não ficam como ícones soltos na barra.
+- **Mobile:** tab bar inferior (respeita `--sab`), topbar com logo e avatar.
 - Breakpoints usados: 420, 640, 768, 860, 920/921, 960px. Preferir estes a criar novos.
 - Navegação em pastas com `Breadcrumb`: Alunos / Aluno / Periodizações / Ciclo.
 

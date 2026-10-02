@@ -16,9 +16,13 @@ interface Props {
   // Lado do gatilho em que a lista se alinha. 'left' para gatilhos na borda
   // esquerda da tela, onde a lista alinhada à direita sairia cortada.
   align?: 'left' | 'right';
+  // Classe do gatilho quando ele não é um botão comum (ex.: o avatar do topo)
+  triggerClassName?: string;
+  // Bloco no topo da lista, antes dos itens (ex.: de quem é a conta)
+  header?: React.ReactNode;
 }
 
-export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'right' }) => {
+export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'right', triggerClassName, header }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -45,7 +49,7 @@ export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'ri
     <div ref={rootRef} className="action-menu" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
-        className={trigger ? 'btn btn-secondary btn-sm' : 'exercise-action-btn'}
+        className={triggerClassName ?? (trigger ? 'btn btn-secondary btn-sm' : 'exercise-action-btn')}
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -57,6 +61,7 @@ export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'ri
       </button>
       {open && (
         <div id={menuId} role="menu" className={`action-menu-list${align === 'left' ? ' action-menu-list--left' : ''}`}>
+          {header && <div className="action-menu-header">{header}</div>}
           {items.map((item, i) => (
             <React.Fragment key={item.label}>
               {item.danger && i > 0 && <div className="action-menu-sep" role="separator" />}
