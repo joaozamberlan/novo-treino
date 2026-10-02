@@ -3841,6 +3841,18 @@ body.light-theme .mobile-tab-bar {
     margin-bottom: 1.25rem;
   }
 
+  /* Mesma coluna do formulário logo abaixo: em janelas mais largas que um
+     celular o título ficaria colado à esquerda e o formulário, centralizado. */
+  .login-left-panel .login-brand-header {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* O formulário de cadastro é um pouco mais largo */
+  .login-wrapper:has(.register-form-container) .login-brand-header {
+    max-width: 460px;
+  }
+
   .login-mobile-head {
     display: block;
   }
@@ -5697,6 +5709,16 @@ body.light-theme .mobile-tab-bar {
 .entrada--form .entrada-marca {
   gap: clamp(1rem, 3vh, 1.5rem);
   padding-bottom: clamp(1.1rem, 3vh, 1.75rem);
+}
+
+/* No celular e no tablet o conteúdo da faixa escura segue a mesma coluna
+   centralizada do que vem abaixo (escolha de perfil ou formulário). */
+@media (max-width: 960px) {
+  .entrada-marca > * {
+    width: 100%;
+    max-width: 440px;
+    margin-inline: auto;
+  }
 }
 
 .entrada--form .entrada-escolha {
