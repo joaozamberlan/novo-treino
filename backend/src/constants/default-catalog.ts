@@ -57,9 +57,17 @@ export const DEFAULT_CATALOG = {
     "Adutor na máquina", "Adutor na polia baixa", "Cadeira adutora",
     "Adutor na polia alta", "Adutor na polia baixa em pé", "Abdução de quadril em pé"
   ],
+  // Um nome de exercício só pode aparecer uma vez no catálogo inteiro: é único
+  // por profissional (Exercicio @@unique([nome, idProfissional])). O búlgaro
+  // fica em Quadríceps; repetido aqui, o cadastro do treinador parava nele.
   Glúteos: [
-    "Elevação pélvica", "Agachamento búlgaro", "Cadeira abdutora",
-    "Glúteo na polia baixa"
+    "Elevação pélvica", "Elevação pélvica na máquina", "Elevação pélvica no smith",
+    "Elevação pélvica unilateral", "Ponte de glúteo", "Ponte de glúteo unilateral",
+    "Glúteo na polia baixa", "Coice na máquina", "Coice com caneleira (4 apoios)",
+    "Pull-through na polia", "Extensão de quadril no banco 45°", "Hiperextensão reversa",
+    "Stiff unilateral", "Subida no banco (step-up)", "Cadeira abdutora",
+    "Cadeira abdutora com tronco inclinado", "Abdução de quadril deitado de lado",
+    "Concha com miniband", "Caminhada lateral com miniband"
   ]
 };
 

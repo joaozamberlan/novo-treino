@@ -80,3 +80,8 @@ seção correspondente, com data.
   do aluno/periodização e invalidar após mutações.
 - Migrations `20260919_*` recuperaram exercícios que tinham sumido do catálogo; não
   reaplicar nem editar.
+- Cada treinador tem a sua cópia do catálogo padrão (`default-catalog.ts`), gravada no
+  cadastro. Exercício novo "para todos" = entrar no `DEFAULT_CATALOG` **e** numa migration
+  para quem já existe (ex.: `20261002000000_add_exercicios_gluteo`). O nome do exercício é
+  único por treinador: repetir um nome entre grupos interrompe o cadastro (o "Agachamento
+  búlgaro" em Quadríceps e Glúteos fez isso até 2026-10-02).
