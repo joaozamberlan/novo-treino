@@ -39,7 +39,7 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | `--danger` | `#f04438` | `#d92d20` | erro, excluir |
 | `--success` | `#2da868` | `#2da868` | concluído |
 | `--warning` | `#f59e0b` | `#dc6803` | atenção |
-| `--danger-text` / `--success-text` / `--warning-text` | `#f97066` / `#2da868` / `#f59e0b` | `#b42318` / `#156642` / `#a34207` | a cor semântica quando é **texto ou ícone**; as de cima ficam para fundo e borda |
+| `--danger-text` / `--success-text` / `--warning-text` | `#f97066` / `#4cc98b` / `#f59e0b` | `#b42318` / `#156642` / `#a34207` | a cor semântica quando é **texto ou ícone**; as de cima ficam para fundo e borda |
 | `--pr-gold` / `-soft` | `#e5a93c` | — | recorde pessoal (PR) |
 
 ### Tipografia

@@ -33,7 +33,7 @@
   /* Cores semânticas para texto e ícone (as de cima ficam para fundo e borda):
      4,5:1 também sobre o fundo tingido dos selos */
   --danger-text: #f97066;
-  --success-text: var(--success);
+  --success-text: #4cc98b;
   --warning-text: var(--warning);
   --pr-gold: #e5a93c;
   --pr-gold-soft: rgba(229, 169, 60, 0.14);

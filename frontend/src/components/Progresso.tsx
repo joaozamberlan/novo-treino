@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalPortal } from './ModalPortal';
 import {
   CartesianGrid,
   Line,
@@ -216,7 +216,9 @@ function DetalheExercicio({
 
   // Portal no body: a transição de página usa transform, que prenderia o
   // position: fixed dentro do conteúdo (atrás do cabeçalho e sem cobrir o menu).
-  return createPortal(
+  // O ModalPortal também trava a rolagem do fundo e prende o foco no painel.
+  return (
+    <ModalPortal>
     <div className="prog-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="progDetalheTitulo">
       <div className="prog-drawer" onClick={(ev) => ev.stopPropagation()}>
         <div className="prog-drawer-head">
@@ -284,8 +286,8 @@ function DetalheExercicio({
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
+    </ModalPortal>
   );
 }
 
