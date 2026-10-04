@@ -175,7 +175,7 @@ export const Dashboard: React.FC = () => {
             width: '52px', height: '52px',
             borderRadius: '10px',
             backgroundColor: 'var(--accent-soft)',
-            color: 'var(--accent)',
+            color: 'var(--accent-text)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
             border: '1px solid var(--accent-border)',
@@ -210,7 +210,7 @@ export const Dashboard: React.FC = () => {
       {/* Configuração da Marca (White Label) */}
       <div className="card">
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Shield size={20} style={{ color: 'var(--accent)' }} />
+          <Shield size={20} style={{ color: 'var(--accent-text)' }} />
           Branding & Identidade Visual
         </h2>
         <p style={{ marginBottom: '2rem' }}>
@@ -349,7 +349,7 @@ export const Dashboard: React.FC = () => {
       {/* Catálogo de Exercícios Card */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Dumbbell size={20} style={{ color: 'var(--accent)' }} />
+          <Dumbbell size={20} style={{ color: 'var(--accent-text)' }} />
           Catálogo & Biblioteca de Exercícios
         </h2>
         <p>
@@ -361,11 +361,11 @@ export const Dashboard: React.FC = () => {
             <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Status do Catálogo</div>
             <div style={{ fontWeight: '700', fontSize: '1.05rem', marginTop: '0.25rem' }}>
               {exerciciosCount > 0 ? (
-                <span style={{ color: 'var(--success)' }}>
+                <span style={{ color: 'var(--success-text)' }}>
                   Biblioteca ativa com {exerciciosCount} exercícios e {tecnicasCount} técnicas de treino cadastrados.
                 </span>
               ) : (
-                <span style={{ color: 'var(--danger)' }}>
+                <span style={{ color: 'var(--danger-text)' }}>
                   Catálogo vazio. Não será possível prescrever exercícios nas fichas.
                 </span>
               )}

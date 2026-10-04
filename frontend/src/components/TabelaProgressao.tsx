@@ -63,7 +63,7 @@ export function TabelaProgressao({ variant }: { variant: 'screen' | 'print' }) {
         <tbody>
           {SEMANAS.map((texto, i) => (
             <tr key={i}>
-              <td style={{ ...cell, fontWeight: 700, color: 'var(--accent)', whiteSpace: 'nowrap' }}>Semana {i + 1}</td>
+              <td style={{ ...cell, fontWeight: 700, color: 'var(--accent-text)', whiteSpace: 'nowrap' }}>Semana {i + 1}</td>
               <td style={{ ...cell, color: 'var(--text-1)', lineHeight: 1.4 }}>{texto}</td>
             </tr>
           ))}

@@ -105,7 +105,7 @@ export const Home: React.FC = () => {
 
         <div className="hub-status-pill">
           <span className="hub-status-dot" />
-          <span>{alunos.length} alunos ativos</span>
+          <span>{alunos.length === 1 ? '1 aluno ativo' : `${alunos.length} alunos ativos`}</span>
         </div>
       </div>
 
@@ -116,7 +116,8 @@ export const Home: React.FC = () => {
           <input
             type="text"
             className="hub-search-input"
-            placeholder="Digite o nome ou e-mail do aluno para prescrever direto... (Ex: Carlos, Mariana)"
+            placeholder="Buscar aluno por nome ou e-mail"
+            aria-label="Buscar aluno por nome ou e-mail"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -126,7 +127,6 @@ export const Home: React.FC = () => {
               if (searchQuery.trim().length > 0) setIsSearchOpen(true);
             }}
           />
-          <span className="hub-kbd-pill">BUSCA RÁPIDA</span>
         </div>
 
         {/* Dynamic Dropdown Filter */}
@@ -134,7 +134,8 @@ export const Home: React.FC = () => {
           <div className="hub-search-results">
             {filteredAlunos.length > 0 ? (
               filteredAlunos.map((aluno) => (
-                <div
+                <button
+                  type="button"
                   key={aluno.idAluno}
                   className="hub-search-item"
                   onClick={() => handleSelectAluno(aluno.idAluno)}
@@ -150,10 +151,8 @@ export const Home: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <span className="btn-hub-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.72rem' }}>
-                    Abrir Treinos →
-                  </span>
-                </div>
+                  <ArrowRight size={16} className="hub-recent-arrow" strokeWidth={2.5} aria-hidden="true" />
+                </button>
               ))
             ) : (
               <div style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: 'var(--text-2)' }}>
@@ -171,7 +170,7 @@ export const Home: React.FC = () => {
           <div>
             <div className="hub-card-header">
               <span className="hub-card-tag">Alunos</span>
-              <span className="hub-card-stat">{alunos.length} ATIVOS</span>
+              <span className="hub-card-stat">{alunos.length === 1 ? '1 aluno' : `${alunos.length} alunos`}</span>
             </div>
             <h2 className="hub-card-title">Alunos & Prescrições</h2>
             <p className="hub-card-desc">
@@ -199,9 +198,7 @@ export const Home: React.FC = () => {
           <div>
             <div className="hub-card-header">
               <span className="hub-card-tag">Exercícios</span>
-              <span className="hub-card-stat">
-                {exerciciosCount > 0 ? `${exerciciosCount} CADASTRADOS` : 'CATÁLOGO'}
-              </span>
+              {exerciciosCount > 0 && <span className="hub-card-stat">{exerciciosCount} exercícios</span>}
             </div>
             <h2 className="hub-card-title">Biblioteca de Exercícios</h2>
             <p className="hub-card-desc">
@@ -229,9 +226,6 @@ export const Home: React.FC = () => {
           <div>
             <div className="hub-card-header">
               <span className="hub-card-tag">Perfil</span>
-              <span className="hub-card-stat" style={{ color: 'var(--success)', borderColor: 'rgba(45, 168, 104, 0.3)' }}>
-                CREF ATIVO
-              </span>
             </div>
             <h2 className="hub-card-title">Configurações & Marca</h2>
             <p className="hub-card-desc">
@@ -248,11 +242,10 @@ export const Home: React.FC = () => {
 
         {/* Card 04: Superadmin if applicable */}
         {user?.role === 'SUPERADMIN' && (
-          <div className="hub-card hub-card--wide" style={{ borderColor: 'rgba(240, 68, 56, 0.3)' }}>
+          <div className="hub-card hub-card--wide">
             <div>
               <div className="hub-card-header">
-                <span className="hub-card-tag" style={{ color: 'var(--danger)' }}>Admin</span>
-                <span className="hub-card-stat" style={{ color: 'var(--danger)' }}>SUPERADMIN</span>
+                <span className="hub-card-tag">Admin</span>
               </div>
               <h2 className="hub-card-title">Administração Geral</h2>
               <p className="hub-card-desc">
@@ -260,11 +253,7 @@ export const Home: React.FC = () => {
               </p>
             </div>
             <div className="hub-card-actions">
-              <button
-                className="btn-hub-primary"
-                style={{ background: 'var(--danger)' }}
-                onClick={() => navigate('/admin')}
-              >
+              <button className="btn-hub-outline" onClick={() => navigate('/admin')}>
                 <span>Painel Admin</span>
                 <ArrowRight size={15} strokeWidth={2.5} />
               </button>
@@ -284,7 +273,7 @@ export const Home: React.FC = () => {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '0.72rem',
-              color: 'var(--accent)',
+              color: 'var(--accent-text)',
               fontWeight: 700,
               textDecoration: 'none'
             }}
@@ -296,11 +285,7 @@ export const Home: React.FC = () => {
         {recentAlunos.length > 0 ? (
           <div className="hub-recents-grid">
             {recentAlunos.map((aluno) => (
-              <div
-                key={aluno.idAluno}
-                className="hub-recent-card"
-                onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
-              >
+              <Link key={aluno.idAluno} className="hub-recent-card" to={`/alunos/${aluno.idAluno}/periodizacoes`}>
                 <div className="hub-recent-card-left">
                   <div className="hub-recent-avatar">
                     {getInitials(aluno.nome)}
@@ -312,14 +297,14 @@ export const Home: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <ArrowRight size={16} className="hub-recent-arrow" strokeWidth={2.5} />
-              </div>
+                <ArrowRight size={16} className="hub-recent-arrow" strokeWidth={2.5} aria-hidden="true" />
+              </Link>
             ))}
           </div>
         ) : (
           <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-2)' }}>
             Nenhum aluno cadastrado no momento.{' '}
-            <Link to="/alunos" state={{ openAdd: true }} style={{ color: 'var(--accent)', fontWeight: 700 }}>
+            <Link to="/alunos" state={{ openAdd: true }} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>
               Clique aqui para cadastrar seu primeiro aluno
             </Link>.
           </div>

@@ -21,6 +21,7 @@ import { Configuracoes } from './pages/Configuracoes';
 import { useMobileViewportFix } from './hooks/useMobileViewportFix';
 import { PERFIL_KEY } from './constants/storageKeys';
 import './App.css';
+import { ConfirmarProvider } from './components/ConfirmarProvider';
 
 // Protótipos só existem em desenvolvimento; fora do `vite dev` a rota nem é registrada
 const ExerciseCardPrototype = import.meta.env.DEV
@@ -67,6 +68,7 @@ function App() {
       <AuthProvider>
         <AlunoAuthProvider>
         <BrowserRouter>
+          <ConfirmarProvider>
           <Toaster position="bottom-right" richColors closeButton />
           <Routes>
             {/* Public Routes */}
@@ -106,6 +108,7 @@ function App() {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </ConfirmarProvider>
         </BrowserRouter>
         </AlunoAuthProvider>
       </AuthProvider>

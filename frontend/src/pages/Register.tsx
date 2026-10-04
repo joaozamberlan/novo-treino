@@ -121,7 +121,7 @@ export const Register: React.FC = () => {
             <div><strong>12 reps</strong></div>
             <div>30 kg</div>
             <div><span className="mock-pr-tag">PR +2.5kg</span></div>
-            <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Check size={14} strokeWidth={3} />
             </div>
           </div>
@@ -131,7 +131,7 @@ export const Register: React.FC = () => {
             <div><strong>10 reps</strong></div>
             <div>32 kg</div>
             <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
-            <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Check size={14} strokeWidth={3} />
             </div>
           </div>

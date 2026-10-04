@@ -54,6 +54,7 @@ hábito, a regra vence.
 - Hover só dentro de `@media (hover: hover) and (pointer: fine)`.
 - Animações respeitam `prefers-reduced-motion` (`MotionConfig reducedMotion="user"`).
 - Feedback ao usuário por `toast` (sonner), não `alert()`.
+- Confirmação por `useConfirmar()`, não `confirm()`. Modal sempre dentro de `ModalPortal`.
 - Após mutação, invalide o `memoryCache` do prefixo afetado.
 - Não quebrar o app instalado do aluno: ele abre na raiz (`/`) e tem armazenamento
   próprio no iPhone. A raiz precisa continuar levando ao login do aluno, e o login precisa

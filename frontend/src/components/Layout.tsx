@@ -121,6 +121,9 @@ export const Layout: React.FC = () => {
           <div
             className="modal-backdrop"
             onClick={() => setShowIosHint(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Como instalar o app no iPhone"
           >
             <div
               className="modal-content"
@@ -132,7 +135,7 @@ export const Layout: React.FC = () => {
                 height: '48px', 
                 borderRadius: '12px', 
                 backgroundColor: 'var(--accent-dim)', 
-                color: 'var(--accent)',
+                color: 'var(--accent-text)',
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',

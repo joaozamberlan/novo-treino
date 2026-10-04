@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useConfirmar } from '../hooks/useConfirmar';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import type { ProtocoloResumo } from '../types/treino';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ interface Protocolo extends ProtocoloResumo {
 }
 
 export const Periodizacoes: React.FC = () => {
+  const confirmar = useConfirmar();
   const { idAluno } = useParams<{ idAluno: string }>();
   const navigate = useNavigate();
 
@@ -322,7 +324,13 @@ export const Periodizacoes: React.FC = () => {
   };
 
   const handleDeleteProtocolo = async (proto: Protocolo) => {
-    if (!confirm(`Deseja excluir a periodização "${proto.nome}" e todas as suas fichas?`)) return;
+    const confirmou = await confirmar({
+      titulo: `Excluir a periodização "${proto.nome}"?`,
+      mensagem: 'Todas as fichas dela são excluídas junto.',
+      confirmar: 'Excluir periodização',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     const remaining = protocolos.filter(p => p.idProtocolo !== proto.idProtocolo);
     setProtocolos(remaining);
@@ -358,7 +366,12 @@ export const Periodizacoes: React.FC = () => {
 
   const handleRegenerarLink = async () => {
     if (!aluno) return;
-    if (!confirm(`Gerar um novo link para ${aluno.nome}? Os links enviados antes param de funcionar.`)) return;
+    const confirmou = await confirmar({
+      titulo: `Gerar um novo link para ${aluno.nome}?`,
+      mensagem: 'Os links enviados antes param de funcionar.',
+      confirmar: 'Gerar novo link',
+    });
+    if (!confirmou) return;
     try {
       await api.post(`/alunos/${aluno.idAluno}/token/regenerar`);
       invalidarCacheDoAluno();
@@ -372,7 +385,13 @@ export const Periodizacoes: React.FC = () => {
 
   const handleRevogarLink = async () => {
     if (!aluno) return;
-    if (!confirm(`Revogar o acesso de ${aluno.nome}? Ele sai do app na hora e os links enviados param de funcionar até você gerar um novo.`)) return;
+    const confirmou = await confirmar({
+      titulo: `Revogar o acesso de ${aluno.nome}?`,
+      mensagem: 'Ele sai do app na hora e os links enviados param de funcionar até você gerar um novo.',
+      confirmar: 'Revogar acesso',
+      perigo: true,
+    });
+    if (!confirmou) return;
     try {
       await api.post(`/alunos/${aluno.idAluno}/token/revogar`);
       invalidarCacheDoAluno();
@@ -387,7 +406,12 @@ export const Periodizacoes: React.FC = () => {
   // Para quando o aluno esquece o PIN: ele cria outro ao abrir o link de novo
   const handleRedefinirPin = async () => {
     if (!aluno) return;
-    if (!confirm(`Redefinir o PIN de ${aluno.nome}? Ele sai do app e cria um PIN novo ao abrir o link do treino.`)) return;
+    const confirmou = await confirmar({
+      titulo: `Redefinir o PIN de ${aluno.nome}?`,
+      mensagem: 'Ele sai do app e cria um PIN novo ao abrir o link do treino.',
+      confirmar: 'Redefinir PIN',
+    });
+    if (!confirmou) return;
     try {
       await api.post(`/alunos/${aluno.idAluno}/pin/redefinir`);
       memoryCache.invalidate('alunos');
@@ -425,7 +449,7 @@ export const Periodizacoes: React.FC = () => {
   if (!aluno && error) {
     return (
       <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger)' }} />
+        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -444,13 +468,13 @@ export const Periodizacoes: React.FC = () => {
 
         <div className="flex-between" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link to="/alunos" className="btn btn-ghost btn-icon">
+            <Link to="/alunos" className="btn btn-ghost btn-icon" aria-label="Voltar para a lista de alunos">
               <ArrowLeft size={18} />
             </Link>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem' }}>
                 <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                   PERIODIZAÇÕES{protocolos.length > 0 ? ` // ${protocolos.length}` : ''}
                 </span>
               </div>
@@ -497,7 +521,7 @@ export const Periodizacoes: React.FC = () => {
       </div>
 
       {error && (
-        <div className="badge" style={{ display: 'block', padding: '0.75rem', textAlign: 'center', backgroundColor: 'rgba(255,80,80,0.1)', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
+        <div className="badge" style={{ display: 'block', padding: '0.75rem', textAlign: 'center', backgroundColor: 'rgba(255,80,80,0.1)', border: '1px solid var(--danger)', color: 'var(--danger-text)' }}>
           {error}
         </div>
       )}
@@ -558,7 +582,7 @@ export const Periodizacoes: React.FC = () => {
                 </div>
 
                 {proto.ativo && estado === 'encerrada' && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--warning)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--warning-text)' }}>
                     O período desta periodização já terminou. Ela continua como a atual do aluno até você mudar.
                   </div>
                 )}
@@ -567,7 +591,7 @@ export const Periodizacoes: React.FC = () => {
                   <button
                     type="button"
                     className="btn btn-primary btn-sm"
-                    style={{ fontSize: '0.8rem', padding: '0.3rem 0.9rem', minHeight: 'unset' }}
+                    style={{ fontSize: '0.8rem', padding: '0 0.9rem' }}
                     onClick={(e) => { e.stopPropagation(); abrir(); }}
                   >
                     Ver Treino
@@ -576,7 +600,7 @@ export const Periodizacoes: React.FC = () => {
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.8rem', padding: '0.3rem 0.9rem', minHeight: 'unset' }}
+                      style={{ fontSize: '0.8rem', padding: '0 0.9rem' }}
                       onClick={(e) => handleActivateProtocolo(proto, e)}
                       title="Marcar esta periodização como a atual"
                     >
@@ -784,7 +808,7 @@ export const Periodizacoes: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       {editingProtocoloId ? 'ATUALIZAÇÃO // PERIODIZAÇÃO' : 'CADASTRO // PERIODIZAÇÃO'}
                     </span>
                   </div>
@@ -805,8 +829,9 @@ export const Periodizacoes: React.FC = () => {
 
               <form onSubmit={handleSaveProtocolo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Nome do Protocolo *</label>
+                  <label className="form-label" htmlFor="campoPeriodizacoesNomeDoProtocolo">Nome do Protocolo *</label>
                   <input
+                    id="campoPeriodizacoesNomeDoProtocolo"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Hipertrofia 12 sem."
@@ -819,8 +844,9 @@ export const Periodizacoes: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Objetivo</label>
+                  <label className="form-label" htmlFor="campoPeriodizacoesObjetivo">Objetivo</label>
                   <input
+                    id="campoPeriodizacoesObjetivo"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Ganho de massa magra"
@@ -832,8 +858,9 @@ export const Periodizacoes: React.FC = () => {
 
                 <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Data Início</label>
+                    <label className="form-label" htmlFor="campoPeriodizacoesDataInicio">Data Início</label>
                     <input
+                      id="campoPeriodizacoesDataInicio"
                       type="date"
                       className="form-input"
                       value={protoInicio}
@@ -841,8 +868,9 @@ export const Periodizacoes: React.FC = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Data Fim</label>
+                    <label className="form-label" htmlFor="campoPeriodizacoesDataFim">Data Fim</label>
                     <input
+                      id="campoPeriodizacoesDataFim"
                       type="date"
                       className="form-input"
                       value={protoFim}

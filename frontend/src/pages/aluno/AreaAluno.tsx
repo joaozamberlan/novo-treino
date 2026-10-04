@@ -811,7 +811,7 @@ export const AreaAluno: React.FC = () => {
               <img src={profissional.logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           ) : (
-            <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', flexShrink: 0, color: 'var(--accent)' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '8px', backgroundColor: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', flexShrink: 0, color: 'var(--accent-text)' }}>
               <BrandLogo size={24} showText={false} />
             </div>
           )}
@@ -899,7 +899,7 @@ export const AreaAluno: React.FC = () => {
         <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
             <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {protocolo?.nome ? `PROTOCOLO // ${protocolo.nome.toUpperCase()}` : 'PRESCRIÇÃO TÉCNICA'}
             </span>
           </div>
@@ -931,7 +931,7 @@ export const AreaAluno: React.FC = () => {
                 marginTop: '0.6rem',
                 display: 'inline-flex',
                 backgroundColor: 'rgba(45, 168, 104, 0.12)',
-                color: 'var(--success)',
+                color: 'var(--success-text)',
                 border: '1px solid var(--success)',
                 fontSize: '0.68rem',
                 fontWeight: 800,
@@ -966,7 +966,7 @@ export const AreaAluno: React.FC = () => {
             {sessaoConcluida && (
               <div className="workout-completed-banner" style={{ marginBottom: '1.25rem', marginTop: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <CheckCircle2 size={20} style={{ color: 'var(--success)', flexShrink: 0 }} aria-hidden="true" />
+                  <CheckCircle2 size={20} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
                   <div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-0)', display: 'block' }}>
                       Treino concluído
@@ -992,7 +992,7 @@ export const AreaAluno: React.FC = () => {
             {activeFicha?.observacao && (
               <div className="card" style={{ padding: '0.85rem 1rem', marginBottom: '1rem', backgroundColor: 'var(--bg-1)', border: '1px solid var(--border)', borderRadius: 'var(--radius-m)' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
-                  <Info size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+                  <Info size={15} style={{ color: 'var(--accent-text)', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-0)', lineHeight: '1.45' }}>
                     {activeFicha.observacao}
                   </p>
@@ -1020,7 +1020,7 @@ export const AreaAluno: React.FC = () => {
                       {/* Exercise Header */}
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>
                             EXERCÍCIO {String(index + 1).padStart(2, '0')}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
@@ -1124,7 +1124,7 @@ export const AreaAluno: React.FC = () => {
                           marginTop: '0.4rem',
                           padding: '0.1rem 0.25rem'
                         }}>
-                          <History size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
+                          <History size={12} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
                           <span>Último treino: <strong>{formatDataPtBr(historicoAnterior.data)}</strong> {getDiasAtras(historicoAnterior.data) ? `(${getDiasAtras(historicoAnterior.data)})` : ''}</span>
                         </div>
                       ) : null}
@@ -1246,6 +1246,7 @@ export const AreaAluno: React.FC = () => {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
                           <button
                             type="button"
+                            className="set-add-btn"
                             onClick={() => addSet(item, sets)}
                             style={{
                               padding: '0.45rem 0.65rem',
@@ -1319,7 +1320,7 @@ export const AreaAluno: React.FC = () => {
               sessaoConcluida ? (
                 <div className="workout-completed-banner">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <CheckCircle2 size={24} style={{ color: 'var(--success)', flexShrink: 0 }} aria-hidden="true" />
+                    <CheckCircle2 size={24} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
                     <div>
                       <strong style={{ fontSize: '0.95rem', color: 'var(--text-0)', display: 'block' }}>
                         Treino finalizado
@@ -1422,7 +1423,7 @@ export const AreaAluno: React.FC = () => {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--accent)', letterSpacing: '-0.02em' }}>
+            <span style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--accent-text)', letterSpacing: '-0.02em' }}>
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </span>
             <button 
@@ -1457,14 +1458,14 @@ export const AreaAluno: React.FC = () => {
       {/* Instalar no iPhone: o Safari não tem botão de instalar, só o menu Compartilhar */}
       {showIosHint && (
         <ModalPortal>
-          <div className="modal-backdrop" onClick={() => setShowIosHint(false)}>
+          <div className="modal-backdrop" onClick={() => setShowIosHint(false)} role="dialog" aria-modal="true" aria-label="Como instalar o app no iPhone">
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
               <div style={{
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
                 backgroundColor: 'var(--accent-dim)',
-                color: 'var(--accent)',
+                color: 'var(--accent-text)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1496,11 +1497,11 @@ export const AreaAluno: React.FC = () => {
       {/* Modal de Confirmação para Encerrar Treino */}
       {showConfirmModal && (
         <ModalPortal>
-          <div className="modal-backdrop" onClick={() => setShowConfirmModal(false)}>
+          <div className="modal-backdrop" onClick={() => setShowConfirmModal(false)} role="alertdialog" aria-modal="true" aria-labelledby="modalEncerrarTreinoTitulo">
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <AlertCircle size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} aria-hidden="true" />
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-0)' }}>Encerrar Treino?</h3>
+                <AlertCircle size={22} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
+                <h3 id="modalEncerrarTreinoTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-0)' }}>Encerrar Treino?</h3>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
                 Você concluiu <strong>{totalSeriesConcluidas} de {totalSeriesTotal} séries</strong>. Deseja realmente finalizar o treino de hoje? Os pesos e repetições preenchidos serão salvos no banco de dados e usados como referência na próxima semana.
@@ -1534,14 +1535,14 @@ export const AreaAluno: React.FC = () => {
       {/* Modal de Celebração de Treino Encerrado */}
       {showCelebrationModal && (
         <ModalPortal>
-          <div className="modal-backdrop" onClick={() => setShowCelebrationModal(false)}>
+          <div className="modal-backdrop" onClick={() => setShowCelebrationModal(false)} role="dialog" aria-modal="true" aria-label="Treino concluído">
             <div className="modal-content" style={{ textAlign: 'center', padding: '2rem 1.5rem' }} onClick={e => e.stopPropagation()}>
               <div style={{ 
                 width: '64px', 
                 height: '64px', 
                 borderRadius: '50%', 
                 backgroundColor: 'rgba(45, 168, 104, 0.12)', 
-                color: 'var(--success)',
+                color: 'var(--success-text)',
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
@@ -1572,7 +1573,7 @@ export const AreaAluno: React.FC = () => {
                 </div>
                 <div>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>Exercícios</span>
-                  <strong style={{ fontSize: '1.3rem', color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{completedExercisesCount}</strong>
+                  <strong style={{ fontSize: '1.3rem', color: 'var(--accent-text)', fontVariantNumeric: 'tabular-nums' }}>{completedExercisesCount}</strong>
                 </div>
               </div>
 

@@ -5,6 +5,7 @@ import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRo
 import { useFieldValidation } from '../hooks/useFieldValidation';
 import { useTema } from '../hooks/useTema';
 import { useTopoEscuro } from '../hooks/useTopoEscuro';
+import { ModalPortal } from '../components/ModalPortal';
 
 export const Login: React.FC = () => {
   // O formulário segue o tema salvo; o painel de marca é sempre escuro
@@ -95,7 +96,7 @@ export const Login: React.FC = () => {
             <div><strong>12 reps</strong></div>
             <div>30 kg</div>
             <div><span className="mock-pr-tag">PR +2.5kg</span></div>
-            <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Check size={14} strokeWidth={3} />
             </div>
           </div>
@@ -105,7 +106,7 @@ export const Login: React.FC = () => {
             <div><strong>10 reps</strong></div>
             <div>32 kg</div>
             <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
-            <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Check size={14} strokeWidth={3} />
             </div>
           </div>
@@ -184,18 +185,7 @@ export const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: 'var(--accent-text)',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                  className="link-acao"
                 >
                   Esqueceu a senha?
                 </button>
@@ -249,36 +239,16 @@ export const Login: React.FC = () => {
 
       {/* ─── Modal: Esqueceu a Senha ─── */}
       {showForgotModal && (
-        <div 
-          className="modal-overlay" 
+        <ModalPortal>
+        <div
+          className="modal-backdrop"
           onClick={() => setShowForgotModal(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalRecuperarSenhaTitulo"
         >
-          <div 
-            className="modal-card animate-in"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'var(--bg-1)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-l)',
-              padding: '1.75rem',
-              maxWidth: '440px',
-              width: '100%',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
-              position: 'relative',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{
                   width: '40px',
@@ -286,32 +256,22 @@ export const Login: React.FC = () => {
                   borderRadius: '10px',
                   background: 'var(--accent-soft)',
                   border: '1px solid var(--accent-border)',
-                  color: 'var(--accent)',
+                  color: 'var(--accent-text)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  flexShrink: 0,
                 }}>
-                  <KeyRound size={20} />
+                  <KeyRound size={20} aria-hidden="true" />
                 </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Recuperação de Senha</h3>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>ACESSO // SUPORTE</span>
-                </div>
+                <h3 id="modalRecuperarSenhaTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Recuperação de Senha</h3>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
+                className="modal-close"
                 onClick={() => setShowForgotModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-2)',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '4px',
-                }}
+                title="Fechar"
+                aria-label="Fechar modal"
               >
                 <X size={18} />
               </button>
@@ -343,7 +303,7 @@ export const Login: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.5rem',
                 fontSize: '0.75rem',
-                color: 'var(--accent)',
+                color: 'var(--accent-text)',
                 backgroundColor: 'var(--accent-dim)',
                 padding: '0.65rem 0.85rem',
                 borderRadius: 'var(--radius-s)',
@@ -356,18 +316,14 @@ export const Login: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowForgotModal(false)}
-                style={{ width: '100%', height: '42px', fontWeight: 700 }}
-              >
+            <div className="modal-footer">
+              <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
                 Entendido
               </button>
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

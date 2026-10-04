@@ -89,7 +89,7 @@ const VariantTactileIOS: React.FC = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span className="exercise-block-tag" style={{ background: 'var(--bg-2)', color: 'var(--text-1)' }}>Peitoral Maior</span>
-            <span className="exercise-block-tag" style={{ color: 'var(--accent)', background: 'var(--accent-dim)' }}>Cadência 3010</span>
+            <span className="exercise-block-tag" style={{ color: 'var(--accent-text)', background: 'var(--accent-dim)' }}>Cadência 3010</span>
           </div>
         </div>
       </div>
@@ -157,8 +157,8 @@ const VariantTactileIOS: React.FC = () => {
           justifyContent: 'space-between',
           animation: 'fadeIn 180ms var(--ease-out)'
         }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 600 }}>Descansando entre séries...</span>
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--accent)' }}>{secondsLeft}s</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-text)', fontWeight: 600 }}>Descansando entre séries...</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--accent-text)' }}>{secondsLeft}s</span>
         </div>
       )}
     </div>
@@ -198,7 +198,7 @@ const VariantMultiSetChips: React.FC = () => {
           </h3>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
             <span className="exercise-block-tag">Dorsais</span>
-            <span className="exercise-block-tag" style={{ color: 'var(--warning)', background: 'rgba(245, 158, 11, 0.1)' }}>Drop-set final</span>
+            <span className="exercise-block-tag" style={{ color: 'var(--warning-text)', background: 'rgba(245, 158, 11, 0.1)' }}>Drop-set final</span>
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -431,7 +431,7 @@ const VariantMediaForward: React.FC = () => {
           animation: 'fadeIn 180ms var(--ease-out)'
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
-            <Info size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
+            <Info size={14} style={{ color: 'var(--accent-text)', flexShrink: 0, marginTop: '2px' }} />
             <span><strong>Dica de execução:</strong> Mantenha ligeira inclinação do tronco à frente e cotovelos semiflexionados. Conduza o movimento pelo cotovelo, sem encolher os ombros.</span>
           </div>
         </div>
@@ -604,7 +604,7 @@ export const ExerciseCardPrototype: React.FC = () => {
             fontSize: '0.75rem', 
             textTransform: 'uppercase', 
             letterSpacing: '0.05em', 
-            color: 'var(--accent)', 
+            color: 'var(--accent-text)', 
             fontWeight: 700, 
             marginBottom: '0.5rem' 
           }}>

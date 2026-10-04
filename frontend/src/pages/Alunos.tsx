@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useConfirmar } from '../hooks/useConfirmar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
@@ -23,6 +24,7 @@ interface Aluno {
 }
 
 export const Alunos: React.FC = () => {
+  const confirmar = useConfirmar();
   const navigate = useNavigate();
   const location = useLocation();
   const cachedAlunos = memoryCache.get<Aluno[]>('alunos');
@@ -194,7 +196,13 @@ export const Alunos: React.FC = () => {
     e.stopPropagation();
     e.preventDefault();
 
-    if (!confirm(`Tem certeza que deseja excluir o aluno "${aluno.nome}" e todo o histórico de treinos?`)) {
+    const confirmou = await confirmar({
+      titulo: `Excluir ${aluno.nome}?`,
+      mensagem: 'As periodizações, as fichas e todo o histórico de treinos deste aluno são apagados. Não dá para desfazer.',
+      confirmar: 'Excluir aluno',
+      perigo: true,
+    });
+    if (!confirmou) {
       return;
     }
 
@@ -244,7 +252,7 @@ export const Alunos: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
             <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               GESTÃO DE ALUNOS // BASE ATIVA
             </span>
           </div>
@@ -260,7 +268,7 @@ export const Alunos: React.FC = () => {
             setTelefoneErro('');
             cancelEdit();
           }}
-          style={{ gap: '0.35rem', minHeight: '36px', padding: '0 0.85rem' }}
+          style={{ gap: '0.35rem', padding: '0 0.85rem' }}
         >
           <Plus size={16} />
           <span>Novo aluno</span>
@@ -305,7 +313,7 @@ export const Alunos: React.FC = () => {
                     background: 'var(--accent-soft)',
                     border: '1px solid var(--accent-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--accent)',
+                    color: 'var(--accent-text)',
                     fontSize: '0.8125rem',
                     fontWeight: 700,
                     flexShrink: 0,
@@ -418,7 +426,7 @@ export const Alunos: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       CADASTRO // NOVO ALUNO
                     </span>
                   </div>
@@ -525,7 +533,7 @@ export const Alunos: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       CONFIGURAÇÃO // ATUALIZAR DADOS
                     </span>
                   </div>
@@ -546,8 +554,9 @@ export const Alunos: React.FC = () => {
 
               <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Nome completo *</label>
+                  <label className="form-label" htmlFor="campoAlunosNomeCompleto">Nome completo *</label>
                   <input
+                    id="campoAlunosNomeCompleto"
                     type="text"
                     className="form-input"
                     value={editNome}
@@ -559,8 +568,9 @@ export const Alunos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">E-mail</label>
+                  <label className="form-label" htmlFor="campoAlunosEMail">E-mail</label>
                   <input
+                    id="campoAlunosEMail"
                     type="email"
                     className="form-input"
                     value={editEmail}
@@ -588,8 +598,9 @@ export const Alunos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Status do Aluno</label>
+                  <label className="form-label" htmlFor="campoAlunosStatusDoAluno">Status do Aluno</label>
                   <select
+                    id="campoAlunosStatusDoAluno"
                     className="form-input"
                     value={editAtivo ? 'true' : 'false'}
                     onChange={(e) => setEditAtivo(e.target.value === 'true')}

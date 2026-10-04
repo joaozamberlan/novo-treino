@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useConfirmar } from '../hooks/useConfirmar';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { 
@@ -12,6 +13,7 @@ import type { Instrucao } from '../components/InstrucaoAutocomplete';
 import { ModalPortal } from '../components/ModalPortal';
 
 export const Catalog: React.FC = () => {
+  const confirmar = useConfirmar();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab') as 'exercicios' | 'tecnicas' | 'grupos' | 'instrucoes' | null;
@@ -210,7 +212,13 @@ export const Catalog: React.FC = () => {
   };
 
   const handleDeleteExercicio = async (id: number) => {
-    if (!confirm('Deseja realmente remover este exercício da biblioteca?')) return;
+    const confirmou = await confirmar({
+      titulo: 'Remover este exercício da biblioteca?',
+      mensagem: 'Ele deixa de aparecer para novas prescrições. As fichas que já o usam continuam como estão.',
+      confirmar: 'Remover',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     try {
       await api.delete(`/exercicios/${id}`);
@@ -285,7 +293,13 @@ export const Catalog: React.FC = () => {
   };
 
   const handleDeleteTecnica = async (id: number) => {
-    if (!confirm('Deseja realmente remover esta técnica de treino?')) return;
+    const confirmou = await confirmar({
+      titulo: 'Remover esta técnica de treino?',
+      mensagem: 'Ela deixa de aparecer para novas prescrições.',
+      confirmar: 'Remover',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     try {
       await api.delete(`/exercicios/tecnicas/${id}`);
@@ -330,7 +344,13 @@ export const Catalog: React.FC = () => {
   };
 
   const handleDeleteInstrucao = async (id: number) => {
-    if (!confirm('Deseja realmente remover esta instrução?')) return;
+    const confirmou = await confirmar({
+      titulo: 'Remover esta instrução?',
+      mensagem: 'Ela deixa de aparecer nas sugestões ao prescrever.',
+      confirmar: 'Remover',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     try {
       await api.delete(`/exercicios/instrucoes/${id}`);
@@ -375,7 +395,13 @@ export const Catalog: React.FC = () => {
   };
 
   const handleDeleteGrupoTab = async (id: number) => {
-    if (!confirm('Deseja realmente remover este grupo muscular? Exercícios associados perderão esse grupo.')) return;
+    const confirmou = await confirmar({
+      titulo: 'Remover este grupo muscular?',
+      mensagem: 'Os exercícios associados perdem esse grupo.',
+      confirmar: 'Remover',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     try {
       await api.delete(`/exercicios/grupos/${id}`);
@@ -433,11 +459,11 @@ export const Catalog: React.FC = () => {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem 1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
             <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {activeTab === 'exercicios' && `BIBLIOTECA // ${exercicios.length} EXERCÍCIOS`}
               {activeTab === 'grupos' && `BIBLIOTECA // ${grupos.length} GRUPOS`}
               {activeTab === 'tecnicas' && `BIBLIOTECA // ${tecnicas.length} TÉCNICAS`}
@@ -499,73 +525,45 @@ export const Catalog: React.FC = () => {
       <div className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%' }}>
+        <div className="cat-abas" role="tablist" aria-label="Seções da biblioteca">
           <button
-            className={`btn`}
-            style={{
-              minHeight: 'unset',
-              padding: '0.5rem 1.25rem',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              backgroundColor: activeTab === 'exercicios' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'exercicios' ? 'var(--accent)' : 'var(--text-1)'
-            }}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'exercicios'}
+            className={`cat-aba${activeTab === 'exercicios' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('exercicios')}
           >
-            <Layers size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            <Layers size={16} aria-hidden="true" />
             Exercícios
           </button>
           <button
-            className={`btn`}
-            style={{
-              minHeight: 'unset',
-              padding: '0.5rem 1.25rem',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              backgroundColor: activeTab === 'grupos' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'grupos' ? 'var(--accent)' : 'var(--text-1)'
-            }}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'grupos'}
+            className={`cat-aba${activeTab === 'grupos' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('grupos')}
           >
-            <FolderPlus size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            <FolderPlus size={16} aria-hidden="true" />
             Grupos Musculares
           </button>
           <button
-            className={`btn`}
-            style={{
-              minHeight: 'unset',
-              padding: '0.5rem 1.25rem',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              backgroundColor: activeTab === 'tecnicas' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'tecnicas' ? 'var(--accent)' : 'var(--text-1)'
-            }}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'tecnicas'}
+            className={`cat-aba${activeTab === 'tecnicas' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('tecnicas')}
           >
-            <Sparkles size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            <Sparkles size={16} aria-hidden="true" />
             Técnicas de Treino
           </button>
           <button
-            className={`btn`}
-            style={{
-              minHeight: 'unset',
-              padding: '0.5rem 1.25rem',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              backgroundColor: activeTab === 'instrucoes' ? 'var(--bg-tertiary)' : 'transparent',
-              color: activeTab === 'instrucoes' ? 'var(--accent)' : 'var(--text-1)'
-            }}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'instrucoes'}
+            className={`cat-aba${activeTab === 'instrucoes' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('instrucoes')}
           >
-            <MessageSquareText size={16} style={{ marginRight: '0.25rem', display: 'inline' }} />
+            <MessageSquareText size={16} aria-hidden="true" />
             Instruções
           </button>
         </div>
@@ -575,7 +573,7 @@ export const Catalog: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', minWidth: '180px' }}>
             <select
               className="form-control"
-              style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset', color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer' }}
+              style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer' }}
               value={selectedGrupoFilter}
               onChange={(e) => setSelectedGrupoFilter(Number(e.target.value))}
             >
@@ -594,7 +592,7 @@ export const Catalog: React.FC = () => {
           <input
             type="text"
             className="form-control"
-            style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset' }}
+            style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
             placeholder={`Buscar por nome...`}
             aria-label="Buscar por nome"
             autoComplete="off"
@@ -688,7 +686,7 @@ export const Catalog: React.FC = () => {
                 {filteredTecnicas.length > 0 ? (
                   filteredTecnicas.map((tec) => (
                     <tr key={tec.idTecnica}>
-                      <td data-label="Técnica" style={{ fontWeight: '600', color: 'var(--accent)' }}>{tec.nome}</td>
+                      <td data-label="Técnica" style={{ fontWeight: '600', color: 'var(--accent-text)' }}>{tec.nome}</td>
                       <td data-label="Descrição" style={{ color: 'var(--text-1)', fontSize: '0.9rem' }}>
                         {tec.descricao || '-'}
                       </td>
@@ -829,7 +827,7 @@ export const Catalog: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       {editingExId ? 'ATUALIZAÇÃO // EXERCÍCIO' : 'CADASTRO // EXERCÍCIO'}
                     </span>
                   </div>
@@ -869,8 +867,7 @@ export const Catalog: React.FC = () => {
                     <label className="form-label" htmlFor="exGrupo" style={{ margin: 0 }}>Grupo Muscular *</label>
                     <button 
                       type="button" 
-                      className="btn btn-secondary" 
-                      style={{ minHeight: 'unset', padding: '0.15rem 0.5rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                      className="link-acao"
                       onClick={() => setShowGrupoForm(!showGrupoForm)}
                     >
                       <FolderPlus size={12} />
@@ -900,7 +897,7 @@ export const Catalog: React.FC = () => {
                         type="button" 
                         className="btn btn-primary" 
                         onClick={handleAddGrupo} 
-                        style={{ minHeight: 'unset', padding: '0.4rem 0.8rem', fontSize: '0.8125rem' }}
+                        style={{ fontSize: '0.8125rem' }}
                       >
                         Salvar
                       </button>
@@ -908,7 +905,7 @@ export const Catalog: React.FC = () => {
                         type="button" 
                         className="btn btn-secondary" 
                         onClick={() => setShowGrupoForm(false)} 
-                        style={{ minHeight: 'unset', padding: '0.4rem 0.6rem', fontSize: '0.8125rem' }}
+                        style={{ fontSize: '0.8125rem' }}
                         title="Cancelar"
                       >
                         <X size={14} />
@@ -992,7 +989,7 @@ export const Catalog: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       {editingTecId ? 'ATUALIZAÇÃO // TÉCNICA' : 'CADASTRO // TÉCNICA'}
                     </span>
                   </div>
@@ -1136,7 +1133,7 @@ export const Catalog: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       {editingGrupoId ? 'ATUALIZAÇÃO // GRUPO' : 'CADASTRO // GRUPO'}
                     </span>
                   </div>

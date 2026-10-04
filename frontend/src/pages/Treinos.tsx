@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useConfirmar } from '../hooks/useConfirmar';
 import { PainelProgresso } from '../components/Progresso';
 import type { Progresso } from '../utils/progresso';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
@@ -68,10 +69,10 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         title="Arraste para reordenar"
       >
         <GripVertical size={16} />
-        <button className="exercise-action-btn" disabled={index === 0} onClick={() => onMove('up')}>
+        <button className="exercise-action-btn" disabled={index === 0} onClick={() => onMove('up')} aria-label={`Subir ${item.exercicio.nome}`}>
           <ArrowUp size={14} />
         </button>
-        <button className="exercise-action-btn" disabled={index === total - 1} onClick={() => onMove('down')}>
+        <button className="exercise-action-btn" disabled={index === total - 1} onClick={() => onMove('down')} aria-label={`Descer ${item.exercicio.nome}`}>
           <ArrowDown size={14} />
         </button>
       </div>
@@ -103,10 +104,10 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         )}
       </div>
       <div className="exercise-block-actions">
-        <button className="exercise-action-btn accent" onClick={onEdit} title="Editar">
+        <button className="exercise-action-btn accent" onClick={onEdit} title="Editar" aria-label={`Editar ${item.exercicio.nome}`}>
           <Edit size={14} />
         </button>
-        <button className="exercise-action-btn danger" onClick={onRemove} title="Remover">
+        <button className="exercise-action-btn danger" onClick={onRemove} title="Remover" aria-label={`Remover ${item.exercicio.nome}`}>
           <Trash2 size={14} />
         </button>
       </div>
@@ -115,6 +116,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
 };
 
 export const Treinos: React.FC = () => {
+  const confirmar = useConfirmar();
   const { idAluno } = useParams<{ idAluno: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -504,7 +506,13 @@ export const Treinos: React.FC = () => {
 
   // Ficha delete
   const handleDeleteTreino = async (idTreino: number, nome: string) => {
-    if (!confirm(`Deseja excluir a ficha "${nome}" e todos os seus exercícios?`)) return;
+    const confirmou = await confirmar({
+      titulo: `Excluir a ficha "${nome}"?`,
+      mensagem: 'Todos os exercícios prescritos nela são excluídos junto.',
+      confirmar: 'Excluir ficha',
+      perigo: true,
+    });
+    if (!confirmou) return;
     if (!activeProtocol) return;
 
     // Optimistic UI
@@ -764,7 +772,16 @@ export const Treinos: React.FC = () => {
 
   // Remoção otimista instantânea
   const handleRemoveExercise = async (idTreinoExercicio: number) => {
-    if (!confirm('Deseja excluir esta prescrição?')) return;
+    const item = activeProtocol?.treinos
+      .find((t) => t.idTreino === activeTabId)
+      ?.exercicios.find((e) => e.idTreinoExercicio === idTreinoExercicio);
+    const confirmou = await confirmar({
+      titulo: item ? `Remover ${item.exercicio.nome} desta ficha?` : 'Remover este exercício da ficha?',
+      mensagem: 'O exercício continua na biblioteca.',
+      confirmar: 'Remover',
+      perigo: true,
+    });
+    if (!confirmou) return;
     if (!activeProtocol || !activeTabId) return;
 
     // Remove da tela imediatamente (0ms)
@@ -828,7 +845,7 @@ export const Treinos: React.FC = () => {
   if (!aluno && error) {
     return (
       <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger)' }} />
+        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -864,7 +881,7 @@ export const Treinos: React.FC = () => {
           ]} />
           <div className="flex-between" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Link to={`/alunos/${idAluno}/periodizacoes`} className="btn btn-ghost btn-icon">
+              <Link to={`/alunos/${idAluno}/periodizacoes`} className="btn btn-ghost btn-icon" aria-label="Voltar para as periodizações">
                 <ArrowLeft size={18} />
               </Link>
               <div>
@@ -902,7 +919,7 @@ export const Treinos: React.FC = () => {
 
       {/* Error display */}
       {error && (
-        <div className="badge" style={{ display: 'block', padding: '0.75rem', textAlign: 'center', backgroundColor: 'rgba(255,80,80,0.1)', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
+        <div className="badge" style={{ display: 'block', padding: '0.75rem', textAlign: 'center', backgroundColor: 'rgba(255,80,80,0.1)', border: '1px solid var(--danger)', color: 'var(--danger-text)' }}>
           {error}
         </div>
       )}
@@ -910,7 +927,7 @@ export const Treinos: React.FC = () => {
       {/* Empty Catalog Warning */}
       {catalogExercicios.length === 0 && (
         <div className="card" style={{ border: '1px solid var(--warning)', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
-          <h2 style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h2 style={{ color: 'var(--warning-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <AlertCircle size={22} />
             Catálogo de Exercícios Vazio
           </h2>
@@ -1012,7 +1029,7 @@ export const Treinos: React.FC = () => {
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
-                    style={{ color: 'var(--danger)' }}
+                    style={{ color: 'var(--danger-text)' }}
                     onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
                     title="Excluir ficha de treino"
                   >
@@ -1078,7 +1095,7 @@ export const Treinos: React.FC = () => {
                 }}
                 onClick={openNewExerciseModal}
               >
-                <Plus size={16} style={{ color: 'var(--accent)' }} />
+                <Plus size={16} style={{ color: 'var(--accent-text)' }} />
                 <span>Adicionar Exercício à Ficha</span>
               </button>
 
@@ -1144,7 +1161,7 @@ export const Treinos: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       ORGANIZAÇÃO // NOVA FICHA
                     </span>
                   </div>
@@ -1228,7 +1245,7 @@ export const Treinos: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       CONFIGURAÇÃO // EDITAR FICHA
                     </span>
                   </div>
@@ -1333,7 +1350,7 @@ export const Treinos: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       {editingExercisePrescriptionId ? 'PRESCRIÇÃO // EDITAR EXERCÍCIO' : 'PRESCRIÇÃO // NOVO EXERCÍCIO'}
                     </span>
                   </div>
@@ -1355,8 +1372,9 @@ export const Treinos: React.FC = () => {
               <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Grupo Muscular *</label>
+                    <label className="form-label" htmlFor="campoTreinosGrupoMuscular">Grupo Muscular *</label>
                     <select
+                      id="campoTreinosGrupoMuscular"
                       className="form-input"
                       value={selectedGrupo}
                       onChange={(e) => {
@@ -1375,8 +1393,9 @@ export const Treinos: React.FC = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Exercício *</label>
+                    <label className="form-label" htmlFor="campoTreinosExercicio">Exercício *</label>
                     <select
+                      id="campoTreinosExercicio"
                       className="form-input"
                       value={selectedExercicio}
                       onChange={(e) => setSelectedExercicio(Number(e.target.value))}
@@ -1397,8 +1416,9 @@ export const Treinos: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Séries *</label>
+                    <label className="form-label" htmlFor="campoTreinosSeries">Séries *</label>
                     <input
+                      id="campoTreinosSeries"
                       type="number"
                       min={1}
                       max={99}
@@ -1410,8 +1430,9 @@ export const Treinos: React.FC = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Repetições *</label>
+                    <label className="form-label" htmlFor="campoTreinosRepeticoes">Repetições *</label>
                     <input
+                      id="campoTreinosRepeticoes"
                       type="text"
                       className="form-input"
                       value={exReps}
@@ -1423,8 +1444,9 @@ export const Treinos: React.FC = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Descanso</label>
+                    <label className="form-label" htmlFor="campoTreinosDescanso">Descanso</label>
                     <input
+                      id="campoTreinosDescanso"
                       type="text"
                       inputMode="text"
                       className="form-input"
@@ -1436,8 +1458,9 @@ export const Treinos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Técnica Avançada (opcional)</label>
+                  <label className="form-label" htmlFor="campoTreinosTecnicaAvancadaOpcional">Técnica Avançada (opcional)</label>
                   <select
+                    id="campoTreinosTecnicaAvancadaOpcional"
                     className="form-input"
                     value={selectedTecnica || ''}
                     onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}

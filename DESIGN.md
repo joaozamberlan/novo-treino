@@ -33,12 +33,13 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | `--border` / `--border-strong` | branco 10% / 20% | preto 10% / 20% | divisórias |
 | `--accent` | `#CF3427` | `#BA281A` | ação primária, foco, estado ativo |
 | `--accent-hover` | `#E44436` | `#D13322` | hover da ação primária |
-| `--accent-text` | `#E65E52` (calculado) | igual ao `--accent` | vermelho em **texto pequeno**. O `--accent` puro dá só 3,5:1 sobre o fundo escuro |
+| `--accent-text` | `#E7675B` (calculado) | `#A6251A` (calculado) | vermelho em **texto pequeno**. O `--accent` puro dá só 3,5:1 sobre o fundo escuro |
 | `--accent-soft` / `-dim` / `-border` | alfas do accent | alfas do accent | fundos e bordas de destaque |
-| `--text-0` / `-1` / `-2` | `#f1f1f1` / `#aaa` / `#717171` | `#121316` / `#565963` / `#868a95` | texto primário / secundário / terciário |
+| `--text-0` / `-1` / `-2` | `#f1f1f1` / `#aaa` / `#8f8f8f` | `#121316` / `#565963` / `#62666f` | texto primário / secundário / terciário |
 | `--danger` | `#f04438` | `#d92d20` | erro, excluir |
 | `--success` | `#2da868` | `#2da868` | concluído |
 | `--warning` | `#f59e0b` | `#dc6803` | atenção |
+| `--danger-text` / `--success-text` / `--warning-text` | `#f97066` / `#2da868` / `#f59e0b` | `#b42318` / `#156642` / `#a34207` | a cor semântica quando é **texto ou ícone**; as de cima ficam para fundo e borda |
 | `--pr-gold` / `-soft` | `#e5a93c` | — | recorde pessoal (PR) |
 
 ### Tipografia
@@ -71,9 +72,13 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 
 ### Contraste
 - Texto pequeno: no mínimo **4,5:1**. Texto grande (≥ 24px, ou ≥ 18,66px em negrito): **3:1**.
-- Medir, não julgar no olho. Pares que já falharam e não devem voltar:
-  `--text-2` em texto pequeno (3,1:1 no claro, 3,6:1 no escuro) e `--accent` em texto
-  pequeno sobre fundo escuro (3,5:1). Usar `--text-1` e `--accent-text`.
+- Medir, não julgar no olho. Pares que já falharam e não devem voltar: `--accent` em
+  texto pequeno sobre fundo escuro (3,5:1) e verde, vermelho ou laranja "de fundo" usados
+  como texto no tema claro (o selo verde dava 1,9:1). Usar `--accent-text` e as variantes
+  `-text`.
+- `--text-2` passa de 4,5:1 sobre `--bg-0`, `--bg-1` e `--bg-2`. Sobre `--bg-3` não
+  passa: ali usar `--text-1`.
+- Selos (`.badge-*`) não levam cor inline: a variante já traz fundo, borda e texto.
 - Não pôr brilho ou degradê colorido atrás de texto vermelho: derruba o contraste.
 
 ### Painel escuro
@@ -100,6 +105,8 @@ formulário claro.
 - **Conta:** o avatar no canto direito abre o menu com Configurações e Sair. Sair não
   fica como ícone solto na barra.
 - **Mobile:** tab bar inferior (respeita `--sab`), topbar com logo e avatar.
+- **Exercício da ficha em tela estreita (≤ 640px):** duas fileiras. Em cima, alça, número e
+  nome; embaixo, setas de ordem, séries × reps e as ações.
 - Breakpoints usados: 420, 640, 768, 860, 920/921, 960px. Preferir estes a criar novos.
 - Navegação em pastas com `Breadcrumb`: Alunos / Aluno / Periodizações / Ciclo.
 
@@ -111,7 +118,10 @@ formulário claro.
 | Formulário | `.form-group` · `.form-label` · `.form-row` · `.form-control` |
 | Cartões | `.card` · `.card-clickable` · `.card-flat` |
 | Badges | `.badge` + `-success` · `-danger` · `-warning` · `-accent` · `-neutral` |
-| Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-footer` (sempre via `ModalPortal`) |
+| Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-close` · `.modal-footer`, sempre via `ModalPortal`, que trava a rolagem do fundo, leva o foco para dentro, prende o Tab, fecha no Esc e devolve o foco a quem abriu. O fundo leva `role="dialog"`, `aria-modal` e `aria-labelledby` |
+| Confirmação | `useConfirmar()` no lugar do `confirm()` do navegador: título em forma de pergunta, mensagem dizendo o que se perde e botão com o verbo da ação ("Excluir ficha", nunca "OK"). Com `perigo`, o foco começa em Cancelar |
+| Abas de seção | `.cat-abas` / `.cat-aba` (Biblioteca): ativa = fundo neutro e texto forte, só o ícone em vermelho |
+| Link de ação | `.link-acao`: ação secundária ao lado de um rótulo ("Esqueceu a senha?", "Gerar aleatória") |
 | Página | `.page-header` |
 | Menus | `ActionMenu` (menu "⋯" dos cartões). `align="left"` quando o gatilho fica na borda esquerda da tela |
 | Telas de entrada | Sempre divididas: painel de marca **preto com vermelho** (`.painel-escuro`) e formulário no tema da página. No desktop o painel fica à esquerda; no celular vira uma faixa no topo com o título da tela. Nunca uma tela toda clara. `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca`. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
@@ -122,6 +132,11 @@ formulário claro.
 ## 6. Regras de interação
 
 - Hover apenas em `@media (hover: hover) and (pointer: fine)`; no toque, feedback por `:active`/escala.
+- **Alvos de toque:** no desktop a interface é densa (botões de 28–36px). Em tela de toque
+  (`@media (pointer: coarse)`, no fim do `index.css`) todo controle tem pelo menos 44px.
+  Não fixar `height`/`minHeight` inline em botão ou campo: isso anula a regra.
+- Todo botão só de ícone tem `aria-label` dizendo a ação e o alvo ("Remover Supino reto");
+  todo campo tem `<label htmlFor>`.
 - Hover em linha de lista (ex.: exercício da ficha) é **um sinal só**: borda mais forte e as
   ações da linha mais visíveis. Sem sombra que levanta, sem barra vermelha e sem escala:
   isso diz "clicável" e o cartão não é. Sombra e escala ficam para o arrasto.
@@ -129,7 +144,7 @@ formulário claro.
   ficam fora do fluxo (`position: absolute` + `opacity`), não em `display: none`.
 - `-webkit-tap-highlight-color: transparent` e sem callout de toque longo em botões.
 - Estados vazios, de carregamento e de erro sempre desenhados (ex.: periodização não encontrada → link de volta).
-- Ações destrutivas pedem confirmação e dizem o que se perde.
+- Ações destrutivas pedem confirmação (`useConfirmar`) e dizem o que se perde.
 - Vibração no fim do descanso e ao concluir série (onde o navegador suporta).
 
 ## 7. Impressão e PDF

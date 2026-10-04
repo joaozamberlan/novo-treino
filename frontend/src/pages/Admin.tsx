@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useConfirmar } from '../hooks/useConfirmar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -33,6 +34,7 @@ export const Admin: React.FC = () => {
 };
 
 const AdminPanel: React.FC = () => {
+  const confirmar = useConfirmar();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,15 @@ const AdminPanel: React.FC = () => {
   }, []);
 
   const handleToggleStatus = async (idProfissional: number, currentStatus: boolean, nome: string) => {
-    if (currentStatus && !confirm(`Suspender o acesso de ${nome}? Ele não conseguirá mais fazer login até ser reativado.`)) {
+    if (
+      currentStatus &&
+      !(await confirmar({
+        titulo: `Suspender o acesso de ${nome}?`,
+        mensagem: 'Ele não consegue mais fazer login até ser reativado.',
+        confirmar: 'Suspender',
+        perigo: true,
+      }))
+    ) {
       return;
     }
 
@@ -82,10 +92,21 @@ const AdminPanel: React.FC = () => {
 
   const handleToggleRole = async (idProfissional: number, currentRole: string, nome: string) => {
     const promovendo = currentRole !== 'SUPERADMIN';
-    const confirmMsg = promovendo
-      ? `Promover ${nome} a SuperAdmin? Ele terá acesso total ao painel de administração.`
-      : `Remover os privilégios de SuperAdmin de ${nome}?`;
-    if (!confirm(confirmMsg)) {
+    const confirmou = await confirmar(
+      promovendo
+        ? {
+            titulo: `Promover ${nome} a SuperAdmin?`,
+            mensagem: 'Ele terá acesso total ao painel de administração.',
+            confirmar: 'Promover',
+          }
+        : {
+            titulo: `Tirar o SuperAdmin de ${nome}?`,
+            mensagem: 'Ele perde o acesso ao painel de administração e continua como treinador.',
+            confirmar: 'Tirar SuperAdmin',
+            perigo: true,
+          },
+    );
+    if (!confirmou) {
       return;
     }
 
@@ -173,7 +194,7 @@ const AdminPanel: React.FC = () => {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
         <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <ShieldAlert size={32} style={{ color: 'var(--accent)' }} />
+          <ShieldAlert size={32} style={{ color: 'var(--accent-text)' }} />
           Painel do SuperAdmin
         </h1>
         <p>Aprove novas contas, gerencie acessos e defina cargos de SuperAdmin no TreinosApp.</p>
@@ -199,13 +220,13 @@ const AdminPanel: React.FC = () => {
         </div>
         <div className="card stagger-2">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Contas Ativas (Pagas)</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--success)' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--success-text)' }}>
             {professionals.filter(p => p.ativo).length}
           </div>
         </div>
         <div className="card stagger-3">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Aprovações Pendentes</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--warning)' }}>
+          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--warning-text)' }}>
             {professionals.filter(p => !p.ativo).length}
           </div>
         </div>
@@ -218,7 +239,7 @@ const AdminPanel: React.FC = () => {
           <input
             type="text"
             className="form-control"
-            style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, minHeight: 'unset' }}
+            style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
             placeholder="Buscar por nome, email ou CREF..."
             aria-label="Buscar profissionais por nome, email ou CREF"
             autoComplete="off"
@@ -298,11 +319,11 @@ const AdminPanel: React.FC = () => {
                           {prof.ativo ? 'Ativo' : 'Pendente'}
                         </span>
                         {prof.role === 'SUPERADMIN' ? (
-                          <span className="badge" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>
+                          <span className="badge badge-accent">
                             SuperAdmin
                           </span>
                         ) : (
-                          <span className="badge" style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
+                          <span className="badge badge-neutral">
                             Treinador
                           </span>
                         )}
@@ -317,52 +338,21 @@ const AdminPanel: React.FC = () => {
                             onClick={() => handleOpenResetModal(prof)}
                             className="btn btn-secondary"
                             title="Redefinir Senha Temporária do Treinador"
-                            style={{ 
-                              minHeight: 'unset', 
-                              height: '30px',
-                              padding: '0 0.65rem', 
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                            }}
-                          >
+                            >
                             <Key size={12} />
                             <span>Senha</span>
                           </button>
 
                           <button
                             onClick={() => handleToggleStatus(prof.idProfissional, prof.ativo, prof.nome)}
-                            className="btn"
-                            style={{ 
-                              minHeight: 'unset', 
-                              height: '30px',
-                              padding: '0 0.65rem', 
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              backgroundColor: prof.ativo ? 'rgba(239, 68, 68, 0.1)' : 'var(--accent)',
-                              color: prof.ativo ? 'var(--danger)' : '#000',
-                              border: prof.ativo ? '1px solid rgba(239, 68, 68, 0.2)' : 'none'
-                            }}
+                            className={`btn btn-sm ${prof.ativo ? 'btn-danger' : 'btn-primary'}`}
                           >
                             {prof.ativo ? 'Suspender' : 'Aprovar'}
                           </button>
 
                           <button
                             onClick={() => handleToggleRole(prof.idProfissional, prof.role, prof.nome)}
-                            className="btn btn-secondary"
-                            style={{ 
-                              minHeight: 'unset', 
-                              height: '30px',
-                              padding: '0 0.65rem', 
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center'
-                            }}
+                            className="btn btn-secondary btn-sm"
                           >
                             {prof.role === 'SUPERADMIN' ? 'Tirar Super' : 'Promover'}
                           </button>
@@ -391,6 +381,7 @@ const AdminPanel: React.FC = () => {
             onClick={() => setResetModalProf(null)}
             role="dialog"
             aria-modal="true"
+            aria-labelledby="modalRedefinirSenhaTitulo"
           >
             <div
               className="modal-content"
@@ -405,7 +396,7 @@ const AdminPanel: React.FC = () => {
                     borderRadius: '10px',
                     background: 'var(--accent-soft)',
                     border: '1px solid var(--accent-border)',
-                    color: 'var(--accent)',
+                    color: 'var(--accent-text)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -413,26 +404,16 @@ const AdminPanel: React.FC = () => {
                     <Key size={20} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Redefinir Senha</h3>
+                    <h3 id="modalRedefinirSenhaTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Redefinir Senha</h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>ADMIN // CONTROLE DE ACESSO</span>
                   </div>
                 </div>
                 <button
                   type="button"
+                  className="modal-close"
                   onClick={() => setResetModalProf(null)}
                   title="Fechar"
                   aria-label="Fechar modal"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-2)',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '4px',
-                  }}
                 >
                   <X size={18} />
                 </button>
@@ -448,17 +429,7 @@ const AdminPanel: React.FC = () => {
                   <button
                     type="button"
                     onClick={generateRandomPassword}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--accent)',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                    }}
+                    className="link-acao"
                   >
                     <RefreshCw size={12} />
                     <span>Gerar aleatória</span>
@@ -497,7 +468,7 @@ const AdminPanel: React.FC = () => {
                 marginBottom: '1.5rem',
                 lineHeight: '1.45',
               }}>
-                💡 <strong>Dica:</strong> Copie a senha e envie via WhatsApp ou e-mail para o treinador. Ele conseguirá fazer login imediatamente com essa credencial.
+                <strong>Dica:</strong> Copie a senha e envie via WhatsApp ou e-mail para o treinador. Ele conseguirá fazer login imediatamente com essa credencial.
               </div>
 
               <div className="modal-footer" style={{ margin: 0, paddingTop: '0.85rem' }}>
