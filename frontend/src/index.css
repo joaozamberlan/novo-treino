@@ -1058,39 +1058,22 @@ body.light-theme .ficha-tab.active {
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-l);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 0 transparent;
-  transition: border-color var(--transition), box-shadow var(--transition), opacity 200ms var(--ease-out), transform 120ms var(--ease-out);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: border-color var(--transition), opacity 200ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Barra de destaque: "acende" ao passar o mouse / focar dentro do cartão */
-.exercise-block::before {
-  content: '';
-  position: absolute;
-  left: -1px;
-  top: 12px;
-  bottom: 12px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--accent);
-  transform: scaleY(0);
-  transform-origin: center;
-  transition: transform 200ms var(--ease-out);
-}
-
-.exercise-block:hover,
+/* O cartão não é clicável (só a alça e os botões agem): o hover marca a linha
+   com a borda e mais nada. Sombra e escala ficam para o arrasto (whileDrag em
+   Treinos.tsx), que é quando ele de fato levanta. */
 .exercise-block:focus-within {
   border-color: var(--border-strong);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.exercise-block:hover::before,
-.exercise-block:focus-within::before {
-  transform: scaleY(1);
-}
-
-.exercise-block:active {
-  transform: scale(0.997);
+@media (hover: hover) and (pointer: fine) {
+  .exercise-block:hover {
+    border-color: var(--border-strong);
+  }
 }
 
 /* ── Checkmark Button (Tactile 44×44px + Spring Pop) ─────────────────── */
@@ -1621,15 +1604,44 @@ body.light-theme .floating-rest-timer {
   cursor: grabbing;
 }
 
-/* Setas de ordem: só aparecem sob demanda em telas com mouse (no toque ficam visíveis) */
+/* Setas de ordem: só aparecem sob demanda em telas com mouse (no toque ficam
+   visíveis). Ficam acima e abaixo da alça, fora do fluxo, para o cartão não
+   mudar de altura quando aparecem. */
 @media (hover: hover) and (pointer: fine) {
+  .exercise-block-handle {
+    position: relative;
+  }
+
   .exercise-block-handle .exercise-action-btn {
-    display: none;
+    position: absolute;
+    left: 50%;
+    width: 28px;
+    height: 22px;
+    min-width: 0;
+    min-height: 0;
+    margin-left: -14px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .exercise-block-handle .exercise-action-btn:first-of-type {
+    bottom: 100%;
+  }
+
+  .exercise-block-handle .exercise-action-btn:last-of-type {
+    top: 100%;
   }
 
   .exercise-block:hover .exercise-block-handle .exercise-action-btn,
   .exercise-block:focus-within .exercise-block-handle .exercise-action-btn {
-    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .exercise-block:hover .exercise-block-handle .exercise-action-btn:disabled,
+  .exercise-block:focus-within .exercise-block-handle .exercise-action-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
   }
 }
 
@@ -1739,8 +1751,14 @@ body.light-theme .floating-rest-timer {
   transition: opacity var(--transition);
 }
 
-.exercise-block:hover .exercise-block-actions {
+.exercise-block:focus-within .exercise-block-actions {
   opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .exercise-block:hover .exercise-block-actions {
+    opacity: 1;
+  }
 }
 
 .exercise-action-btn {
@@ -4682,8 +4700,7 @@ body.light-theme .mobile-tab-bar {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .exercise-block,
-  .exercise-block::before {
+  .exercise-block {
     transition: none;
   }
 }

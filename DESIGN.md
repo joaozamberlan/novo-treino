@@ -122,6 +122,11 @@ formulário claro.
 ## 6. Regras de interação
 
 - Hover apenas em `@media (hover: hover) and (pointer: fine)`; no toque, feedback por `:active`/escala.
+- Hover em linha de lista (ex.: exercício da ficha) é **um sinal só**: borda mais forte e as
+  ações da linha mais visíveis. Sem sombra que levanta, sem barra vermelha e sem escala:
+  isso diz "clicável" e o cartão não é. Sombra e escala ficam para o arrasto.
+- Nada que aparece no hover pode mudar o tamanho do elemento: controles sob demanda
+  ficam fora do fluxo (`position: absolute` + `opacity`), não em `display: none`.
 - `-webkit-tap-highlight-color: transparent` e sem callout de toque longo em botões.
 - Estados vazios, de carregamento e de erro sempre desenhados (ex.: periodização não encontrada → link de volta).
 - Ações destrutivas pedem confirmação e dizem o que se perde.
