@@ -23,6 +23,8 @@ import { linkWhatsApp } from '../utils/whatsapp';
 import { ActionMenu } from '../components/ActionMenu';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 import { ModalPortal } from '../components/ModalPortal';
+import { CardioCampos } from '../components/Cardio';
+import { cardioDaFicha, parseMinutosCardio } from '../utils/cardio';
 
 interface Aluno {
   idAluno: number;
@@ -31,6 +33,14 @@ interface Aluno {
   telefone?: string | null;
   tokenAcesso?: string;
 }
+
+// Campos de aeróbico do formulário → corpo da API. Tipo vazio = sem aeróbico;
+// devolve null quando os minutos digitados não valem.
+const lerCardio = (tipo: string, minutos: string) => {
+  if (!tipo) return { cardioTipo: null, cardioMinutos: null };
+  const cardioMinutos = parseMinutosCardio(minutos);
+  return cardioMinutos === null ? null : { cardioTipo: tipo, cardioMinutos };
+};
 
 // Cache em memória para catálogos estáticos
 let cachedCatalogs: {
@@ -155,11 +165,15 @@ export const Treinos: React.FC = () => {
   const [editFichaObs, setEditFichaObs] = useState('');
   const [editFichaRodape, setEditFichaRodape] = useState('');
   const [editFichaSemRodape, setEditFichaSemRodape] = useState(false);
+  const [editFichaCardioTipo, setEditFichaCardioTipo] = useState('');
+  const [editFichaCardioMin, setEditFichaCardioMin] = useState('');
 
   // New Ficha (Treino) inputs
   const [treinoNome, setTreinoNome] = useState('');
   const [treinoObs, setTreinoObs] = useState('');
   const [treinoOrdem, setTreinoOrdem] = useState(1);
+  const [treinoCardioTipo, setTreinoCardioTipo] = useState('');
+  const [treinoCardioMin, setTreinoCardioMin] = useState('');
 
   // Prescribe Exercise inputs
   const [editingExercisePrescriptionId, setEditingExercisePrescriptionId] = useState<number | null>(null);
@@ -429,18 +443,26 @@ export const Treinos: React.FC = () => {
       toast.error('Informe o nome da ficha de treino.');
       return;
     }
+    const cardio = lerCardio(treinoCardioTipo, treinoCardioMin);
+    if (!cardio) {
+      toast.error('Informe os minutos do aeróbico.');
+      return;
+    }
 
     try {
       const res = await api.post(`/treinos/fichas/${activeProtocol.idProtocolo}`, {
         nome: treinoNome.trim(),
         observacao: treinoObs.trim() || undefined,
-        ordem: Number(treinoOrdem)
+        ordem: Number(treinoOrdem),
+        ...(cardio.cardioTipo ? cardio : {}),
       });
 
       const newTreino: FichaTreino = {
         idTreino: res.data.idTreino,
         nome: res.data.nome,
         observacao: res.data.observacao,
+        cardioTipo: res.data.cardioTipo,
+        cardioMinutos: res.data.cardioMinutos,
         ordem: res.data.ordem,
         exercicios: [],
       };
@@ -470,6 +492,11 @@ export const Treinos: React.FC = () => {
       toast.error('Informe o nome da ficha.');
       return;
     }
+    const cardio = lerCardio(editFichaCardioTipo, editFichaCardioMin);
+    if (!cardio) {
+      toast.error('Informe os minutos do aeróbico.');
+      return;
+    }
 
     const targetId = editingFichaId;
     const newNome = editFichaNome.trim();
@@ -483,7 +510,7 @@ export const Treinos: React.FC = () => {
       return {
         ...prev,
         treinos: prev.treinos.map(t =>
-          t.idTreino === targetId ? { ...t, nome: newNome, observacao: newObs || undefined, rodape: newRodape } : t
+          t.idTreino === targetId ? { ...t, nome: newNome, observacao: newObs || undefined, rodape: newRodape, ...cardio } : t
         ),
       };
     });
@@ -496,6 +523,7 @@ export const Treinos: React.FC = () => {
         nome: newNome,
         observacao: newObs || null,
         rodape: newRodape,
+        ...cardio,
       });
     } catch (err) {
       console.error(err);
@@ -859,6 +887,7 @@ export const Treinos: React.FC = () => {
 
   const sortedTreinos = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const activeFicha = activeProtocol?.treinos.find(t => t.idTreino === activeTabId);
+  const cardioAtivo = cardioDaFicha(activeFicha);
   const sortedExercicios = activeFicha ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
 
   // Print calculations & formatting
@@ -976,6 +1005,8 @@ export const Treinos: React.FC = () => {
               onClick={() => {
                 setTreinoNome('');
                 setTreinoObs('');
+                setTreinoCardioTipo('');
+                setTreinoCardioMin('');
                 setTreinoOrdem(activeProtocol.treinos.length + 1);
                 setShowTreinoModal(true);
               }}
@@ -999,6 +1030,11 @@ export const Treinos: React.FC = () => {
                       • {activeFicha.observacao}
                     </span>
                   )}
+                  {cardioAtivo && (
+                    <span className="badge badge-accent" style={{ fontSize: '0.7rem' }} title={cardioAtivo.modelo.comoFazer(cardioAtivo.minutos)}>
+                      Aeróbico: {cardioAtivo.modelo.nome}, {cardioAtivo.minutos} min
+                    </span>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <button
@@ -1019,6 +1055,8 @@ export const Treinos: React.FC = () => {
                       setEditFichaObs(activeFicha.observacao || '');
                       setEditFichaRodape(activeFicha.rodape || '');
                       setEditFichaSemRodape(activeFicha.rodape === '');
+                      setEditFichaCardioTipo(activeFicha.cardioTipo || '');
+                      setEditFichaCardioMin(activeFicha.cardioMinutos ? String(activeFicha.cardioMinutos) : '');
                       setShowEditFichaModal(true);
                     }}
                     title="Renomear / Editar ficha"
@@ -1209,6 +1247,13 @@ export const Treinos: React.FC = () => {
                   />
                 </div>
 
+                <CardioCampos
+                  idPrefix="treino"
+                  tipo={treinoCardioTipo}
+                  minutos={treinoCardioMin}
+                  onChange={(tipo, minutos) => { setTreinoCardioTipo(tipo); setTreinoCardioMin(minutos); }}
+                />
+
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
                   <button type="button" className="btn btn-secondary" onClick={closeTreinoModal}>
                     Cancelar
@@ -1291,6 +1336,13 @@ export const Treinos: React.FC = () => {
                     onChange={(e) => setEditFichaObs(e.target.value)}
                   />
                 </div>
+
+                <CardioCampos
+                  idPrefix="editFicha"
+                  tipo={editFichaCardioTipo}
+                  minutos={editFichaCardioMin}
+                  onChange={(tipo, minutos) => { setEditFichaCardioTipo(tipo); setEditFichaCardioMin(minutos); }}
+                />
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="editFichaRodapeInput">Rodapé desta ficha (exceção)</label>

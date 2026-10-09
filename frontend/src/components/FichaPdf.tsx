@@ -2,6 +2,7 @@ import { RodapeTreino } from './RodapeTreino';
 import { TabelaProgressao } from './TabelaProgressao';
 import { rodapeEfetivo } from '../utils/rodape';
 import { formatDescanso } from '../utils/descanso';
+import { cardioDaFicha } from '../utils/cardio';
 import type { FichaTreino, Protocolo } from '../types/treino';
 
 // Documento do PDF da periodização (oculto na tela, capturado pelo html2pdf em
@@ -168,6 +169,8 @@ export function FichaPdf({
           const totalFichaSeries = exercicios.reduce((acc, e) => acc + (Number(e.series) || 0), 0);
           const fichaLetra = String.fromCharCode(65 + (treino.ordem ? treino.ordem - 1 : idx));
 
+          const cardio = cardioDaFicha(treino);
+
           return (
             <div
               key={treino.idTreino}
@@ -233,6 +236,11 @@ export function FichaPdf({
                   )}
                 </tbody>
               </table>
+              {cardio && (
+                <div className="print-treino-callout">
+                  <strong>AERÓBICO PÓS-TREINO:</strong> {cardio.modelo.nome}, {cardio.minutos} min. {cardio.modelo.comoFazer(cardio.minutos)}
+                </div>
+              )}
               {mostrarRodape && (
                 <RodapeTreino texto={rodapeEfetivo(treino.rodape, profissional?.rodapeTreino)} variant="print" />
               )}
