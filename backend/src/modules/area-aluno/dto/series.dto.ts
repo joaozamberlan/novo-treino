@@ -10,6 +10,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { MAX_CARDIO_MINUTOS } from '../../treinos/dto/limites';
 
 // Os limites de tamanho impedem que um único
 // request dispare milhares de upserts no banco.
@@ -58,6 +59,15 @@ export class ExercicioSeriesDto {
   @ValidateNested({ each: true })
   @Type(() => SerieRealizadaDto)
   series: SerieRealizadaDto[];
+}
+
+export class RegistrarCardioDto {
+  // Minutos de aeróbico feitos; null desmarca
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(MAX_CARDIO_MINUTOS)
+  minutos?: number | null;
 }
 
 export class EncerrarSessaoDto {

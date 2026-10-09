@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -7,7 +8,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { MAX_ORDEM } from './limites';
+import { CARDIO_TIPOS, MAX_CARDIO_MINUTOS, MAX_ORDEM } from './limites';
 
 export class CreateTreinoDto {
   @IsString()
@@ -29,4 +30,14 @@ export class CreateTreinoDto {
   @Max(MAX_ORDEM)
   @IsNotEmpty({ message: 'A ordem é obrigatória' })
   ordem: number;
+
+  @IsIn(CARDIO_TIPOS, { message: 'Tipo de aeróbico inválido' })
+  @IsOptional()
+  cardioTipo?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(MAX_CARDIO_MINUTOS)
+  @IsOptional()
+  cardioMinutos?: number;
 }

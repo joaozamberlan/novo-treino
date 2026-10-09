@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { AddExercicioDto } from './add-exercicio.dto';
+import { UpdateTreinoDto } from './update-treino.dto';
 import { UpdateTreinoExercicioDto } from './update-treino-exercicio.dto';
 
 async function valida<T extends object>(cls: new () => T, body: unknown) {
@@ -45,5 +46,25 @@ describe('Limites numéricos da prescrição', () => {
     expect(
       (await valida(UpdateTreinoExercicioDto, { series: 1000 })).length,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe('Aeróbico da ficha', () => {
+  it('aceita um modelo conhecido com minutos, e null para remover', async () => {
+    expect(
+      await valida(UpdateTreinoDto, { cardioTipo: 'SIT', cardioMinutos: 15 }),
+    ).toHaveLength(0);
+    expect(
+      await valida(UpdateTreinoDto, { cardioTipo: null, cardioMinutos: null }),
+    ).toHaveLength(0);
+  });
+
+  it.each([
+    ['tipo fora dos modelos', { cardioTipo: 'CORRIDA', cardioMinutos: 20 }],
+    ['zero minutos', { cardioTipo: 'SIT', cardioMinutos: 0 }],
+    ['minutos demais', { cardioTipo: 'SIT', cardioMinutos: 301 }],
+    ['minutos quebrados', { cardioTipo: 'SIT', cardioMinutos: 12.5 }],
+  ])('rejeita %s', async (_caso, campos) => {
+    expect((await valida(UpdateTreinoDto, campos)).length).toBeGreaterThan(0);
   });
 });

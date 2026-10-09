@@ -204,7 +204,11 @@ export class AreaAlunoService {
           idTreino,
           concluida: true,
           data: hoje,
-          seriesRealizadas: { some: {} },
+          // Ficha só de aeróbico não tem séries: vale o cardio marcado
+          OR: [
+            { seriesRealizadas: { some: {} } },
+            { cardioMinutosFeitos: { not: null } },
+          ],
         },
         orderBy: [{ finalizadoEm: 'desc' }, { idSessao: 'desc' }],
         include: {
@@ -354,6 +358,7 @@ export class AreaAlunoService {
       concluida: sessao.concluida,
       finalizadoEm: sessao.finalizadoEm,
       concluidosIds: sessao.concluidos.map((c: any) => c.idTreinoExercicio),
+      cardioMinutosFeitos: sessao.cardioMinutosFeitos,
       seriesHoje,
       historicoAnterior,
     };
@@ -481,6 +486,44 @@ export class AreaAlunoService {
       });
       return { concluido: true, idTreinoExercicio };
     }
+  }
+
+  // Marca os minutos de aeróbico feitos na sessão; null desmarca
+  async registrarCardio(
+    idAluno: number,
+    idSessao: number,
+    minutos: number | null,
+  ) {
+    const sessao = await this.getSessaoDoAluno(idSessao, idAluno);
+
+    const treino = await this.prisma.treino.findFirst({
+      where: { idTreino: sessao.idTreino },
+      select: { cardioTipo: true },
+    });
+    if (!treino?.cardioTipo) {
+      throw new BadRequestException('Esta ficha não tem aeróbico prescrito.');
+    }
+
+    // Mesma regra das séries: a data da sessão é a do primeiro registro
+    const primeiroRegistro =
+      minutos !== null &&
+      sessao.cardioMinutosFeitos === null &&
+      (await this.prisma.sessaoExercicioSerie.count({
+        where: { idSessao: sessao.idSessao },
+      })) === 0;
+
+    const atualizada = await this.prisma.sessaoTreino.update({
+      where: { idSessao: sessao.idSessao },
+      data: {
+        cardioMinutosFeitos: minutos,
+        ...(primeiroRegistro ? { data: hojeEmSaoPaulo() } : {}),
+      },
+    });
+
+    return {
+      idSessao: atualizada.idSessao,
+      cardioMinutosFeitos: atualizada.cardioMinutosFeitos,
+    };
   }
 
   // Salva ou atualiza as séries de um exercício da sessão

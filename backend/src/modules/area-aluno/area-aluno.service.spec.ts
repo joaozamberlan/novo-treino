@@ -260,6 +260,71 @@ describe('AreaAlunoService — cadeia de posse da área do aluno', () => {
     expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
   });
 
+  describe('aeróbico da sessão', () => {
+    const SESSAO_SEM_CARDIO = {
+      ...SESSAO_DO_ALUNO_A,
+      cardioMinutosFeitos: null,
+    };
+
+    it('grava os minutos feitos e data a sessão no primeiro registro', async () => {
+      prisma.sessaoTreino.findFirst.mockResolvedValue(SESSAO_SEM_CARDIO);
+      prisma.treino.findFirst.mockResolvedValue({ cardioTipo: 'HIIT_1X1' });
+      prisma.sessaoTreino.update.mockResolvedValue({
+        idSessao: 500,
+        cardioMinutosFeitos: 20,
+      });
+
+      const result = await service.registrarCardio(ID_ALUNO_A, 500, 20);
+
+      expect(result).toEqual({ idSessao: 500, cardioMinutosFeitos: 20 });
+      expect(prisma.sessaoTreino.findFirst).toHaveBeenCalledWith(
+        consultaSessao(500, ID_ALUNO_A),
+      );
+      expect(prisma.sessaoTreino.update).toHaveBeenCalledWith({
+        where: { idSessao: 500 },
+        data: { cardioMinutosFeitos: 20, data: hojeEmSaoPaulo() },
+      });
+    });
+
+    it('desmarcar limpa os minutos sem mexer na data', async () => {
+      prisma.sessaoTreino.findFirst.mockResolvedValue({
+        ...SESSAO_SEM_CARDIO,
+        cardioMinutosFeitos: 20,
+      });
+      prisma.treino.findFirst.mockResolvedValue({ cardioTipo: 'HIIT_1X1' });
+      prisma.sessaoTreino.update.mockResolvedValue({
+        idSessao: 500,
+        cardioMinutosFeitos: null,
+      });
+
+      await service.registrarCardio(ID_ALUNO_A, 500, null);
+
+      expect(prisma.sessaoTreino.update).toHaveBeenCalledWith({
+        where: { idSessao: 500 },
+        data: { cardioMinutosFeitos: null },
+      });
+    });
+
+    it('rejeita quando a ficha não tem aeróbico prescrito', async () => {
+      prisma.sessaoTreino.findFirst.mockResolvedValue(SESSAO_SEM_CARDIO);
+      prisma.treino.findFirst.mockResolvedValue({ cardioTipo: null });
+
+      await expect(
+        service.registrarCardio(ID_ALUNO_A, 500, 20),
+      ).rejects.toThrow('Esta ficha não tem aeróbico prescrito.');
+      expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
+    });
+
+    it('rejeita a sessão de outro aluno', async () => {
+      prisma.sessaoTreino.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.registrarCardio(ID_ALUNO_A, 600, 20),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
+    });
+  });
+
   // 2. Aluno legítimo consegue marcar/desmarcar exercício.
   it('permite que o aluno legítimo marque um exercício como concluído', async () => {
     prisma.sessaoTreino.findFirst.mockResolvedValue(SESSAO_DO_ALUNO_A);
