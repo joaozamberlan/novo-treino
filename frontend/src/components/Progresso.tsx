@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { X } from 'lucide-react';
 import {
+  type CardioProgresso,
   type ExercicioProgresso,
   type Progresso,
   type StatusFaixa,
@@ -24,6 +25,7 @@ import {
   ultimaSessao,
   variacaoKg,
 } from '../utils/progresso';
+import { modeloCardio } from '../utils/cardio';
 
 const COR: Record<StatusFaixa, string> = {
   acima: 'var(--success)',
@@ -301,7 +303,8 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
   }
 
   const todos = progresso.fichas.flatMap((f) => f.exercicios).filter((e) => e.sessoes.length > 0);
-  if (todos.length === 0) {
+  const temCardioFeito = progresso.fichas.some((f) => (f.cardio?.sessoes.length ?? 0) > 0);
+  if (todos.length === 0 && !temCardioFeito) {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-1)' }}>
         O aluno ainda não registrou cargas no link desta periodização.
@@ -348,7 +351,9 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
 
       {progresso.fichas.map((f) => {
         const exs = f.exercicios.filter((e) => !filtro || (e.sessoes.length > 0 && statusAtual(e) === filtro));
-        if (exs.length === 0) return null;
+        // O aeróbico não tem faixa de repetições: some quando há filtro ativo
+        const cardio = filtro ? null : f.cardio;
+        if (exs.length === 0 && !cardio) return null;
         return (
           <section key={f.idTreino} className="prog-ficha">
             <h3>{f.nome}</h3>
@@ -356,6 +361,7 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
               {exs.map((e) => (
                 <CardExercicio key={e.idTreinoExercicio} e={e} onOpen={() => setAberto(e)} />
               ))}
+              {cardio && <CardCardio cardio={cardio} />}
             </div>
           </section>
         );
@@ -400,6 +406,58 @@ function CardExercicio({ e, onOpen }: { e: ExercicioProgresso; onOpen: () => voi
         {e.sessoes.length} {e.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(e.sessoes[0].data)}
       </span>
     </button>
+  );
+}
+
+// Aeróbico da ficha: prescrito × o que o aluno marcou nas últimas sessões
+const MAX_LINHAS_CARDIO = 6;
+
+function CardCardio({ cardio }: { cardio: CardioProgresso }) {
+  const nome = `Aeróbico · ${modeloCardio(cardio.tipo)?.nome ?? cardio.tipo}`;
+  const ultima = cardio.sessoes[cardio.sessoes.length - 1];
+
+  if (!ultima) {
+    return (
+      <div className="prog-card vazio">
+        <span className="prog-card-nome">{nome}</span>
+        <span className="prog-card-meta">Sem registros ainda · prescrito {cardio.minutos} min</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="prog-card" style={{ cursor: 'default' }}>
+      <div className="prog-card-topo">
+        <span className="prog-card-nome">{nome}</span>
+        {ultima.minutos < cardio.minutos && <span className="prog-selo abaixo">▼ Abaixo do prescrito</span>}
+      </div>
+      <div className="prog-card-valor">
+        <span className="prog-valor">
+          {ultima.minutos}
+          <small> min</small>
+        </span>
+        <span className="prog-variacao">de {cardio.minutos} prescritos</span>
+      </div>
+      <table className="prog-tabela">
+        <thead>
+          <tr>
+            <th>DATA</th>
+            <th>FEITO</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...cardio.sessoes].reverse().slice(0, MAX_LINHAS_CARDIO).map((s, i) => (
+            <tr key={s.data + i}>
+              <td className="prog-td-data">{formatData(s.data)}</td>
+              <td className={s.minutos < cardio.minutos ? 'prog-td-abaixo' : undefined}>{s.minutos} min</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <span className="prog-card-meta">
+        {cardio.sessoes.length} {cardio.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(cardio.sessoes[0].data)}
+      </span>
+    </div>
   );
 }
 

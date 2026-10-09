@@ -100,6 +100,10 @@ model Treino {
   nome        String
   observacao  String?
   rodape      String?              // null = usa o padrão do treinador; "" = sem rodapé nesta ficha
+  // Aeróbico da ficha (um por ficha). Os dois campos andam juntos: ambos
+  // preenchidos ou ambos nulos. Tipos em treinos/dto/limites.ts (CARDIO_TIPOS).
+  cardioTipo    String?
+  cardioMinutos Int?
   ordem       Int                  // Controla a ordem (ex: 1 = Treino A, 2 = Treino B)
   ativo       Boolean              @default(true)
 
@@ -185,6 +189,8 @@ model SessaoTreino {
   criadoEm     DateTime  @default(now())
   finalizadoEm DateTime?
   concluida    Boolean   @default(false)
+  // Minutos de aeróbico que o aluno fez nesta sessão; null = não marcou
+  cardioMinutosFeitos Int?
 
   aluno            Aluno                  @relation(fields: [idAluno], references: [idAluno], onDelete: Cascade)
   treino           Treino                 @relation(fields: [idTreino], references: [idTreino], onDelete: Cascade)

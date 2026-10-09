@@ -25,6 +25,18 @@ function validarPeriodo(
   }
 }
 
+// Tipo e minutos do aeróbico andam juntos: os dois preenchidos ou os dois vazios
+function validarCardio(
+  cardioTipo: string | null | undefined,
+  cardioMinutos: number | null | undefined,
+) {
+  if (!cardioTipo !== !cardioMinutos) {
+    throw new BadRequestException(
+      'Informe o tipo e os minutos do aeróbico, ou deixe os dois em branco.',
+    );
+  }
+}
+
 @Injectable()
 export class TreinosService {
   constructor(private prisma: PrismaService) {}
@@ -171,6 +183,8 @@ export class TreinosService {
               nome: t.nome,
               observacao: t.observacao,
               rodape: t.rodape,
+              cardioTipo: t.cardioTipo,
+              cardioMinutos: t.cardioMinutos,
               ordem: t.ordem,
               exercicios: {
                 create: t.exercicios.map((e) => ({
@@ -275,6 +289,7 @@ export class TreinosService {
     if (!protocolo) {
       throw new NotFoundException('Protocolo não encontrado');
     }
+    validarCardio(createDto.cardioTipo, createDto.cardioMinutos);
 
     return this.prisma.treino.create({
       data: {
@@ -299,6 +314,14 @@ export class TreinosService {
     if (!treino) {
       throw new NotFoundException('Ficha de treino não encontrada');
     }
+    validarCardio(
+      updateDto.cardioTipo !== undefined
+        ? updateDto.cardioTipo
+        : treino.cardioTipo,
+      updateDto.cardioMinutos !== undefined
+        ? updateDto.cardioMinutos
+        : treino.cardioMinutos,
+    );
 
     return this.prisma.treino.update({
       where: { idTreino },

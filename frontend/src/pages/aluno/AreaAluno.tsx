@@ -24,6 +24,8 @@ import { ModalPortal } from '../../components/ModalPortal';
 import { ActionMenu, type ActionMenuItem } from '../../components/ActionMenu';
 import { mensagemDeErro } from '../../utils/alunoAcesso';
 import { useAlunoAuth } from '../../contexts/AlunoAuthContext';
+import { CardioCabecalho, CardioRegistro } from '../../components/Cardio';
+import { cardioDaFicha, parseMinutosCardio } from '../../utils/cardio';
 
 const InstagramIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -75,6 +77,24 @@ interface ExerciseSetEntry {
   reps: string;
   completed: boolean;
 }
+
+// Aeróbico da sessão aberta. minutos null = o aluno ainda não mexeu no campo,
+// que então mostra o prescrito na ficha.
+interface CardioSessao {
+  minutos: string | null;
+  feito: boolean;
+}
+
+const CARDIO_VAZIO: CardioSessao = { minutos: null, feito: false };
+
+const lerCardioLocal = (idSessao: number): CardioSessao | null => {
+  try {
+    const salvo = localStorage.getItem(`workout-cardio-${idSessao}`);
+    return salvo ? JSON.parse(salvo) : null;
+  } catch {
+    return null;
+  }
+};
 
 interface PreviousSetRecord {
   numeroSerie: number;
@@ -192,6 +212,74 @@ export const AreaAluno: React.FC = () => {
   const [seriesPendentes, setSeriesPendentes] = useState<Record<number, number>>({});
   const [reenviando, setReenviando] = useState(false);
 
+  const [cardio, setCardio] = useState<CardioSessao>(CARDIO_VAZIO);
+  const cardioRef = useRef(cardio);
+  // idSessao cujo aeróbico não chegou ao servidor (o registro fica no localStorage)
+  const [cardioPendente, setCardioPendente] = useState<number | null>(null);
+
+  // Mesmo cuidado do commitSets: efeitos colaterais fora do updater, ref na hora
+  const commitCardio = (estado: CardioSessao, idSessao: number | null = sessaoId) => {
+    cardioRef.current = estado;
+    setCardio(estado);
+    if (idSessao) {
+      try {
+        localStorage.setItem(`workout-cardio-${idSessao}`, JSON.stringify(estado));
+      } catch { /* sem localStorage: o registro vale enquanto a tela estiver aberta */ }
+    }
+  };
+
+  const syncCardio = async (estado: CardioSessao, idSessao: number) => {
+    const minutos = estado.feito ? parseMinutosCardio(estado.minutos ?? '') : null;
+    if (estado.feito && minutos === null) return false;
+    const limparPendencia = () => setCardioPendente((prev) => (prev === idSessao ? null : prev));
+    try {
+      await alunoApi.post(`/aluno/sessao/${idSessao}/cardio`, { minutos });
+      limparPendencia();
+      return true;
+    } catch (err) {
+      console.error('Erro ao salvar o aeróbico:', err);
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      // O servidor recusou (sessão encerrada, protocolo trocado, ficha sem
+      // aeróbico): reenviar não resolve. Sem resposta é falta de conexão.
+      if (status && status < 500) {
+        if (status === 403) {
+          toast.error(mensagemDeErro(err, 'Este protocolo não é mais o atual.'), { id: 'protocolo-leitura' });
+          setTentativa((n) => n + 1);
+        }
+        limparPendencia();
+        return false;
+      }
+      setCardioPendente(idSessao);
+      return false;
+    }
+  };
+
+  const alternarCardio = (minutosPrescritos: number) => {
+    if (!sessaoId) return;
+    const atual = cardioRef.current;
+    const minutos = atual.minutos ?? String(minutosPrescritos);
+    if (!atual.feito && parseMinutosCardio(minutos) === null) {
+      toast.error('Informe quantos minutos de aeróbico você fez.');
+      return;
+    }
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate(15); } catch { /* aparelho sem vibração */ }
+    }
+    const novo = { minutos, feito: !atual.feito };
+    commitCardio(novo);
+    syncCardio(novo, sessaoId);
+  };
+
+  // Ao sair do campo com o aeróbico já marcado, grava os minutos novos. Campo
+  // inválido não pode ficar marcado como feito.
+  const confirmarMinutosCardio = () => {
+    const atual = cardioRef.current;
+    if (!sessaoId || !atual.feito) return;
+    const novo = parseMinutosCardio(atual.minutos ?? '') === null ? { ...atual, feito: false } : atual;
+    if (novo !== atual) commitCardio(novo);
+    syncCardio(novo, sessaoId);
+  };
+
   const saveLocalSets = (newMap: Record<number, ExerciseSetEntry[]>, currentSessaoId?: number | null) => {
     const sId = currentSessaoId || sessaoId;
     if (sId) {
@@ -268,7 +356,8 @@ export const AreaAluno: React.FC = () => {
   // sessão que já não está aberta na tela vêm do localStorage dessa sessão.
   const reenviarPendentes = async () => {
     const pendentes = Object.entries(seriesPendentesRef.current);
-    if (pendentes.length === 0 || reenviandoRef.current) return;
+    const idSessaoCardio = cardioPendenteRef.current;
+    if ((pendentes.length === 0 && idSessaoCardio === null) || reenviandoRef.current) return;
     reenviandoRef.current = true;
     setReenviando(true);
     try {
@@ -296,6 +385,14 @@ export const AreaAluno: React.FC = () => {
         }
         await syncSetsToServer(idTreinoExercicio, sets, idSessaoPendente);
       }
+      if (idSessaoCardio !== null) {
+        const estado = idSessaoCardio === sessaoIdRef.current ? cardioRef.current : lerCardioLocal(idSessaoCardio);
+        if (estado) {
+          await syncCardio(estado, idSessaoCardio);
+        } else {
+          setCardioPendente(null);
+        }
+      }
     } finally {
       reenviandoRef.current = false;
       setReenviando(false);
@@ -305,15 +402,17 @@ export const AreaAluno: React.FC = () => {
   // Refs lidas pelo reenvio (chamado por timer/evento, fora do render)
   const seriesPendentesRef = useRef(seriesPendentes);
   const sessaoIdRef = useRef(sessaoId);
+  const cardioPendenteRef = useRef(cardioPendente);
   const reenviandoRef = useRef(false);
   const reenviarPendentesRef = useRef(reenviarPendentes);
   useEffect(() => {
     seriesPendentesRef.current = seriesPendentes;
     sessaoIdRef.current = sessaoId;
+    cardioPendenteRef.current = cardioPendente;
     reenviarPendentesRef.current = reenviarPendentes;
   });
 
-  const temPendentes = Object.keys(seriesPendentes).length > 0;
+  const temPendentes = Object.keys(seriesPendentes).length > 0 || cardioPendente !== null;
 
   // Tenta de novo quando a conexão volta e, enquanto houver pendência, a cada 15s
   useEffect(() => {
@@ -504,6 +603,8 @@ export const AreaAluno: React.FC = () => {
         setSessaoConcluida(false);
         setFinalizadoEm(null);
         setSetsProgressMap({});
+        cardioRef.current = CARDIO_VAZIO;
+        setCardio(CARDIO_VAZIO);
         setProgresso(null);
         setActiveTabId(primeira?.idTreino ?? null);
         setErro(null);
@@ -585,6 +686,22 @@ export const AreaAluno: React.FC = () => {
       setFinalizadoEm(res.data.finalizadoEm || null);
       setHistoricoAnterior(res.data.historicoAnterior || null);
 
+      // Aeróbico: vale o servidor, menos quando há registro deste aparelho que
+      // ainda não foi enviado (marcado sem conexão).
+      const idSessao: number = res.data.idSessao;
+      const cardioLocal = lerCardioLocal(idSessao);
+      const cardioServidor: number | null = res.data.cardioMinutosFeitos ?? null;
+      if (cardioLocal && cardioPendenteRef.current === idSessao) {
+        commitCardio(cardioLocal, null);
+      } else if (cardioServidor !== null) {
+        commitCardio({ minutos: String(cardioServidor), feito: true }, idSessao);
+      } else if (cardioLocal?.feito) {
+        commitCardio(cardioLocal, null);
+        setCardioPendente(idSessao);
+      } else {
+        commitCardio(cardioLocal ?? CARDIO_VAZIO, null);
+      }
+
       // Se há séries salvas hoje no servidor, sincroniza com o estado do app
       if (res.data.seriesHoje && Object.keys(res.data.seriesHoje).length > 0) {
         const next: Record<number, ExerciseSetEntry[]> = {};
@@ -640,6 +757,7 @@ export const AreaAluno: React.FC = () => {
   // Troca de aba: limpa lista antes de buscar nova sessão
   const handleTabChange = (idTreino: number) => {
     setActiveTabId(idTreino);
+    commitCardio(CARDIO_VAZIO, null);
     setSessaoId(null);
     setHistoricoAnterior(null);
     setSessaoConcluida(false);
@@ -704,6 +822,7 @@ export const AreaAluno: React.FC = () => {
     try {
       setShowCelebrationModal(false);
       setSetsProgressMap({});
+      commitCardio(CARDIO_VAZIO, null);
 
       const res = await alunoApi.post(`/aluno/sessao/${activeTabId}/nova`);
       setSessaoId(res.data.idSessao);
@@ -776,6 +895,7 @@ export const AreaAluno: React.FC = () => {
   const activeFicha = protocolo?.treinos.find(t => t.idTreino === activeTabId);
   const sortedTreinos = protocolo?.treinos ? [...protocolo.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const sortedExercicios = activeFicha?.exercicios ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
+  const cardioFicha = cardioDaFicha(activeFicha);
 
   const totalSeriesTotal = sortedExercicios.reduce((acc, ex) => {
     const s = getExerciseSets(ex);
@@ -999,6 +1119,9 @@ export const AreaAluno: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Aeróbico da ficha: aviso fixo; o registro fica depois dos exercícios */}
+            {cardioFicha && <CardioCabecalho modelo={cardioFicha.modelo} minutos={cardioFicha.minutos} />}
 
             {/* Exercises List — Tactile iOS Pro with Manual Set Progression */}
             <div className="exercise-stack" style={{ gap: '1rem' }}>
@@ -1306,17 +1429,29 @@ export const AreaAluno: React.FC = () => {
                     </div>
                   );
                 })
-              ) : (
+              ) : !cardioFicha && (
                 <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-2)' }}>
                   Nenhum exercício prescrito nesta ficha.
                 </div>
               )}
             </div>
 
+            {isAtual && cardioFicha && (
+              <CardioRegistro
+                modelo={cardioFicha.modelo}
+                minutosPrescritos={cardioFicha.minutos}
+                minutos={cardio.minutos ?? String(cardioFicha.minutos)}
+                feito={cardio.feito}
+                onMinutos={(valor) => commitCardio({ ...cardioRef.current, minutos: valor })}
+                onConfirmarMinutos={confirmarMinutosCardio}
+                onAlternar={() => alternarCardio(cardioFicha.minutos)}
+              />
+            )}
+
             <RodapeTreino texto={rodapeEfetivo(activeFicha?.rodape, profissional.rodapeTreino)} variant="screen" />
 
             {/* Action Bar: Encerrar Treino / Treino Finalizado */}
-            {isAtual && sortedExercicios.length > 0 && (
+            {isAtual && (sortedExercicios.length > 0 || cardioFicha) && (
               sessaoConcluida ? (
                 <div className="workout-completed-banner">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -1347,7 +1482,9 @@ export const AreaAluno: React.FC = () => {
                       Progresso da Sessão
                     </span>
                     <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-0)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
-                      {totalSeriesConcluidas} de {totalSeriesTotal} séries concluídas
+                      {totalSeriesTotal > 0
+                        ? `${totalSeriesConcluidas} de ${totalSeriesTotal} séries concluídas`
+                        : `Aeróbico ${cardio.feito ? 'feito' : 'pendente'}`}
                       {completedExercisesCount > 0 && (
                         <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-1)', marginLeft: '0.5rem' }}>
                           ({completedExercisesCount}/{sortedExercicios.length} exerc.)
@@ -1401,8 +1538,8 @@ export const AreaAluno: React.FC = () => {
             <AlertCircle size={18} aria-hidden="true" />
             <span>
               {reenviando
-                ? 'Salvando suas séries…'
-                : 'Algumas séries não foram salvas. Elas estão guardadas neste aparelho e serão enviadas quando a conexão voltar.'}
+                ? 'Salvando seus registros…'
+                : 'Alguns registros não foram salvos. Eles estão guardados neste aparelho e serão enviados quando a conexão voltar.'}
             </span>
             <button type="button" onClick={() => reenviarPendentes()} disabled={reenviando}>
               Tentar agora

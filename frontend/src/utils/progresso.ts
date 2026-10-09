@@ -24,9 +24,17 @@ export interface ExercicioProgresso {
   sessoes: SessaoProgresso[];
 }
 
+// Aeróbico da ficha: prescrito × minutos que o aluno marcou em cada sessão
+export interface CardioProgresso {
+  tipo: string;
+  minutos: number;
+  sessoes: { data: string; minutos: number }[];
+}
+
 export interface FichaProgresso {
   idTreino: number;
   nome: string;
+  cardio?: CardioProgresso | null;
   exercicios: ExercicioProgresso[];
 }
 

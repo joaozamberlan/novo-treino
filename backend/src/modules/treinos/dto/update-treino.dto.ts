@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -7,7 +8,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { MAX_ORDEM } from './limites';
+import { CARDIO_TIPOS, MAX_CARDIO_MINUTOS, MAX_ORDEM } from './limites';
 
 // Nunca inclui idProtocolo — reatribuir esse campo via body permitiria mover
 // a ficha para o protocolo de outro treinador (ou de outro aluno).
@@ -30,6 +31,17 @@ export class UpdateTreinoDto {
   @IsOptional()
   @MaxLength(1000)
   rodape?: string | null;
+
+  // null nos dois campos remove o aeróbico da ficha
+  @IsIn(CARDIO_TIPOS, { message: 'Tipo de aeróbico inválido' })
+  @IsOptional()
+  cardioTipo?: string | null;
+
+  @IsInt()
+  @Min(1)
+  @Max(MAX_CARDIO_MINUTOS)
+  @IsOptional()
+  cardioMinutos?: number | null;
 
   @IsInt()
   @Min(0)

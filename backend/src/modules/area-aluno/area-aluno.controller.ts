@@ -13,7 +13,11 @@ import { AlunoAuthService } from './aluno-auth.service';
 import { JwtAlunoGuard } from './jwt-aluno.guard';
 import { GetAluno } from './get-aluno.decorator';
 import type { AlunoLogado } from './jwt-aluno.strategy';
-import { EncerrarSessaoDto, SalvarSeriesDto } from './dto/series.dto';
+import {
+  EncerrarSessaoDto,
+  RegistrarCardioDto,
+  SalvarSeriesDto,
+} from './dto/series.dto';
 
 // Área do aluno logado (telefone + PIN). O aluno de cada rota vem sempre do
 // JWT — nenhum endpoint aceita idAluno pela URL ou pelo body.
@@ -114,6 +118,20 @@ export class AreaAlunoController {
       idSessao,
       idTreinoExercicio,
       numeroSerie,
+    );
+  }
+
+  // POST /aluno/sessao/:idSessao/cardio — marca (ou desmarca) o aeróbico da sessão
+  @Post('sessao/:idSessao/cardio')
+  async registrarCardio(
+    @GetAluno() aluno: AlunoLogado,
+    @Param('idSessao', ParseIntPipe) idSessao: number,
+    @Body() body: RegistrarCardioDto,
+  ) {
+    return this.areaAlunoService.registrarCardio(
+      aluno.idAluno,
+      idSessao,
+      body.minutos ?? null,
     );
   }
 

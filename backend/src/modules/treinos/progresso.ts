@@ -1,7 +1,8 @@
 import { PrismaService } from '../../prisma/prisma.service';
 
 // Progresso de cargas: histórico da melhor série de cada exercício das fichas
-// de uma periodização. Usado pelo treinador (autenticado) e pelo link público.
+// de uma periodização, mais o aeróbico feito em cada ficha. Usado pelo
+// treinador (autenticado) e pelo link público.
 //
 // - Conta toda série marcada como feita, mesmo em sessões não encerradas
 //   (o aluno costuma esquecer de clicar em "Encerrar treino").
@@ -51,6 +52,8 @@ export async function buildProgresso(
     select: {
       idTreino: true,
       nome: true,
+      cardioTipo: true,
+      cardioMinutos: true,
       exercicios: {
         where: { ativo: true },
         orderBy: { ordem: 'asc' },
@@ -125,13 +128,44 @@ export async function buildProgresso(
         };
       });
 
-  const datas = series.map((s) => s.sessao.data).sort();
+  // Aeróbico: minutos que o aluno marcou em cada sessão das fichas que têm
+  // aeróbico prescrito. Sessão sem marcação não entra.
+  const idsComCardio = treinos
+    .filter((t) => t.cardioTipo && t.cardioMinutos)
+    .map((t) => t.idTreino);
+  const sessoesCardio = idsComCardio.length
+    ? await prisma.sessaoTreino.findMany({
+        where: {
+          idAluno,
+          idTreino: { in: idsComCardio },
+          cardioMinutosFeitos: { not: null },
+        },
+        orderBy: [{ data: 'asc' }, { idSessao: 'asc' }],
+        select: { idTreino: true, data: true, cardioMinutosFeitos: true },
+      })
+    : [];
+
+  const datas = [
+    ...series.map((s) => s.sessao.data),
+    ...sessoesCardio.map((s) => s.data),
+  ].sort();
 
   return {
     ultimaSessao: datas.length ? datas[datas.length - 1] : null,
     fichas: treinos.map((t) => ({
       idTreino: t.idTreino,
       nome: t.nome,
+      cardio:
+        t.cardioTipo && t.cardioMinutos
+          ? {
+              tipo: t.cardioTipo,
+              minutos: t.cardioMinutos,
+              sessoes: sessoesCardio
+                .filter((s) => s.idTreino === t.idTreino)
+                .slice(-MAX_SESSOES)
+                .map((s) => ({ data: s.data, minutos: s.cardioMinutosFeitos })),
+            }
+          : null,
       exercicios: t.exercicios.map((e) => ({
         idTreinoExercicio: e.idTreinoExercicio,
         idExercicio: e.idExercicio,

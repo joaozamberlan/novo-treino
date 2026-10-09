@@ -114,6 +114,10 @@ Detalhes relevantes:
 - `TreinoExercicio.repeticoes` é texto livre; `parseFaixa` extrai a faixa numérica.
 - Descanso: `descansoSegundos` (mín.) + `descansoMaxSegundos` (máx., opcional).
 - Limites em `treinos/dto/limites.ts`: `MAX_SERIES = 30`, `MAX_DESCANSO_SEGUNDOS = 3600`.
+- Aeróbico: um por ficha, em `Treino.cardioTipo` + `Treino.cardioMinutos` (os dois juntos ou
+  os dois nulos). Os modelos são fixos (`CARDIO_TIPOS` em `limites.ts`); nomes e textos ficam
+  no frontend, em `utils/cardio.ts`. O aluno marca os minutos feitos em
+  `SessaoTreino.cardioMinutosFeitos` (`POST /aluno/sessao/:idSessao/cardio`).
 
 ### 3.7 Progresso (`treinos/progresso.ts`)
 Resposta única para `GET /treinos/progresso/:idProtocolo` e `GET /aluno/progresso/:idProtocolo`.

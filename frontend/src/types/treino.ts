@@ -39,6 +39,9 @@ export interface FichaTreino {
   nome: string;
   observacao?: string;
   rodape?: string | null;
+  // Aeróbico da ficha (utils/cardio.ts); os dois vazios = sem aeróbico
+  cardioTipo?: string | null;
+  cardioMinutos?: number | null;
   ordem: number;
   exercicios: PrescribedExercise[];
 }

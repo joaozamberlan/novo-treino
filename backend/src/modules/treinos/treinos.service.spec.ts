@@ -102,6 +102,49 @@ describe('TreinosService — isolamento entre treinadores (multi-tenancy)', () =
     });
   });
 
+  it('aeróbico da ficha exige tipo e minutos juntos', async () => {
+    prisma.treino.findFirst.mockResolvedValue({
+      ...TREINO_DE_A,
+      cardioTipo: null,
+      cardioMinutos: null,
+    });
+
+    await expect(
+      service.updateTreino(200, ID_PROFISSIONAL_A, { cardioTipo: 'SIT' }),
+    ).rejects.toThrow('Informe o tipo e os minutos do aeróbico');
+    expect(prisma.treino.update).not.toHaveBeenCalled();
+
+    await service.updateTreino(200, ID_PROFISSIONAL_A, {
+      cardioTipo: 'SIT',
+      cardioMinutos: 15,
+    });
+    expect(prisma.treino.update).toHaveBeenCalledWith({
+      where: { idTreino: 200 },
+      data: { cardioTipo: 'SIT', cardioMinutos: 15 },
+    });
+  });
+
+  it('remover o aeróbico da ficha limpa os dois campos', async () => {
+    prisma.treino.findFirst.mockResolvedValue({
+      ...TREINO_DE_A,
+      cardioTipo: 'HIIT_1X1',
+      cardioMinutos: 20,
+    });
+
+    await expect(
+      service.updateTreino(200, ID_PROFISSIONAL_A, { cardioTipo: null }),
+    ).rejects.toThrow('Informe o tipo e os minutos do aeróbico');
+
+    await service.updateTreino(200, ID_PROFISSIONAL_A, {
+      cardioTipo: null,
+      cardioMinutos: null,
+    });
+    expect(prisma.treino.update).toHaveBeenCalledWith({
+      where: { idTreino: 200 },
+      data: { cardioTipo: null, cardioMinutos: null },
+    });
+  });
+
   it('remover exercício da ficha só o desativa, preservando as séries', async () => {
     prisma.treinoExercicio.findFirst.mockResolvedValue({
       idTreinoExercicio: 400,
@@ -235,6 +278,8 @@ describe('TreinosService — duplicarProtocolo', () => {
       {
         nome: 'Treino A',
         observacao: null,
+        cardioTipo: 'HIIT_4X4',
+        cardioMinutos: 25,
         ordem: 1,
         exercicios: [
           {
@@ -303,6 +348,10 @@ describe('TreinosService — duplicarProtocolo', () => {
     });
     expect(data.tokenPublico).toEqual(expect.any(String));
     expect(data).not.toHaveProperty('dataInicio');
+    expect(data.treinos.create[0]).toMatchObject({
+      cardioTipo: 'HIIT_4X4',
+      cardioMinutos: 25,
+    });
     const ex = data.treinos.create[0].exercicios.create[0];
     expect(ex).toMatchObject({
       idExercicio: 300,
