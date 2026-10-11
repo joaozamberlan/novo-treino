@@ -23,7 +23,7 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
 - [x] 1. Backend: `EmailService` (Resend), templates, `TokenRedefinicaoSenha`, rotas de recuperação, e-mail de conta aprovada.
 - [x] 2. Frontend: modal "Esqueceu a senha?" com envio de link e página `/redefinir-senha`.
 - [ ] 3. Definir o nome do app, comprar o domínio, verificar no Resend e configurar as variáveis no Railway.
-- [ ] 4. Conferir no navegador o modal com o envio ligado e a página `/redefinir-senha` (claro, escuro e celular).
+- [x] 4. Conferido no navegador em 2026-10-10: modal (ligado e desligado), página `/redefinir-senha` e e-mails, em tela larga e em 390 px, tema claro. Falta só o tema escuro.
 - [ ] 5. Gatilhos dos e-mails de assinatura, quando a cobrança existir.
 
 ### App nativo (plano: `docs/plans/2026-09-24-app-mobile-multiplataforma-design.md`)
