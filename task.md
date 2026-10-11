@@ -19,6 +19,13 @@ Ao terminar uma tarefa, marque `[x]` e registre decisões relevantes em [MEMORY.
 - [ ] 5b. Conferir no iPhone o topo da área do treinador depois do ajuste de folga, e testar no Android.
 - [x] 6. Publicado em produção em 2026-09-30 (migration `add_login_aluno` aplicada).
 
+### E-mails transacionais (plano: `docs/plans/2026-10-10-emails-transacionais-design.md`)
+- [x] 1. Backend: `EmailService` (Resend), templates, `TokenRedefinicaoSenha`, rotas de recuperação, e-mail de conta aprovada.
+- [x] 2. Frontend: modal "Esqueceu a senha?" com envio de link e página `/redefinir-senha`.
+- [ ] 3. Definir o nome do app, comprar o domínio, verificar no Resend e configurar as variáveis no Railway.
+- [x] 4. Conferido no navegador em 2026-10-10: modal (ligado e desligado), página `/redefinir-senha` e e-mails, em tela larga e em 390 px, tema claro. Falta só o tema escuro.
+- [ ] 5. Gatilhos dos e-mails de assinatura, quando a cobrança existir.
+
 ### App nativo (plano: `docs/plans/2026-09-24-app-mobile-multiplataforma-design.md`)
 - [ ] 1. Instalar Capacitor (`core`, `cli`, `ios`, `android`), `capacitor.config.ts` e modo `vite build --mode native`.
 - [ ] 2. Camada `src/platform/` (storage, share, haptics, notifications, openExternal).

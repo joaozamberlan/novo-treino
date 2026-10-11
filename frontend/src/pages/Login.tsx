@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, X } from 'lucide-react';
+import api from '../services/api';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 import { useTema } from '../hooks/useTema';
 import { useTopoEscuro } from '../hooks/useTopoEscuro';
@@ -23,6 +24,12 @@ export const Login: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  // null = ainda perguntando ao servidor se o envio de e-mail está configurado
+  const [recuperacaoPorEmail, setRecuperacaoPorEmail] = useState<boolean | null>(null);
+  const [emailRecuperacao, setEmailRecuperacao] = useState('');
+  const [enviandoLink, setEnviandoLink] = useState(false);
+  const [avisoLinkEnviado, setAvisoLinkEnviado] = useState('');
+  const [erroRecuperacao, setErroRecuperacao] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +61,42 @@ export const Login: React.FC = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const abrirRecuperacao = () => {
+    setEmailRecuperacao(emailField.value.trim());
+    setAvisoLinkEnviado('');
+    setErroRecuperacao('');
+    setRecuperacaoPorEmail(null);
+    setShowForgotModal(true);
+    // Sem resposta do servidor, vale o caminho que sempre funciona: o administrador
+    api.get('/auth/recuperacao-senha')
+      .then((res) => setRecuperacaoPorEmail(res.data?.disponivel === true))
+      .catch(() => setRecuperacaoPorEmail(false));
+  };
+
+  const handleEnviarLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = emailRecuperacao.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErroRecuperacao('Informe um e-mail válido');
+      return;
+    }
+
+    setErroRecuperacao('');
+    setEnviandoLink(true);
+    try {
+      const res = await api.post('/auth/esqueci-senha', { email });
+      setAvisoLinkEnviado(res.data.message);
+    } catch (err: any) {
+      const mensagem = err.response?.data?.message;
+      setErroRecuperacao(
+        (Array.isArray(mensagem) ? mensagem[0] : mensagem) ||
+        'Não foi possível enviar o link. Tente de novo em instantes.'
+      );
+    } finally {
+      setEnviandoLink(false);
     }
   };
 
@@ -184,7 +227,7 @@ export const Login: React.FC = () => {
                 <label className="form-label" htmlFor="senha" style={{ marginBottom: 0 }}>Senha de Acesso</label>
                 <button
                   type="button"
-                  onClick={() => setShowForgotModal(true)}
+                  onClick={abrirRecuperacao}
                   className="link-acao"
                 >
                   Esqueceu a senha?
@@ -277,50 +320,90 @@ export const Login: React.FC = () => {
               </button>
             </div>
 
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p>
-                Para sua segurança, a redefinição de acesso é realizada mediante validação da equipe de administração.
-              </p>
+            {recuperacaoPorEmail === null && (
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-1)' }} role="status">Carregando…</p>
+            )}
 
-              <div style={{
-                backgroundColor: 'var(--bg-2)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-m)',
-                padding: '0.85rem 1rem',
-              }}>
-                <div style={{ fontWeight: 700, color: 'var(--text-0)', marginBottom: '0.35rem' }}>
-                  Como recuperar seu acesso:
+            {recuperacaoPorEmail === true && avisoLinkEnviado && (
+              <>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }} role="status">
+                  <p>{avisoLinkEnviado}</p>
+                  <p>O link vale por 60 minutos. Se o e-mail não chegar em alguns minutos, confira a caixa de spam.</p>
                 </div>
-                <ol style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.8125rem', color: 'var(--text-1)', lineHeight: '1.5' }}>
-                  <li>Solicite a redefinição ao <strong>Administrador</strong> do sistema.</li>
-                  <li>O administrador gerará uma <strong>senha temporária</strong> para sua conta.</li>
-                  <li>Após entrar na plataforma, você poderá cadastrar sua nova senha em <strong>Configurações &gt; Segurança</strong>.</li>
-                </ol>
-              </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
+                    Entendido
+                  </button>
+                </div>
+              </>
+            )}
 
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.75rem',
-                color: 'var(--accent-text)',
-                backgroundColor: 'var(--accent-dim)',
-                padding: '0.65rem 0.85rem',
-                borderRadius: 'var(--radius-s)',
-                border: '1px solid var(--accent-border)',
-              }}>
-                <Sparkles size={16} style={{ flexShrink: 0 }} />
-                <span>
-                  <strong>Em breve:</strong> O envio automático de link de redefinição por e-mail será disponibilizado em atualizações futuras.
-                </span>
-              </div>
-            </div>
+            {recuperacaoPorEmail === true && !avisoLinkEnviado && (
+              <form onSubmit={handleEnviarLink} noValidate>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <p>
+                    Informe o e-mail da sua conta. Enviaremos um link para você criar uma senha nova.
+                  </p>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="emailRecuperacao">E-mail da conta</label>
+                    <input
+                      id="emailRecuperacao"
+                      type="email"
+                      className={`form-input ${erroRecuperacao ? 'form-input--error' : ''}`}
+                      placeholder="exemplo@treinador.com"
+                      value={emailRecuperacao}
+                      maxLength={254}
+                      onChange={(e) => setEmailRecuperacao(e.target.value)}
+                      autoComplete="email"
+                      disabled={enviandoLink}
+                    />
+                    {erroRecuperacao && (
+                      <span className="field-error" role="alert">{erroRecuperacao}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowForgotModal(false)} disabled={enviandoLink}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={enviandoLink} style={{ flex: 1 }}>
+                    {enviandoLink ? 'Enviando…' : 'Enviar link'}
+                  </button>
+                </div>
+              </form>
+            )}
 
-            <div className="modal-footer">
-              <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
-                Entendido
-              </button>
-            </div>
+            {recuperacaoPorEmail === false && (
+              <>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <p>
+                    Para sua segurança, a redefinição de acesso é realizada mediante validação da equipe de administração.
+                  </p>
+
+                  <div style={{
+                    backgroundColor: 'var(--bg-2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-m)',
+                    padding: '0.85rem 1rem',
+                  }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-0)', marginBottom: '0.35rem' }}>
+                      Como recuperar seu acesso:
+                    </div>
+                    <ol style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.8125rem', color: 'var(--text-1)', lineHeight: '1.5' }}>
+                      <li>Solicite a redefinição ao <strong>Administrador</strong> do sistema.</li>
+                      <li>O administrador gerará uma <strong>senha temporária</strong> para sua conta.</li>
+                      <li>Após entrar na plataforma, você poderá cadastrar sua nova senha em <strong>Configurações &gt; Segurança</strong>.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
+                    Entendido
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
         </ModalPortal>

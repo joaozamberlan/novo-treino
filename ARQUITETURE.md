@@ -56,7 +56,8 @@ class-validator, helmet, `@nestjs/throttler`. Node ≥ 22.
 
 | Módulo | Prefixo | Guard | Responsabilidade |
 |---|---|---|---|
-| auth | `/auth` | throttle 5/min | `register`, `login` |
+| auth | `/auth` | throttle 5/min | `register`, `login`, `recuperacao-senha` (GET), `esqueci-senha`, `redefinir-senha` |
+| email | (sem rotas) | n/a | envio pelo Resend e templates HTML; desligado sem `RESEND_API_KEY`, `EMAIL_FROM` e `FRONTEND_URL` |
 | profissionais | `/profissionais` | JWT | `me` (GET/PATCH), `me/senha`, `me/logo` |
 | profissionais (admin) | `/admin` | JWT + AdminGuard | listar, status, role, reset de senha |
 | alunos | `/alunos` | JWT | CRUD + `token/regenerar`, `token/revogar` |
@@ -96,7 +97,18 @@ Limite global: 60 req/min por IP.
 - `Aluno.telefoneLogin`: telefone só com dígitos e DDI (`common/utils/telefone.ts`).
 - Revogar o acesso ou redefinir o PIN sobe `Aluno.versaoToken` e derruba as sessões.
 
-### 3.6 Modelo de dados (resumo)
+### 3.6 E-mails e recuperação de senha
+- `EmailService` (`modules/email`) envia pela API HTTP do Resend e nunca lança: falha vira
+  log. Sem as três variáveis de ambiente, `disponivel` é `false` e nada é enviado.
+- Templates em `email.templates.ts`, todos no mesmo layout: redefinição de senha, conta
+  aprovada, assinatura confirmada e assinatura vencendo (os dois últimos ainda sem gatilho).
+- `TokenRedefinicaoSenha` guarda só o SHA-256 do token. O link vale 60 minutos, é de uso
+  único e um pedido novo apaga os anteriores.
+- `POST /auth/esqueci-senha` responde igual com ou sem conta e envia sem `await`.
+- Redefinir sobe `Profissional.versaoToken` e não mexe em `ativo`.
+- Plano: `docs/plans/2026-10-10-emails-transacionais-design.md`.
+
+### 3.7 Modelo de dados (resumo)
 
 ```
 Profissional ─┬─< Aluno ─┬─< ProtocoloTreino ─< Treino ─< TreinoExercicio >─ Exercicio >─ GrupoMuscular
@@ -119,7 +131,7 @@ Detalhes relevantes:
   no frontend, em `utils/cardio.ts`. O aluno marca os minutos feitos em
   `SessaoTreino.cardioMinutosFeitos` (`POST /aluno/sessao/:idSessao/cardio`).
 
-### 3.7 Progresso (`treinos/progresso.ts`)
+### 3.8 Progresso (`treinos/progresso.ts`)
 Resposta única para `GET /treinos/progresso/:idProtocolo` e `GET /aluno/progresso/:idProtocolo`.
 Agrupa por `idExercicio` (atravessa periodizações), últimas 12 sessões, melhor série por sessão.
 O frontend espelha os tipos em `frontend/src/utils/progresso.ts`.

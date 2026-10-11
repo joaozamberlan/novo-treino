@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
+import { EmailService } from '../email/email.service';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
 import { apiBaseUrl } from '../../common/utils/base-url';
 import {
@@ -18,6 +19,7 @@ export class ProfissionaisService {
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
+    private emailService: EmailService,
   ) {}
 
   async getProfile(idProfissional: number) {
@@ -105,7 +107,7 @@ export class ProfissionaisService {
     if (!exists) {
       throw new NotFoundException('Profissional não encontrado');
     }
-    return this.prisma.profissional.update({
+    const atualizado = await this.prisma.profissional.update({
       where: { idProfissional },
       data: { ativo },
       select: {
@@ -114,6 +116,16 @@ export class ProfissionaisService {
         ativo: true,
       },
     });
+
+    // Só na passagem de pendente/suspensa para ativa. Sem await: o admin não
+    // espera o provedor de e-mail, e uma falha de envio não desfaz a aprovação.
+    if (ativo && !exists.ativo) {
+      void this.emailService.enviarContaAprovada(exists.email, {
+        nome: exists.nome,
+      });
+    }
+
+    return atualizado;
   }
 
   async updateProfessionalRole(

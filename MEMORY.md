@@ -24,6 +24,12 @@ seção correspondente, com data.
   depois o treinador fica só com leitura até 30 dias, e só então o link mostra
   "Ficha indisponível no momento, fale com seu treinador.". A mensagem nunca cita
   pagamento, para não constranger o treinador diante do cliente. Detalhes em PRD §3.3. *(2026-09-30)*
+- **E-mails prontos, mas desligados até existir domínio:** o nome do app ainda não foi
+  definido, então não há domínio para verificar no Resend. O envio liga sozinho com
+  `RESEND_API_KEY`, `EMAIL_FROM` e `FRONTEND_URL` no Railway. Os e-mails de assinatura
+  (confirmada, vencendo) têm template mas não têm gatilho: a cobrança não existe.
+  "Conta aprovada" hoje sai quando o admin ativa a conta; com a assinatura, passará a
+  sair no pagamento. *(2026-10-10)*
 - **Modelo de negócio:** o treinador paga mensalidade ao app; o aluno dele paga o treinador
   por fora, sem o app intermediar. O Plano Aluno é para quem treina sozinho: monta o próprio
   treino, sem alunos e sem links de compartilhamento. *(2026-09-30)*
