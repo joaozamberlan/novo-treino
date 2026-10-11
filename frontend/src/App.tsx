@@ -7,6 +7,7 @@ import { AlunoAuthProvider, useAlunoAuth } from './contexts/AlunoAuthContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { RedefinirSenha } from './pages/RedefinirSenha';
 import { Entrada } from './pages/Entrada';
 import { AlunoEntrar } from './pages/aluno/AlunoEntrar';
 import { AlunoLink } from './pages/aluno/AlunoLink';
@@ -74,6 +75,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/entrada" element={<Entrada />} />
 
             {/* Aluno: o link do treinador (primeiro acesso), o login e a área logada */}

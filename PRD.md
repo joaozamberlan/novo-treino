@@ -106,6 +106,9 @@ Decisões ainda não tomadas. Não implementar nada disso antes de respondidas.
 - Cadastro (`/register`) com nome, e-mail, senha, profissão, telefone, Instagram; CREF opcional.
 - Conta nasce **pendente** (`ativo = false`) até o admin aprovar.
 - Login (`/login`) com JWT; trocar senha invalida sessões antigas (`versaoToken`).
+- Recuperação de senha por e-mail (`/redefinir-senha`), com link de 60 minutos e uso único.
+  Fica desligada até o envio de e-mail ser configurado; até lá, o admin gera a senha temporária.
+- E-mail de conta aprovada quando o admin libera o acesso.
 - Configurações: dados de perfil, contatos, logo (guardada no banco), rodapé padrão das fichas, troca de senha.
 - Tema claro/escuro.
 

@@ -33,6 +33,21 @@ model Profissional {
   tecnicas         TecnicaTreino[]
   instrucoes       InstrucaoTreino[]
   logo             LogoProfissional?
+  tokensRedefinicaoSenha TokenRedefinicaoSenha[]
+}
+
+// Link de redefinição de senha enviado por e-mail. Guarda só o hash do token;
+// a linha é apagada quando o link é usado ou substituído por um pedido novo.
+model TokenRedefinicaoSenha {
+  idToken        Int          @id @default(autoincrement())
+  idProfissional Int
+  tokenHash      String       @unique
+  expiraEm       DateTime
+  criadoEm       DateTime     @default(now())
+
+  profissional   Profissional @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)
+
+  @@index([idProfissional])
 }
 
 // Logo guardada no banco: o disco do container no Railway é apagado a cada
