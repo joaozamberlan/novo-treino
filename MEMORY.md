@@ -49,6 +49,12 @@ seção correspondente, com data.
   passou a servir só para o primeiro acesso, quando ele cria o PIN. *(2026-09-30)*
 - **PIN, e não código por SMS/WhatsApp:** sem custo por mensagem. Se o aluno esquece, o
   treinador redefine e reenvia o link. *(2026-09-30)*
+- **Sessão aberta de outro dia é encerrada sozinha** quando o aluno abre a ficha de novo
+  e ela já tem algum registro (série, exercício marcado ou aeróbico). Antes ela era
+  reaproveitada: o treino da semana seguinte sobrescrevia o anterior e mantinha a data
+  antiga, e a tabela de progresso perdia semanas. O dia de treino vira às 4h, para não
+  partir em dois um treino que passa da meia-noite. O que já foi sobrescrito antes de
+  2026-10-10 não tem como recuperar. *(2026-10-10)*
 - **Protocolos anteriores são somente leitura para o aluno:** ele consulta fichas e
   histórico, mas só registra cargas no protocolo atual. *(2026-09-30)*
 - **"Inativo" não bloqueia o login do aluno**, como já não bloqueava o link. Para cortar o

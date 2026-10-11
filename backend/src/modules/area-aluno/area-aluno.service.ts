@@ -10,10 +10,19 @@ import { buildProgresso } from '../treinos/progresso';
 
 // Data de hoje no fuso dos alunos ('YYYY-MM-DD'). O servidor roda em UTC:
 // toISOString() jogava treinos feitos depois das 21h para o dia seguinte.
-export function hojeEmSaoPaulo(): string {
+export function hojeEmSaoPaulo(agora: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
-  }).format(new Date());
+  }).format(agora);
+}
+
+// Um treino que passa da meia-noite continua sendo do dia em que começou: até
+// as 4h, o "dia de treino" ainda é o anterior.
+const VIRADA_DO_DIA_HORAS = 4;
+export function diaDeTreino(agora: Date = new Date()): string {
+  return hojeEmSaoPaulo(
+    new Date(agora.getTime() - VIRADA_DO_DIA_HORAS * 3_600_000),
+  );
 }
 
 export const PROTOCOLO_SOMENTE_LEITURA =
@@ -194,6 +203,24 @@ export class AreaAlunoService {
         },
       },
     });
+
+    // Sessão de outro dia que o aluno não encerrou. Reaproveitá-la gravaria o
+    // treino de hoje por cima do anterior, ainda com a data antiga: o progresso
+    // perderia uma semana. Ela é encerrada como está e hoje ganha outra sessão.
+    // Sessão sem nenhum registro (ficha só aberta para olhar) continua valendo.
+    if (
+      sessao &&
+      sessao.data < diaDeTreino() &&
+      (sessao.seriesRealizadas.length > 0 ||
+        sessao.concluidos.length > 0 ||
+        sessao.cardioMinutosFeitos !== null)
+    ) {
+      await this.prisma.sessaoTreino.update({
+        where: { idSessao: sessao.idSessao },
+        data: { concluida: true, finalizadoEm: new Date() },
+      });
+      sessao = null;
+    }
 
     // Treino já encerrado hoje: reabrir a ficha mostra o treino concluído, em
     // vez de criar outra sessão vazia no mesmo dia.

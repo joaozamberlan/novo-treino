@@ -743,6 +743,28 @@ export const AreaAluno: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId, somenteLeitura]);
 
+  // App que ficou aberto de um dia para o outro: ao voltar, busca a sessão de
+  // novo. Sem isso, o treino de hoje seria gravado na sessão do treino anterior.
+  // O dia vira às 4h, como no servidor, para não recarregar no meio de um treino
+  // que passa da meia-noite.
+  const diaDaSessaoRef = useRef('');
+  useEffect(() => {
+    const diaDeTreino = () => new Date(Date.now() - 4 * 3_600_000).toDateString();
+    diaDaSessaoRef.current = diaDeTreino();
+    if (activeTabId === null || somenteLeitura) return;
+
+    const aoVoltar = () => {
+      if (document.visibilityState !== 'visible') return;
+      const hoje = diaDeTreino();
+      if (hoje === diaDaSessaoRef.current) return;
+      diaDaSessaoRef.current = hoje;
+      fetchSessao(activeTabId);
+    };
+    document.addEventListener('visibilitychange', aoVoltar);
+    return () => document.removeEventListener('visibilitychange', aoVoltar);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId, somenteLeitura]);
+
   // Progresso de cargas: recarrega ao trocar de ficha e ao encerrar o treino
   const idProtocoloAberto = fichas?.protocolo?.idProtocolo ?? null;
   useEffect(() => {

@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { AreaAlunoService, hojeEmSaoPaulo } from './area-aluno.service';
+import {
+  AreaAlunoService,
+  diaDeTreino,
+  hojeEmSaoPaulo,
+} from './area-aluno.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 // Aluno A (idAluno 1) é o único "dono legítimo" nos cenários abaixo. Aluno B
@@ -232,6 +236,86 @@ describe('AreaAlunoService — cadeia de posse da área do aluno', () => {
     expect(result.concluida).toBe(true);
     expect(result.seriesHoje[700]).toHaveLength(1);
     expect(prisma.sessaoTreino.create).not.toHaveBeenCalled();
+  });
+
+  describe('sessão aberta de outro dia', () => {
+    const SERIE = {
+      idTreinoExercicio: 700,
+      numeroSerie: 1,
+      cargaKg: 20,
+      repeticoes: 10,
+      concluido: true,
+    };
+    const abertaDeOutroDia = (extra: object) => ({
+      ...SESSAO_DO_ALUNO_A,
+      data: '2020-01-01',
+      cardioMinutosFeitos: null,
+      concluidos: [],
+      seriesRealizadas: [],
+      ...extra,
+    });
+    const NOVA = {
+      ...SESSAO_DO_ALUNO_A,
+      idSessao: 501,
+      cardioMinutosFeitos: null,
+      concluidos: [],
+      seriesRealizadas: [],
+    };
+
+    beforeEach(() => {
+      prisma.treino.findFirst.mockResolvedValue(TREINO_DO_ALUNO_A);
+      prisma.sessaoTreino.create.mockResolvedValue(NOVA);
+    });
+
+    it.each([
+      ['séries registradas', { seriesRealizadas: [SERIE] }],
+      ['exercício marcado', { concluidos: [{ idTreinoExercicio: 700 }] }],
+      ['aeróbico marcado', { cardioMinutosFeitos: 20 }],
+    ])(
+      'com %s: é encerrada e o treino de hoje ganha outra sessão',
+      async (_caso, extra) => {
+        prisma.sessaoTreino.findFirst
+          .mockResolvedValueOnce(abertaDeOutroDia(extra))
+          .mockResolvedValue(null);
+
+        const result = await service.getOuCriarSessao(ID_ALUNO_A, 100);
+
+        expect(prisma.sessaoTreino.update).toHaveBeenCalledWith({
+          where: { idSessao: 500 },
+          data: { concluida: true, finalizadoEm: expect.any(Date) as Date },
+        });
+        expect(prisma.sessaoTreino.create).toHaveBeenCalled();
+        expect(result.idSessao).toBe(501);
+        // O treino de hoje começa vazio, sem as cargas da sessão antiga
+        expect(result.seriesHoje).toEqual({});
+      },
+    );
+
+    it('sem nenhum registro: continua sendo a sessão da ficha', async () => {
+      prisma.sessaoTreino.findFirst
+        .mockResolvedValueOnce(abertaDeOutroDia({}))
+        .mockResolvedValue(null);
+
+      const result = await service.getOuCriarSessao(ID_ALUNO_A, 100);
+
+      expect(result.idSessao).toBe(500);
+      expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
+      expect(prisma.sessaoTreino.create).not.toHaveBeenCalled();
+    });
+
+    it('do mesmo dia de treino: continua aberta, mesmo com séries', async () => {
+      prisma.sessaoTreino.findFirst
+        .mockResolvedValueOnce(
+          abertaDeOutroDia({ data: diaDeTreino(), seriesRealizadas: [SERIE] }),
+        )
+        .mockResolvedValue(null);
+
+      const result = await service.getOuCriarSessao(ID_ALUNO_A, 100);
+
+      expect(result.idSessao).toBe(500);
+      expect(result.seriesHoje[700]).toHaveLength(1);
+      expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
+    });
   });
 
   it('a sessão recebe a data do primeiro registro de série, não a da abertura da ficha', async () => {
@@ -533,6 +617,15 @@ describe('AreaAlunoService — cadeia de posse da área do aluno', () => {
       expect(prisma.exercicioConcluido.create).not.toHaveBeenCalled();
       expect(prisma.sessaoTreino.update).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('diaDeTreino', () => {
+  it('até as 4h de São Paulo ainda é o dia anterior', () => {
+    // 00h30 de 26/09 em São Paulo (03h30 UTC)
+    expect(diaDeTreino(new Date('2026-09-26T03:30:00Z'))).toBe('2026-09-25');
+    // 05h de 26/09 em São Paulo (08h UTC)
+    expect(diaDeTreino(new Date('2026-09-26T08:00:00Z'))).toBe('2026-09-26');
   });
 });
 
