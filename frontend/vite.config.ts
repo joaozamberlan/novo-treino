@@ -15,7 +15,10 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        registerType: 'autoUpdate',
+        // A versão nova espera o clique em "Atualizar" (src/pwa.ts), que
+        // também registra o service worker.
+        registerType: 'prompt',
+        injectRegister: false,
         includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
         // Um manifest só, para treinador e aluno. O app instalado abre sempre na
         // raiz; quem decide a tela é o RequireAuth (App.tsx), pela sessão.
