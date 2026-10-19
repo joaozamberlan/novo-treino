@@ -138,8 +138,9 @@ O frontend espelha os tipos em `frontend/src/utils/progresso.ts`.
 
 ## 4. Frontend
 
-**Stack:** React 19, Vite 8, TypeScript 6, React Router 7, axios, motion, recharts,
-sonner (toasts), lucide-react (ícones), html2pdf.js, vite-plugin-pwa.
+**Stack:** React 19, Vite 8, TypeScript 6, React Router 7, axios, motion, sonner (toasts),
+@phosphor-icons/react (ícones), @fontsource-variable/archivo (fonte), html2pdf.js, vite-plugin-pwa.
+Gráficos em SVG próprio (`MiniGrafico`), sem biblioteca.
 
 ### 4.1 Rotas (`frontend/src/App.tsx`)
 

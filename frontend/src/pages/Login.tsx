@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders, KeyRound, X } from 'lucide-react';
+import { ArrowRight, Check, Clock, Cloud, Eye, EyeSlash, HardDrives, Password, SlidersHorizontal, X } from '@phosphor-icons/react';
 import api from '../services/api';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 import { useTema } from '../hooks/useTema';
@@ -140,7 +140,7 @@ export const Login: React.FC = () => {
             <div>30 kg</div>
             <div><span className="mock-pr-tag">PR +2.5kg</span></div>
             <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={14} strokeWidth={3} />
+              <Check size={14} />
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export const Login: React.FC = () => {
             <div>32 kg</div>
             <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
             <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={14} strokeWidth={3} />
+              <Check size={14} />
             </div>
           </div>
 
@@ -160,7 +160,7 @@ export const Login: React.FC = () => {
             <div>34 kg</div>
             <div style={{ color: 'var(--accent-text)', fontWeight: 700 }}>REST-PAUSE</div>
             <div style={{ color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
-              <Clock size={12} strokeWidth={2.5} />
+              <Clock size={12} />
               <span>90s</span>
             </div>
           </div>
@@ -169,15 +169,15 @@ export const Login: React.FC = () => {
         {/* Left Footer: Clean Technical Highlights (Zero emojis) */}
         <div className="login-left-footer">
           <div className="login-tech-feature">
-            <Cloud size={14} color="var(--accent)" strokeWidth={2.2} />
+            <Cloud size={14} color="var(--accent)" />
             <span>Sincronização em Nuvem</span>
           </div>
           <div className="login-tech-feature">
-            <HardDrive size={14} color="var(--accent)" strokeWidth={2.2} />
+            <HardDrives size={14} color="var(--accent)" />
             <span>Armazenamento Offline Nativo</span>
           </div>
           <div className="login-tech-feature">
-            <Sliders size={14} color="var(--accent)" strokeWidth={2.2} />
+            <SlidersHorizontal size={14} color="var(--accent)" />
             <span>Cálculo Dinâmico de Séries e Cargas</span>
           </div>
         </div>
@@ -253,7 +253,7 @@ export const Login: React.FC = () => {
                   title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {senhaField.error && (
@@ -267,7 +267,7 @@ export const Login: React.FC = () => {
               disabled={loading}
             >
               <span>{loading ? 'Acessando…' : 'Acessar Painel'}</span>
-              <ArrowRight size={16} strokeWidth={2.5} />
+              <ArrowRight size={16} />
             </button>
           </form>
 
@@ -305,7 +305,7 @@ export const Login: React.FC = () => {
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <KeyRound size={20} aria-hidden="true" />
+                  <Password size={20} aria-hidden="true" />
                 </div>
                 <h3 id="modalRecuperarSenhaTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Recuperação de Senha</h3>
               </div>

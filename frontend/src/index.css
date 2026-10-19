@@ -2,6 +2,29 @@
    DESIGN SYSTEM — High-density professional tool (Apple & UI/UX Pro Max)
    ======================================================================== */
 
+/* "Archivo Placar": o mesmo arquivo variável da Archivo (importado em
+   main.tsx), declarado só com a largura 75%. O navegador prende o eixo de
+   largura nesse valor, então qualquer var(--font-mono) sai condensada sem
+   precisar de font-stretch em cada regra ou estilo inline. */
+@font-face {
+  font-family: 'Archivo Placar';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 75%;
+  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo Placar';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 75%;
+  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-ext-wdth-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 /* Cores do tema escuro. Valem na raiz e, de novo, dentro de .painel-escuro:
    o painel de marca das telas de entrada é sempre escuro, mesmo com o resto
    da página no tema claro. */
@@ -49,9 +72,13 @@
   --radius-m: 8px;
   --radius-l: 12px;
   --radius-xl: 16px;
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  
+  --font: 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  /* Números, rótulos e tabelas: a mesma Archivo, presa na largura condensada
+     (ver @font-face "Archivo Placar" logo abaixo) */
+  --font-mono: 'Archivo Placar', 'Archivo Variable', 'Arial Narrow', sans-serif;
+  /* Placar: só para o número grande de carga e o número da semana */
+  --stretch-placar: 62%;
+
   /* Apple & Motion Physics */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -1980,7 +2007,7 @@ body.light-theme {
     padding: 0 !important;
     background: #ffffff !important;
     color: #121316 !important;
-    font-family: var(--font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+    font-family: var(--font, 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -2046,7 +2073,7 @@ body.light-theme {
   }
 
   .print-brand-title {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-weight: 800;
     font-size: 11px;
     letter-spacing: 0.08em;
@@ -2055,7 +2082,7 @@ body.light-theme {
   }
 
   .print-brand-sub {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-weight: 600;
     font-size: 7.5px;
     letter-spacing: 0.04em;
@@ -2084,7 +2111,7 @@ body.light-theme {
   }
 
   .print-tag-pill {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8.5px;
     font-weight: 700;
     color: #ba281a !important;
@@ -2126,7 +2153,7 @@ body.light-theme {
   }
 
   .print-stamp-title {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8.5px;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -2146,13 +2173,13 @@ body.light-theme {
   }
 
   .print-stamp-label {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-weight: 600;
     color: #6b7280;
   }
 
   .print-stamp-value {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-weight: 700;
     color: #111827;
   }
@@ -2181,7 +2208,7 @@ body.light-theme {
   }
 
   .print-meta-label {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 7.5px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -2279,7 +2306,7 @@ body.light-theme {
   }
 
   .print-volume-count {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8.5px;
     font-weight: 700;
     color: #4b5563 !important;
@@ -2306,7 +2333,7 @@ body.light-theme {
   }
 
   .print-treino-badge {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8.5px;
     font-weight: 800;
     color: #ffffff !important;
@@ -2326,7 +2353,7 @@ body.light-theme {
   }
 
   .print-treino-meta {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8.5px;
     font-weight: 700;
     color: #d1d5db !important;
@@ -2349,7 +2376,7 @@ body.light-theme {
 
   .print-treino-callout strong {
     color: #ba281a;
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8px;
     margin-right: 4px;
   }
@@ -2374,7 +2401,7 @@ body.light-theme {
   }
 
   .print-table th {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8px;
     font-weight: 800;
     text-transform: uppercase;
@@ -2404,7 +2431,7 @@ body.light-theme {
   }
 
   .print-td-num {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 9.5px;
     font-weight: 800;
     color: #ba281a !important;
@@ -2419,7 +2446,7 @@ body.light-theme {
   }
 
   .print-exercise-group {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 7.5px;
     font-weight: 700;
     color: #6b7280;
@@ -2429,7 +2456,7 @@ body.light-theme {
   }
 
   .print-td-series {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 10.5px;
     font-weight: 800;
     text-align: center;
@@ -2437,7 +2464,7 @@ body.light-theme {
   }
 
   .print-td-reps {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 9.5px;
     font-weight: 700;
     text-align: center;
@@ -2447,14 +2474,14 @@ body.light-theme {
   
 
   .print-td-descanso {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 9px;
     text-align: center;
     color: #4b5563;
   }
 
   .print-tecnica-tag {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 7.5px;
     font-weight: 800;
     color: #ba281a !important;
@@ -2547,7 +2574,7 @@ body.light-theme {
   }
 
   .print-footer-badge {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono, 'Archivo Placar', sans-serif);
     font-size: 8px;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -4762,15 +4789,18 @@ body.modal-aberto {
 .prog-chip.estatico { cursor: default; color: var(--text-1); font-weight: 500; }
 .prog-legenda { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; font-size: 0.75rem; color: var(--text-1); align-items: center; }
 .prog-legenda span { display: inline-flex; align-items: center; gap: 0.35rem; }
-.prog-legenda i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.prog-legenda i { width: 14px; height: 3px; display: inline-block; }
 .prog-legenda-nota { color: var(--text-2); }
 .prog-ficha { display: flex; flex-direction: column; gap: 0.6rem; }
 .prog-ficha h3 { font-size: 0.95rem; font-weight: 700; margin: 0; }
-.prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.6rem; }
+.prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 0.6rem; }
+/* Card no estilo placar: filete escuro no topo no lugar da borda redonda,
+   número da carga grande e condensado, sessões numa fileira de placar */
 .prog-card {
-  display: flex; flex-direction: column; gap: 0.2rem; text-align: left;
-  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-l);
-  padding: 0.75rem 0.75rem 0.6rem; font: inherit; color: inherit; cursor: pointer;
+  display: flex; flex-direction: column; gap: 0.6rem; text-align: left; min-width: 0;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-s);
+  box-shadow: inset 0 3px 0 var(--text-0);
+  padding: 0.95rem 0.85rem 0.75rem; font: inherit; color: inherit; cursor: pointer;
   transition: border-color var(--transition);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -4780,19 +4810,60 @@ body.modal-aberto {
 }
 .prog-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .prog-card.vazio { cursor: default; opacity: 0.7; gap: 0.3rem; }
-.prog-card-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-.prog-card-nome { font-weight: 650; font-size: 0.84rem; line-height: 1.25; }
-.prog-card-valor { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin: 0.1rem 0 0.2rem; }
-.prog-valor { font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.prog-valor small { font-size: 0.72rem; color: var(--text-2); font-weight: 700; }
-.prog-variacao { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--text-1); }
-.prog-mini-rotulo { font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-2); }
-.prog-card-meta { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-2); margin-top: 0.15rem; }
-.prog-selo { font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 999px; white-space: nowrap; }
-.prog-selo.acima { color: var(--success-text); background: color-mix(in srgb, var(--success) 13%, transparent); }
-.prog-selo.abaixo { color: var(--warning-text); background: color-mix(in srgb, var(--warning) 14%, transparent); }
+/* sem espaço, o selo desce para a linha de baixo em vez de espremer o nome */
+.prog-card-topo { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem 0.45rem; }
+.prog-card-icone { flex: none; color: var(--text-0); }
+.prog-card-icone [opacity] { fill: var(--accent); opacity: 0.45; }
+.prog-card-nome {
+  flex: 1 1 9rem; min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-weight: 700; font-size: 0.86rem;
+  line-height: 1.2; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.prog-card-valor { display: flex; align-items: flex-end; gap: 0.6rem; }
+.prog-valor {
+  font-family: var(--font); font-stretch: var(--stretch-placar); font-weight: 800;
+  font-size: 2.9rem; line-height: 0.85; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.prog-valor-sub { font-family: var(--font-mono); font-weight: 600; font-size: 0.9rem; line-height: 1.1; color: var(--text-1); padding-bottom: 0.1rem; }
+.prog-valor-sub b { color: var(--text-0); }
+.prog-variacao {
+  margin-left: auto; text-align: right; font-family: var(--font-mono); font-weight: 800;
+  font-size: 0.92rem; color: var(--text-0); padding-bottom: 0.1rem; white-space: nowrap;
+}
+.prog-variacao small { display: block; font-weight: 500; font-size: 0.64rem; color: var(--text-2); letter-spacing: 0.04em; text-transform: uppercase; }
+.prog-card-meta {
+  display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.prog-selo {
+  display: inline-flex; align-items: center; gap: 0.2rem; flex: none;
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 0.18rem 0.45rem; border-radius: 2px; white-space: nowrap;
+}
+/* verde cheio com texto escuro: o mesmo nos dois temas, passa de 4,5:1 */
+.prog-selo.acima { color: #06301b; background: var(--success); }
+.prog-selo.abaixo { color: var(--warning-text); background: color-mix(in srgb, var(--warning) 14%, transparent); box-shadow: inset 0 0 0 1px var(--warning); }
+
+.prog-placar { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.prog-placar li {
+  display: flex; flex-direction: column; align-items: center; gap: 0.05rem;
+  background: var(--bg-2); padding: 0.35rem 0.15rem 0.3rem; border-bottom: 3px solid var(--bg-3); min-width: 0;
+}
+.prog-placar li.acima { border-bottom-color: var(--success); }
+.prog-placar li.abaixo { border-bottom-color: var(--warning); }
+.prog-placar li.ultima { background: var(--bg-3); }
+.prog-placar-kg { font-family: var(--font); font-stretch: var(--stretch-placar); font-weight: 800; font-size: 1.02rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.prog-placar-reps { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-1); white-space: nowrap; }
+.prog-placar-data { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-2); }
+
+/* MiniGrafico (SVG próprio) */
+.graf { position: relative; width: 100%; touch-action: pan-y; }
+.graf svg { display: block; overflow: visible; }
+.graf-eixo { font-family: var(--font-mono); font-size: 10px; fill: var(--text-2); }
+.graf-valor { font-family: var(--font); font-stretch: var(--stretch-placar); font-size: 13px; font-weight: 800; fill: var(--text-0); }
 .prog-tooltip {
-  background: var(--text-0); color: var(--bg-1); border-radius: 6px; padding: 0.35rem 0.55rem;
+  position: absolute; transform: translate(-50%, -100%); pointer-events: none; z-index: 2; white-space: nowrap;
+  background: var(--text-0); color: var(--bg-1); border-radius: var(--radius-s); padding: 0.35rem 0.55rem;
   font-size: 0.75rem; display: flex; flex-direction: column; box-shadow: 0 4px 14px rgba(0,0,0,0.18);
 }
 .prog-tooltip strong { font-family: var(--font-mono); }
@@ -4833,6 +4904,37 @@ body.modal-aberto {
 .prog-meu-texto b { font-family: var(--font-mono); color: var(--text-0); }
 .prog-meu-cta { grid-column: 1 / -1; font-size: 0.75rem; font-weight: 600; color: var(--success-text); background: color-mix(in srgb, var(--success) 12%, transparent); border-radius: var(--radius-s); padding: 0.3rem 0.5rem; margin-top: 0.25rem; }
 .prog-recorde { font-size: 0.7rem; font-weight: 700; color: var(--accent-text); }
+
+/* Progressão semanal (TabelaProgressao na tela): uma linha por semana com o
+   número grande de placar e o resumo do que muda */
+.progressao {
+  margin-top: 1.25rem; background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius-s); box-shadow: inset 0 3px 0 var(--text-0);
+}
+.progressao-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; padding: 1rem 0.9rem 0.55rem; }
+.progressao-head h2 { margin: 0; font-family: var(--font-mono); font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; }
+.progressao-head span { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.progressao-lista { list-style: none; margin: 0; padding: 0; }
+.progressao-semana {
+  display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) auto; gap: 0.85rem; align-items: center;
+  padding: 0.65rem 0.9rem; border-top: 1px solid var(--border);
+}
+.progressao-num {
+  font-family: var(--font); font-stretch: var(--stretch-placar); font-weight: 800;
+  font-size: 2.1rem; line-height: 0.9; color: var(--accent-text); font-variant-numeric: tabular-nums;
+}
+.progressao-num small { display: block; font-family: var(--font-mono); font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.progressao-semana p { margin: 0; font-size: 0.86rem; line-height: 1.4; color: var(--text-0); }
+.progressao-resumo { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: flex-end; }
+.progressao-resumo span {
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 0.2rem 0.45rem; border-radius: 2px; background: var(--bg-2); color: var(--text-1); white-space: nowrap;
+}
+.progressao-resumo span.forte { background: var(--text-0); color: var(--bg-1); }
+@media (max-width: 640px) {
+  .progressao-semana { grid-template-columns: 2.7rem minmax(0, 1fr); row-gap: 0.4rem; }
+  .progressao-resumo { grid-column: 2; justify-content: flex-start; }
+}
 .view-switch { display: inline-flex; align-self: flex-start; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 3px; gap: 2px; }
 .view-switch button { font: 600 0.8rem var(--font); color: var(--text-1); background: none; border: 0; border-radius: var(--radius-s); padding: 0.4rem 0.9rem; cursor: pointer; }
 .view-switch button[aria-selected="true"] { background: var(--bg-1); color: var(--text-0); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }

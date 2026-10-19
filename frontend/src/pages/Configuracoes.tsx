@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Save, Upload, ExternalLink, Dumbbell, Lock, Eye, EyeOff, Shield } from 'lucide-react';
+import { ArrowSquareOut, Barbell, Eye, EyeSlash, FloppyDisk, Lock, Shield, UploadSimple } from '@phosphor-icons/react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Configuracoes: React.FC = () => {
@@ -335,7 +335,7 @@ export const Configuracoes: React.FC = () => {
               className="btn btn-primary btn-sm"
               disabled={saving}
             >
-              <Save size={14} />
+              <FloppyDisk size={14} />
               <span>{saving ? 'Salvando...' : 'Salvar alterações'}</span>
             </button>
           </div>
@@ -360,7 +360,7 @@ export const Configuracoes: React.FC = () => {
 
           <div className="logo-upload-body">
             <label className={`btn btn-secondary btn-sm logo-upload-btn${uploadingLogo ? ' is-disabled' : ''}`}>
-              <Upload size={14} />
+              <UploadSimple size={14} />
               <span>{uploadingLogo ? 'Enviando...' : logoUrl ? 'Trocar logo' : 'Enviar logo'}</span>
               <input
                 type="file"
@@ -384,7 +384,7 @@ export const Configuracoes: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <Link to="/exercicios" className="btn btn-secondary btn-sm">
-            <ExternalLink size={14} />
+            <ArrowSquareOut size={14} />
             <span>Gerenciar Biblioteca</span>
           </Link>
 
@@ -395,7 +395,7 @@ export const Configuracoes: React.FC = () => {
               onClick={handleSeedCatalog}
               disabled={seeding}
             >
-              <Dumbbell size={14} />
+              <Barbell size={14} />
               <span>{seeding ? 'Carregando...' : 'Carregar Exercícios Padrão'}</span>
             </button>
           )}
@@ -432,7 +432,7 @@ export const Configuracoes: React.FC = () => {
                 onClick={() => setShowSenhaAtual(!showSenhaAtual)}
                 title={showSenhaAtual ? 'Ocultar senha' : 'Exibir senha'}
               >
-                {showSenhaAtual ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showSenhaAtual ? <EyeSlash size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -457,7 +457,7 @@ export const Configuracoes: React.FC = () => {
                   onClick={() => setShowNovaSenha(!showNovaSenha)}
                   title={showNovaSenha ? 'Ocultar senha' : 'Exibir senha'}
                 >
-                  {showNovaSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showNovaSenha ? <EyeSlash size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {novaSenhaField.error && (
@@ -508,7 +508,7 @@ export const Configuracoes: React.FC = () => {
             Gerencie contas de treinadores, aprovações de acesso e permissões de SuperAdmin.
           </p>
           <Link to="/admin" className="btn btn-secondary btn-sm">
-            <ExternalLink size={14} />
+            <ArrowSquareOut size={14} />
             <span>Abrir Painel Admin</span>
           </Link>
         </div>

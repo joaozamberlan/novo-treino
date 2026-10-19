@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { IconContext } from '@phosphor-icons/react'
+import '@fontsource-variable/archivo/wdth.css'
 import './index.css'
 import App from './App.tsx'
 import { registrarServiceWorker } from './pwa'
@@ -13,6 +15,9 @@ registrarServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {/* Bold do Phosphor tem o peso do traço 2px de antes; duotone só em destaque */}
+    <IconContext.Provider value={{ weight: 'bold' }}>
+      <App />
+    </IconContext.Provider>
   </StrictMode>,
 )

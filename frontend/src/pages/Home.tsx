@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { memoryCache } from '../services/cache';
-import { Search, ArrowRight } from 'lucide-react';
+import { ArrowRight, MagnifyingGlass } from '@phosphor-icons/react';
 
 interface Aluno {
   idAluno: number;
@@ -112,7 +112,7 @@ export const Home: React.FC = () => {
       {/* ─── Spotlight / Quick Jump Bar ─── */}
       <div className="hub-spotlight-bar" ref={searchWrapRef}>
         <div className="hub-search-input-wrap">
-          <Search size={18} className="hub-search-icon" strokeWidth={2.2} />
+          <MagnifyingGlass size={18} className="hub-search-icon" />
           <input
             type="text"
             className="hub-search-input"
@@ -151,7 +151,7 @@ export const Home: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="hub-recent-arrow" strokeWidth={2.5} aria-hidden="true" />
+                  <ArrowRight size={16} className="hub-recent-arrow" aria-hidden="true" />
                 </button>
               ))
             ) : (
@@ -180,7 +180,7 @@ export const Home: React.FC = () => {
           <div className="hub-card-actions">
             <button className="btn-hub-primary" onClick={() => navigate('/alunos')}>
               <span>Acessar Alunos</span>
-              <ArrowRight size={15} strokeWidth={2.5} />
+              <ArrowRight size={15} />
             </button>
             <button
               className="btn-hub-subtle"
@@ -208,7 +208,7 @@ export const Home: React.FC = () => {
           <div className="hub-card-actions">
             <button className="btn-hub-outline" onClick={() => navigate('/exercicios')}>
               <span>Explorar Catálogo</span>
-              <ArrowRight size={15} strokeWidth={2.5} />
+              <ArrowRight size={15} />
             </button>
             <button
               className="btn-hub-subtle"
@@ -235,7 +235,7 @@ export const Home: React.FC = () => {
           <div className="hub-card-actions">
             <button className="btn-hub-outline" onClick={() => navigate('/configuracoes')}>
               <span>Ajustar Perfil</span>
-              <ArrowRight size={15} strokeWidth={2.5} />
+              <ArrowRight size={15} />
             </button>
           </div>
         </div>
@@ -255,7 +255,7 @@ export const Home: React.FC = () => {
             <div className="hub-card-actions">
               <button className="btn-hub-outline" onClick={() => navigate('/admin')}>
                 <span>Painel Admin</span>
-                <ArrowRight size={15} strokeWidth={2.5} />
+                <ArrowRight size={15} />
               </button>
             </div>
           </div>
@@ -297,7 +297,7 @@ export const Home: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <ArrowRight size={16} className="hub-recent-arrow" strokeWidth={2.5} aria-hidden="true" />
+                <ArrowRight size={16} className="hub-recent-arrow" aria-hidden="true" />
               </Link>
             ))}
           </div>

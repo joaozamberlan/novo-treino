@@ -43,9 +43,16 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | `--pr-gold` / `-soft` | `#e5a93c` | — | recorde pessoal (PR) |
 
 ### Tipografia
-- `--font`: **Inter** (400–900) → fallback de sistema Apple/Segoe/Roboto.
-- `--font-mono`: **JetBrains Mono** (500–800) para números: cargas, reps, séries,
-  cronômetro, tabelas.
+- Uma família só: **Archivo** variável (peso 100–900, largura 62–125%), hospedada no
+  próprio app via `@fontsource-variable/archivo` (funciona offline no PWA).
+- `--font`: Archivo na largura normal, para texto corrido e títulos.
+- `--font-mono`: **Archivo Placar**, a mesma fonte presa em 75% de largura por um
+  `@font-face` no topo do `index.css`. Para números, rótulos em caixa alta e tabelas:
+  cargas, reps, séries, cronômetro. Não é monoespaçada; use `tabular-nums` onde os
+  dígitos alinham em coluna.
+- `--stretch-placar` (62%) com `font-family: var(--font)` e peso 800: só para o
+  número grande de placar (carga no card de progresso, número da semana). Não usar
+  em texto.
 - Escala compacta em `rem` (≈ 0.6875–0.875rem no corpo da UI de alta densidade).
 - Inputs com `font-size: 16px` no mobile para o iOS não dar zoom.
 
@@ -127,7 +134,9 @@ formulário claro.
 | Telas de entrada | Sempre divididas: painel de marca **preto com vermelho** (`.painel-escuro`) e formulário no tema da página. No desktop o painel fica à esquerda; no celular vira uma faixa no topo com o título da tela. Nunca uma tela toda clara. `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca`. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
 | PIN | `CampoPin`: quatro casas (`.pin-campo`, `.pin-celula`) sobre um `<input>` real e invisível |
 | Toasts | sonner, `bottom-right`, `richColors` |
-| Ícones | lucide-react; biblioteca de exercícios usa o ícone de halter |
+| Ícones | `@phosphor-icons/react`. Peso `bold` por padrão (`IconContext` em `main.tsx`). `weight="duotone"` só em destaque (ícone do card de progresso), com a parte clara pintada de `--accent` via CSS (`[opacity] { fill: var(--accent) }`). Halter = `Barbell` |
+| Gráficos | `MiniGrafico` (SVG próprio, sem biblioteca): uma medida por gráfico, linha de 2px, último ponto em vermelho, tooltip no toque e no mouse. Status com ▲/▼ no texto, nunca só cor |
+| Progresso (placar) | `.prog-card` com filete escuro no topo (`box-shadow: inset 0 3px 0 var(--text-0)`) e raio pequeno; `.prog-placar` = fileira das últimas sessões com a cor do status no filete de baixo. Mesmo tratamento em `.progressao` (tabela de progressão semanal) |
 
 ## 6. Regras de interação
 

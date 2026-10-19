@@ -12,11 +12,7 @@ import { FichaPdf } from '../../components/FichaPdf';
 import { VolumeSemanal } from '../../components/VolumeSemanal';
 import { baixarPdfDoTreino } from '../../utils/pdf';
 import type { PrescribedExercise, Protocolo, ProtocoloResumo } from '../../types/treino';
-import {
-  Award, Phone, Video, FileText,
-  Timer, Check, RefreshCw, AlertCircle, Sun, Moon, Info,
-  History, RotateCcw, TrendingUp, Flag, CheckCircle2, Download, LogOut, Smartphone
-} from 'lucide-react';
+import { ArrowCounterClockwise, ArrowsClockwise, Check, CheckCircle, ClockCounterClockwise, DeviceMobile, DownloadSimple, FileText, Flag, Info, Medal, Moon, Phone, SignOut, Sun, Timer, TrendUp, VideoCamera, WarningCircle } from '@phosphor-icons/react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { useTema } from '../../hooks/useTema';
@@ -859,7 +855,7 @@ export const AreaAluno: React.FC = () => {
   if (error) {
     return (
       <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', gap: '1rem', backgroundColor: 'var(--bg-0)', textAlign: 'center' }}>
-        <AlertCircle size={40} className="text-danger" />
+        <WarningCircle size={40} className="text-danger" />
         <h1>Não foi possível abrir seu treino</h1>
         <p style={{ maxWidth: '400px' }}>{error}</p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -882,7 +878,7 @@ export const AreaAluno: React.FC = () => {
   if (carregando) {
     return (
       <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '1rem', backgroundColor: 'var(--bg-0)', color: 'var(--text-1)' }}>
-        <RefreshCw className="animate-spin" size={24} />
+        <ArrowsClockwise className="animate-spin" size={24} />
         <span>Carregando sua ficha de treinos...</span>
       </div>
     );
@@ -902,7 +898,7 @@ export const AreaAluno: React.FC = () => {
     ...(canInstall || instalarNoIos
       ? [{
           label: 'Instalar app',
-          icon: <Download size={14} aria-hidden="true" />,
+          icon: <DownloadSimple size={14} aria-hidden="true" />,
           onClick: () => (canInstall ? install() : setShowIosHint(true)),
         }]
       : []),
@@ -911,7 +907,7 @@ export const AreaAluno: React.FC = () => {
       icon: theme === 'dark' ? <Sun size={14} aria-hidden="true" /> : <Moon size={14} aria-hidden="true" />,
       onClick: toggleTheme,
     },
-    { label: 'Sair', icon: <LogOut size={14} aria-hidden="true" />, onClick: sair, danger: true },
+    { label: 'Sair', icon: <SignOut size={14} aria-hidden="true" />, onClick: sair, danger: true },
   ];
 
   const activeFicha = protocolo?.treinos.find(t => t.idTreino === activeTabId);
@@ -965,7 +961,7 @@ export const AreaAluno: React.FC = () => {
                 passar por cima dos botões ao lado */}
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0 0.5rem', marginTop: '0.1rem' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Award size={12} className="text-accent" style={{ flexShrink: 0 }} />
+                <Medal size={12} className="text-accent" style={{ flexShrink: 0 }} />
                 {profissional.profissao}
               </span>
               {profissional.cref && (
@@ -1108,7 +1104,7 @@ export const AreaAluno: React.FC = () => {
             {sessaoConcluida && (
               <div className="workout-completed-banner" style={{ marginBottom: '1.25rem', marginTop: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <CheckCircle2 size={20} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
+                  <CheckCircle size={20} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
                   <div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-0)', display: 'block' }}>
                       Treino concluído
@@ -1124,7 +1120,7 @@ export const AreaAluno: React.FC = () => {
                   className="btn btn-primary btn-sm"
                   style={{ gap: '0.35rem', fontSize: '0.78rem', height: '34px', padding: '0 0.8rem' }}
                 >
-                  <RotateCcw size={13} aria-hidden="true" />
+                  <ArrowCounterClockwise size={13} aria-hidden="true" />
                   <span>Iniciar Próxima Sessão</span>
                 </button>
               </div>
@@ -1235,7 +1231,7 @@ export const AreaAluno: React.FC = () => {
                               aria-label={`Assistir vídeo demonstrativo de ${item.exercicio.nome}`}
                               title="Assistir vídeo demonstrativo"
                             >
-                              <Video size={18} aria-hidden="true" />
+                              <VideoCamera size={18} aria-hidden="true" />
                             </a>
                           )}
                         </div>
@@ -1269,7 +1265,7 @@ export const AreaAluno: React.FC = () => {
                           marginTop: '0.4rem',
                           padding: '0.1rem 0.25rem'
                         }}>
-                          <History size={12} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
+                          <ClockCounterClockwise size={12} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
                           <span>Último treino: <strong>{formatDataPtBr(historicoAnterior.data)}</strong> {getDiasAtras(historicoAnterior.data) ? `(${getDiasAtras(historicoAnterior.data)})` : ''}</span>
                         </div>
                       ) : null}
@@ -1310,7 +1306,7 @@ export const AreaAluno: React.FC = () => {
                                     className="set-pr-badge" 
                                     title={isKgPR ? `+${(currentKg - prevKg!).toFixed(1).replace('.0', '')}kg acima do treino anterior!` : `+${currentReps - prevReps!} repetições a mais!`}
                                   >
-                                    <TrendingUp size={9} aria-hidden="true" />
+                                    <TrendUp size={9} aria-hidden="true" />
                                     {isKgPR ? `+${(currentKg - prevKg!).toFixed(1).replace('.0', '')}k` : `+${currentReps - prevReps!}r`}
                                   </span>
                                 )}
@@ -1378,7 +1374,7 @@ export const AreaAluno: React.FC = () => {
                                 title={set.completed ? "Desmarcar série" : "Concluir série e iniciar descanso"}
                               >
                                 {set.completed ? (
-                                  <Check size={18} strokeWidth={3} className="check-pop-icon" aria-hidden="true" />
+                                  <Check size={18} className="check-pop-icon" aria-hidden="true" />
                                 ) : (
                                   <div style={{ width: 10, height: 10, borderRadius: 2, border: '1.5px solid var(--border-strong)' }} aria-hidden="true" />
                                 )}
@@ -1441,7 +1437,7 @@ export const AreaAluno: React.FC = () => {
                               title="Preencher automaticamente com os mesmos pesos e repetições do último treino"
                               aria-label="Repetir cargas do último treino"
                             >
-                              <RotateCcw size={12} aria-hidden="true" />
+                              <ArrowCounterClockwise size={12} aria-hidden="true" />
                               <span>Repetir anteriores</span>
                             </button>
                           ) : null}
@@ -1477,7 +1473,7 @@ export const AreaAluno: React.FC = () => {
               sessaoConcluida ? (
                 <div className="workout-completed-banner">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <CheckCircle2 size={24} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
+                    <CheckCircle size={24} style={{ color: 'var(--success-text)', flexShrink: 0 }} aria-hidden="true" />
                     <div>
                       <strong style={{ fontSize: '0.95rem', color: 'var(--text-0)', display: 'block' }}>
                         Treino finalizado
@@ -1493,7 +1489,7 @@ export const AreaAluno: React.FC = () => {
                     className="btn btn-primary"
                     style={{ gap: '0.45rem', padding: '0.65rem 1.1rem', fontWeight: 700, fontSize: '0.85rem' }}
                   >
-                    <RotateCcw size={16} aria-hidden="true" />
+                    <ArrowCounterClockwise size={16} aria-hidden="true" />
                     <span>Iniciar Próxima Sessão</span>
                   </button>
                 </div>
@@ -1557,7 +1553,7 @@ export const AreaAluno: React.FC = () => {
       <div aria-live="polite">
         {temPendentes && (
           <div className="sync-pendente-aviso" role="status">
-            <AlertCircle size={18} aria-hidden="true" />
+            <WarningCircle size={18} aria-hidden="true" />
             <span>
               {reenviando
                 ? 'Salvando seus registros…'
@@ -1630,7 +1626,7 @@ export const AreaAluno: React.FC = () => {
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto'
               }}>
-                <Smartphone size={24} aria-hidden="true" />
+                <DeviceMobile size={24} aria-hidden="true" />
               </div>
               <h3 style={{ marginBottom: '0.5rem' }}>Instalar no iPhone</h3>
               <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '0.75rem' }}>
@@ -1659,7 +1655,7 @@ export const AreaAluno: React.FC = () => {
           <div className="modal-backdrop" onClick={() => setShowConfirmModal(false)} role="alertdialog" aria-modal="true" aria-labelledby="modalEncerrarTreinoTitulo">
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <AlertCircle size={22} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
+                <WarningCircle size={22} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
                 <h3 id="modalEncerrarTreinoTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-0)' }}>Encerrar Treino?</h3>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-1)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
@@ -1707,7 +1703,7 @@ export const AreaAluno: React.FC = () => {
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto'
               }}>
-                <CheckCircle2 size={34} strokeWidth={2.2} aria-hidden="true" />
+                <CheckCircle size={34} strokeWidth={2.2} aria-hidden="true" />
               </div>
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-0)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>
                 Treino finalizado
@@ -1743,7 +1739,7 @@ export const AreaAluno: React.FC = () => {
                   className="btn btn-primary"
                   style={{ width: '100%', height: '46px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                 >
-                  <RotateCcw size={16} aria-hidden="true" />
+                  <ArrowCounterClockwise size={16} aria-hidden="true" />
                   <span>Iniciar Próxima Sessão</span>
                 </button>
                 <button

@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { DotsThree } from '@phosphor-icons/react';
 
 export interface ActionMenuItem {
   label: string;
@@ -57,7 +57,7 @@ export const ActionMenu: React.FC<Props> = ({ items, label, trigger, align = 'ri
         title={trigger ? undefined : 'Mais ações'}
         onClick={() => setOpen((v) => !v)}
       >
-        {trigger ?? <MoreHorizontal size={16} />}
+        {trigger ?? <DotsThree size={16} />}
       </button>
       {open && (
         <div id={menuId} role="menu" className={`action-menu-list${align === 'left' ? ' action-menu-list--left' : ''}`}>

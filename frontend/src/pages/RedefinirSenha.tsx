@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Eye, EyeSlash } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useFieldValidation } from '../hooks/useFieldValidation';
@@ -127,7 +127,7 @@ export const RedefinirSenha: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {senhaField.error && (
@@ -162,7 +162,7 @@ export const RedefinirSenha: React.FC = () => {
                 disabled={loading}
               >
                 <span>{loading ? 'Salvando…' : 'Salvar nova senha'}</span>
-                <ArrowRight size={16} strokeWidth={2.5} />
+                <ArrowRight size={16} />
               </button>
             </form>
           )}

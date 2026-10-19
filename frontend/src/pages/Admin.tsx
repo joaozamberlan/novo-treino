@@ -3,9 +3,7 @@ import { useConfirmar } from '../hooks/useConfirmar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { 
-  Search, Mail, Calendar, User, Phone, ShieldAlert, Key, Copy, Check, RefreshCw, X
-} from 'lucide-react';
+import { ArrowsClockwise, CalendarDots, Check, Copy, Envelope, Key, MagnifyingGlass, Phone, ShieldWarning, User, X } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -194,7 +192,7 @@ const AdminPanel: React.FC = () => {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
         <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <ShieldAlert size={32} style={{ color: 'var(--accent-text)' }} />
+          <ShieldWarning size={32} style={{ color: 'var(--accent-text)' }} />
           Painel do SuperAdmin
         </h1>
         <p>Aprove novas contas, gerencie acessos e defina cargos de SuperAdmin no TreinosApp.</p>
@@ -235,7 +233,7 @@ const AdminPanel: React.FC = () => {
       {/* Barra de Busca */}
       <div className="card" style={{ padding: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-2)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
-          <Search size={18} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
+          <MagnifyingGlass size={18} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
           <input
             type="text"
             className="form-control"
@@ -296,7 +294,7 @@ const AdminPanel: React.FC = () => {
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.8rem' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-1)' }}>
-                          <Mail size={12} style={{ color: 'var(--text-muted)' }} />
+                          <Envelope size={12} style={{ color: 'var(--text-muted)' }} />
                           {prof.email}
                         </span>
                         {prof.telefone && (
@@ -309,7 +307,7 @@ const AdminPanel: React.FC = () => {
                     </td>
                     <td>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--text-1)' }}>
-                        <Calendar size={12} style={{ color: 'var(--text-muted)' }} />
+                        <CalendarDots size={12} style={{ color: 'var(--text-muted)' }} />
                         {new Date(prof.dataCadastro).toLocaleDateString()}
                       </div>
                     </td>
@@ -431,7 +429,7 @@ const AdminPanel: React.FC = () => {
                     onClick={generateRandomPassword}
                     className="link-acao"
                   >
-                    <RefreshCw size={12} />
+                    <ArrowsClockwise size={12} />
                     <span>Gerar aleatória</span>
                   </button>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Shield, Phone, Save, Award, Users, Dumbbell } from 'lucide-react';
+import { Barbell, FloppyDisk, Medal, Phone, Shield, Users } from '@phosphor-icons/react';
 
 const Instagram: React.FC<any> = (props) => (
   <svg
@@ -198,7 +198,7 @@ export const Dashboard: React.FC = () => {
             flexShrink: 0,
             border: '1px solid var(--border)',
           }}>
-            <Award size={24} />
+            <Medal size={24} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 500, marginBottom: '0.2rem' }}>Especialidade</div>
@@ -340,7 +340,7 @@ export const Dashboard: React.FC = () => {
             style={{ alignSelf: 'flex-end', minWidth: '200px' }}
             disabled={saving}
           >
-            <Save size={16} />
+            <FloppyDisk size={16} />
             {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </form>
@@ -349,7 +349,7 @@ export const Dashboard: React.FC = () => {
       {/* Catálogo de Exercícios Card */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Dumbbell size={20} style={{ color: 'var(--accent-text)' }} />
+          <Barbell size={20} style={{ color: 'var(--accent-text)' }} />
           Catálogo & Biblioteca de Exercícios
         </h2>
         <p>
@@ -379,7 +379,7 @@ export const Dashboard: React.FC = () => {
             disabled={seeding}
             style={{ minWidth: '220px' }}
           >
-            <Dumbbell size={16} />
+            <Barbell size={16} />
             {seeding ? 'Carregando...' : (exerciciosCount > 0 ? 'Recarregar Catálogo Padrão' : 'Carregar Catálogo Padrão')}
           </button>
         </div>

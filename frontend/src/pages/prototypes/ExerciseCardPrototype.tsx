@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-  Check, Timer, Video, Info, ChevronDown, ChevronUp, 
-  Sparkles, ArrowLeft 
-} from 'lucide-react';
+import { ArrowLeft, CaretDown, CaretUp, Check, Info, Sparkle, Timer, VideoCamera } from '@phosphor-icons/react';
 import './picker.css';
 
 // ── Variant 1: Tactile iOS (Apple Design Physics) ──────────────────────────
@@ -63,7 +60,7 @@ const VariantTactileIOS: React.FC = () => {
           style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '50%' }}
         >
           {completed ? (
-            <Check size={24} strokeWidth={3} className="check-pop-icon" aria-hidden="true" />
+            <Check size={24} className="check-pop-icon" aria-hidden="true" />
           ) : (
             <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--border-strong)' }} aria-hidden="true" />
           )}
@@ -278,7 +275,7 @@ const VariantProCompact: React.FC = () => {
           style={{ width: '38px', height: '38px', minWidth: '38px', minHeight: '38px' }}
           aria-label={checked ? "Desmarcar Agachamento" : "Concluir Agachamento"}
         >
-          {checked ? <Check size={18} strokeWidth={2.8} className="check-pop-icon" /> : null}
+          {checked ? <Check size={18} className="check-pop-icon" /> : null}
         </button>
 
         <div style={{ minWidth: 0 }}>
@@ -379,7 +376,7 @@ const VariantMediaForward: React.FC = () => {
           position: 'relative',
           cursor: 'pointer'
         }}>
-          <Video size={22} color="var(--accent)" />
+          <VideoCamera size={22} color="var(--accent)" />
           <span style={{ fontSize: '0.6rem', color: 'var(--text-1)', marginTop: '2px', fontWeight: 600 }}>0:45</span>
         </div>
 
@@ -412,7 +409,7 @@ const VariantMediaForward: React.FC = () => {
             >
               <Info size={14} />
               <span>Instruções biomecânicas</span>
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {expanded ? <CaretUp size={14} /> : <CaretDown size={14} />}
             </button>
           </div>
         </div>
@@ -567,7 +564,7 @@ export const ExerciseCardPrototype: React.FC = () => {
           </button>
           <div>
             <div style={{ fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Sparkles size={14} color="var(--accent)" />
+              <Sparkle size={14} color="var(--accent)" />
               <span>Protótipo: Exercise Card (Variações 1–4)</span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)' }}>
