@@ -1,21 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ModalPortal } from './ModalPortal';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceArea,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Barbell, Heartbeat, X } from '@phosphor-icons/react';
+import { MiniGrafico as GraficoLinha, type PontoGrafico as Ponto } from './MiniGrafico';
 import {
   type CardioProgresso,
   type ExercicioProgresso,
   type Progresso,
   type StatusFaixa,
+  COR_STATUS as COR,
   dataParaTs,
   formatData,
   formatKg,
@@ -27,25 +19,6 @@ import {
 } from '../utils/progresso';
 import { modeloCardio } from '../utils/cardio';
 
-const COR: Record<StatusFaixa, string> = {
-  acima: 'var(--success)',
-  dentro: 'var(--text-1)',
-  abaixo: 'var(--warning)',
-};
-
-const TEXTO_STATUS: Record<StatusFaixa, string> = {
-  acima: 'passou da faixa',
-  dentro: 'dentro da faixa',
-  abaixo: 'abaixo da faixa',
-};
-
-interface Ponto {
-  ts: number;
-  kg: number | null;
-  reps: number | null;
-  status: StatusFaixa;
-}
-
 const pontosDe = (e: ExercicioProgresso): Ponto[] =>
   e.sessoes.map((s) => ({
     ts: dataParaTs(s.data),
@@ -54,144 +27,46 @@ const pontosDe = (e: ExercicioProgresso): Ponto[] =>
     status: statusReps(s.melhor.repeticoes, e.faixa),
   }));
 
-// ─── gráfico de linha (uma medida por gráfico: carga OU repetições) ───
-function GraficoLinha({
-  pontos,
-  medida,
-  faixa,
-  altura,
-  detalhado = false,
-  semEixo = false,
-  statusVisivel = (s: StatusFaixa) => s,
-}: {
-  pontos: Ponto[];
-  medida: 'kg' | 'reps';
-  faixa?: [number, number] | null;
-  altura: number;
-  detalhado?: boolean;
-  semEixo?: boolean;
-  statusVisivel?: (s: StatusFaixa) => StatusFaixa;
-}) {
-  const valores = pontos.map((p) => p[medida]).filter((v): v is number => v != null);
-  if (valores.length === 0) return null;
-
-  let min = Math.min(...valores);
-  let max = Math.max(...valores);
-  if (faixa) {
-    min = Math.min(min, faixa[0]);
-    max = Math.max(max, faixa[1]);
-  }
-  const folga = Math.max((max - min) * 0.2, medida === 'kg' ? 2 : 1);
-  const dominio: [number, number] = [Math.max(0, Math.floor(min - folga)), Math.ceil(max + folga)];
-  // Mini gráfico: rótulos de mínimo e máximo, só se couberem sem encostar
-  const vMin = Math.min(...valores);
-  const vMax = Math.max(...valores);
-  const ticks = (vMax - vMin) / (dominio[1] - dominio[0]) > 0.4 ? [vMin, vMax] : [vMax];
-  const unico = pontos.length === 1;
-
-  return (
-    <div style={{ width: '100%', height: altura }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={pontos} margin={{ top: 6, right: 8, bottom: detalhado ? 0 : 2, left: 0 }}>
-          {detalhado && <CartesianGrid vertical={false} stroke="var(--border)" />}
-          {faixa && (
-            <ReferenceArea
-              y1={faixa[0]}
-              y2={faixa[1]}
-              fill="var(--text-2)"
-              fillOpacity={0.12}
-              stroke="none"
-              ifOverflow="extendDomain"
-            />
-          )}
-          <XAxis
-            dataKey="ts"
-            type="number"
-            scale="time"
-            domain={unico ? ['dataMin - 86400000', 'dataMax + 86400000'] : ['dataMin', 'dataMax']}
-            ticks={pontos.map((p) => p.ts)}
-            padding={{ left: 10, right: 10 }}
-            hide={!detalhado}
-            tickFormatter={(ts: number) => formatData(ts)}
-            tick={{ fontSize: 10, fill: 'var(--text-2)' }}
-            tickLine={false}
-            axisLine={false}
-            minTickGap={24}
-          />
-          <YAxis
-            hide={semEixo}
-            domain={dominio}
-            ticks={detalhado ? undefined : ticks}
-            interval={detalhado ? 'preserveEnd' : 0}
-            width={detalhado ? 34 : 26}
-            tick={{ fontSize: detalhado ? 10 : 9, fill: 'var(--text-2)' }}
-            tickFormatter={(v: number) => formatKg(v)}
-            tickLine={false}
-            axisLine={false}
-            allowDecimals={medida === 'kg'}
-          />
-          <Tooltip
-            cursor={{ stroke: 'var(--border-strong)' }}
-            isAnimationActive={false}
-            content={({ active, payload }) => {
-              const p = active && payload?.[0]?.payload as Ponto | undefined;
-              if (!p) return null;
-              return (
-                <div className="prog-tooltip">
-                  <strong>
-                    {formatKg(p.kg)} kg × {p.reps ?? '—'}
-                  </strong>
-                  <span>
-                    {formatData(p.ts)} · {TEXTO_STATUS[statusVisivel(p.status)]}
-                  </span>
-                </div>
-              );
-            }}
-          />
-          <Line
-            dataKey={medida}
-            type="linear"
-            stroke="var(--text-1)"
-            strokeWidth={2}
-            connectNulls
-            isAnimationActive={false}
-            dot={(props: { cx?: number; cy?: number; index?: number; payload?: Ponto }) => {
-              const { cx, cy, index = 0, payload } = props;
-              if (cx == null || cy == null || !payload) return <g key={index} />;
-              const ultimo = index === pontos.length - 1;
-              return (
-                <circle
-                  key={index}
-                  cx={cx}
-                  cy={cy}
-                  r={ultimo ? 4.5 : 3.5}
-                  fill={COR[statusVisivel(payload.status)]}
-                  stroke="var(--bg-1)"
-                  strokeWidth={2}
-                />
-              );
-            }}
-            activeDot={{ r: 6, stroke: 'var(--bg-1)', strokeWidth: 2, fill: 'var(--text-0)' }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 function Selo({ status }: { status: StatusFaixa }) {
-  if (status === 'acima') return <span className="prog-selo acima">▲ Subir carga</span>;
-  if (status === 'abaixo') return <span className="prog-selo abaixo">▼ Carga alta</span>;
+  if (status === 'acima') {
+    return (
+      <span className="prog-selo acima">
+        <ArrowUp size={11} aria-hidden="true" /> Subir carga
+      </span>
+    );
+  }
+  if (status === 'abaixo') {
+    return (
+      <span className="prog-selo abaixo">
+        <ArrowDown size={11} aria-hidden="true" /> Carga alta
+      </span>
+    );
+  }
   return null;
 }
 
-function Variacao({ e }: { e: ExercicioProgresso }) {
-  const v = variacaoKg(e);
-  if (e.sessoes.length < 2) return null;
+// Placar das últimas sessões: carga em cima, reps embaixo e a cor do status
+// no filete de baixo (com ▲/▼ no texto, para não depender só da cor)
+const SESSOES_NO_PLACAR = 6;
+
+function PlacarSessoes({ e }: { e: ExercicioProgresso }) {
+  const sessoes = e.sessoes.slice(-SESSOES_NO_PLACAR);
   return (
-    <span className="prog-variacao">
-      {v > 0 ? `▲ +${formatKg(v)}` : v < 0 ? `▼ ${formatKg(v)}` : '='} kg
-    </span>
+    <ol className="prog-placar" aria-label="Últimas sessões" style={{ gridTemplateColumns: `repeat(${SESSOES_NO_PLACAR}, minmax(0, 1fr))` }}>
+      {sessoes.map((s, i) => {
+        const st = statusReps(s.melhor.repeticoes, e.faixa);
+        return (
+          <li key={s.data + i} className={`${st}${i === sessoes.length - 1 ? ' ultima' : ''}`}>
+            <span className="prog-placar-kg">{formatKg(s.melhor.cargaKg)}</span>
+            <span className="prog-placar-reps">
+              ×{s.melhor.repeticoes ?? '—'}
+              {st === 'acima' ? ' ▲' : st === 'abaixo' ? ' ▼' : ''}
+            </span>
+            <span className="prog-placar-data">{formatData(s.data)}</span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -343,10 +218,10 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
         )}
       </div>
       <div className="prog-legenda">
-        <span><i style={{ background: COR.acima }} />Passou da faixa</span>
+        <span><i style={{ background: COR.acima }} />▲ Passou da faixa</span>
         <span><i style={{ background: COR.dentro }} />Dentro da faixa</span>
-        <span><i style={{ background: COR.abaixo }} />Abaixo da faixa</span>
-        <span className="prog-legenda-nota">Cada ponto é a melhor série (maior carga) de uma sessão.</span>
+        <span><i style={{ background: COR.abaixo }} />▼ Abaixo da faixa</span>
+        <span className="prog-legenda-nota">Cada sessão mostra a melhor série (maior carga).</span>
       </div>
 
       {progresso.fichas.map((f) => {
@@ -385,25 +260,36 @@ function CardExercicio({ e, onOpen }: { e: ExercicioProgresso; onOpen: () => voi
     );
   }
 
+  const v = variacaoKg(e);
   return (
     <button type="button" className="prog-card" onClick={onOpen}>
       <div className="prog-card-topo">
+        <Barbell size={18} weight="duotone" className="prog-card-icone" aria-hidden="true" />
         <span className="prog-card-nome">{e.nome}</span>
         <Selo status={statusAtual(e)} />
       </div>
       <div className="prog-card-valor">
-        <span className="prog-valor">
-          {formatKg(u.melhor.cargaKg)}
-          <small> kg</small> × {u.melhor.repeticoes ?? '—'}
+        <span className="prog-valor">{formatKg(u.melhor.cargaKg)}</span>
+        <span className="prog-valor-sub">
+          kg ×<br />
+          <b>{u.melhor.repeticoes ?? '—'} reps</b>
         </span>
-        <Variacao e={e} />
+        {e.sessoes.length > 1 && (
+          <span className="prog-variacao">
+            {v > 0 ? `+${formatKg(v)}` : v < 0 ? formatKg(v) : '='} kg
+            <small>desde {formatData(e.sessoes[0].data)}</small>
+          </span>
+        )}
       </div>
-      <span className="prog-mini-rotulo">CARGA (KG)</span>
-      <GraficoLinha pontos={pontos} medida="kg" altura={54} />
-      <span className="prog-mini-rotulo">REPS{e.faixa ? ` · FAIXA ${e.faixa[0]}–${e.faixa[1]}` : ''}</span>
-      <GraficoLinha pontos={pontos} medida="reps" faixa={e.faixa} altura={46} />
+      <GraficoLinha pontos={pontos} medida="kg" altura={52} />
+      <PlacarSessoes e={e} />
       <span className="prog-card-meta">
-        {e.sessoes.length} {e.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(e.sessoes[0].data)}
+        <span>
+          {e.series} {e.series === 1 ? 'série' : 'séries'} · faixa {e.repeticoes}
+        </span>
+        <span>
+          {e.sessoes.length} {e.sessoes.length === 1 ? 'sessão' : 'sessões'}
+        </span>
       </span>
     </button>
   );
@@ -428,15 +314,21 @@ function CardCardio({ cardio }: { cardio: CardioProgresso }) {
   return (
     <div className="prog-card" style={{ cursor: 'default' }}>
       <div className="prog-card-topo">
+        <Heartbeat size={18} weight="duotone" className="prog-card-icone" aria-hidden="true" />
         <span className="prog-card-nome">{nome}</span>
-        {ultima.minutos < cardio.minutos && <span className="prog-selo abaixo">▼ Abaixo do prescrito</span>}
+        {ultima.minutos < cardio.minutos && (
+          <span className="prog-selo abaixo">
+            <ArrowDown size={11} aria-hidden="true" /> Abaixo do prescrito
+          </span>
+        )}
       </div>
       <div className="prog-card-valor">
-        <span className="prog-valor">
-          {ultima.minutos}
-          <small> min</small>
+        <span className="prog-valor">{ultima.minutos}</span>
+        <span className="prog-valor-sub">
+          min
+          <br />
+          <b>de {cardio.minutos}</b>
         </span>
-        <span className="prog-variacao">de {cardio.minutos} prescritos</span>
       </div>
       <table className="prog-tabela">
         <thead>

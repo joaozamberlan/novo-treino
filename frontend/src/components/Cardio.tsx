@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, HeartPulse, Info, X } from 'lucide-react';
+import { Check, Heartbeat, Info, X } from '@phosphor-icons/react';
 import { ModalPortal } from './ModalPortal';
 import {
   CARDIO_MODELOS,
@@ -149,7 +149,7 @@ const CardioTipoBotao: React.FC<{ modelo: CardioModelo; minutos: number }> = ({ 
 export const CardioCabecalho: React.FC<{ modelo: CardioModelo; minutos: number }> = ({ modelo, minutos }) => (
   <div className="card" style={{ padding: '0.7rem 1rem', marginBottom: '1rem', backgroundColor: 'var(--bg-1)', border: '1px solid var(--border)', borderRadius: 'var(--radius-m)' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-      <HeartPulse size={15} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
+      <Heartbeat size={15} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
       <span style={{ fontSize: '0.8rem', color: 'var(--text-0)' }}>
         Aeróbico pós-treino: <strong>{minutos} min</strong>
       </span>
@@ -230,7 +230,7 @@ export const CardioRegistro: React.FC<CardioRegistroProps> = ({
           title={feito ? 'Desmarcar aeróbico' : 'Marcar aeróbico como feito'}
         >
           {feito ? (
-            <Check size={18} strokeWidth={3} className="check-pop-icon" aria-hidden="true" />
+            <Check size={18} className="check-pop-icon" aria-hidden="true" />
           ) : (
             <div style={{ width: 10, height: 10, borderRadius: 2, border: '1.5px solid var(--border-strong)' }} aria-hidden="true" />
           )}

@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useConfirmar } from '../hooks/useConfirmar';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { 
-  Plus, Layers, Sparkles, Edit, Trash2, 
-  Video, Save, FolderPlus, X, MessageSquareText
-} from 'lucide-react';
+import { ChatText, FloppyDisk, FolderPlus, NotePencil, Plus, Sparkle, Stack, Trash, VideoCamera, X } from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { toast } from 'sonner';
 import type { GrupoMuscular, Exercicio, TecnicaTreino } from '../types/treino';
@@ -533,7 +530,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'exercicios' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('exercicios')}
           >
-            <Layers size={16} aria-hidden="true" />
+            <Stack size={16} aria-hidden="true" />
             Exercícios
           </button>
           <button
@@ -553,7 +550,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'tecnicas' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('tecnicas')}
           >
-            <Sparkles size={16} aria-hidden="true" />
+            <Sparkle size={16} aria-hidden="true" />
             Técnicas de Treino
           </button>
           <button
@@ -563,7 +560,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'instrucoes' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('instrucoes')}
           >
-            <MessageSquareText size={16} aria-hidden="true" />
+            <ChatText size={16} aria-hidden="true" />
             Instruções
           </button>
         </div>
@@ -637,7 +634,7 @@ export const Catalog: React.FC = () => {
                               aria-label={`Ver vídeo de ${ex.nome}`}
                               style={{ flexShrink: 0 }}
                             >
-                              <Video size={14} />
+                              <VideoCamera size={14} />
                             </a>
                           )}
                           <span style={{ color: ex.descricao ? 'var(--text-1)' : 'var(--text-2)', fontSize: '0.875rem', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -648,10 +645,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar exercício" aria-label={`Editar ${ex.nome}`} onClick={() => handleEditExercicio(ex)}>
-                            <Edit size={14} />
+                            <NotePencil size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir exercício" aria-label={`Excluir ${ex.nome}`} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
-                            <Trash2 size={14} />
+                            <Trash size={14} />
                           </button>
                         </div>
                       </td>
@@ -693,10 +690,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar técnica" aria-label={`Editar ${tec.nome}`} onClick={() => handleEditTecnica(tec)}>
-                            <Edit size={14} />
+                            <NotePencil size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir técnica" aria-label={`Excluir ${tec.nome}`} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
-                            <Trash2 size={14} />
+                            <Trash size={14} />
                           </button>
                         </div>
                       </td>
@@ -734,10 +731,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar instrução" aria-label={`Editar ${ins.texto}`} onClick={() => handleEditInstrucao(ins)}>
-                            <Edit size={14} />
+                            <NotePencil size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir instrução" aria-label={`Excluir ${ins.texto}`} onClick={() => handleDeleteInstrucao(ins.idInstrucao)}>
-                            <Trash2 size={14} />
+                            <Trash size={14} />
                           </button>
                         </div>
                       </td>
@@ -783,10 +780,10 @@ export const Catalog: React.FC = () => {
                         <td data-label="Ações" style={{ textAlign: 'right' }}>
                           <div className="table-actions">
                             <button className="exercise-action-btn accent" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} onClick={() => handleEditGrupoTab(g)}>
-                              <Edit size={14} />
+                              <NotePencil size={14} />
                             </button>
                             <button className="exercise-action-btn danger" title="Excluir grupo muscular" aria-label={`Excluir ${g.nome}`} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
-                              <Trash2 size={14} />
+                              <Trash size={14} />
                             </button>
                           </div>
                         </td>
@@ -958,7 +955,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>{editingExId ? 'Atualizar Exercício' : 'Salvar Exercício'}</span>
                   </button>
                 </div>
@@ -1042,7 +1039,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
                   </button>
                 </div>
@@ -1102,7 +1099,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>{editingInsId ? 'Atualizar Instrução' : 'Salvar Instrução'}</span>
                   </button>
                 </div>
@@ -1173,7 +1170,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>{editingGrupoId ? 'Atualizar Grupo' : 'Salvar Grupo'}</span>
                   </button>
                 </div>

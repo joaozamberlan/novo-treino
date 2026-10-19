@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { CaretRight } from '@phosphor-icons/react';
 
 export interface BreadcrumbItem {
   label: string;
@@ -23,7 +23,7 @@ export const Breadcrumb: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => 
       const isLast = idx === items.length - 1;
       return (
         <React.Fragment key={idx}>
-          {idx > 0 && <ChevronRight size={13} style={{ opacity: 0.5, flexShrink: 0, color: 'var(--text-2)' }} />}
+          {idx > 0 && <CaretRight size={13} style={{ opacity: 0.5, flexShrink: 0, color: 'var(--text-2)' }} />}
           {item.to && !isLast ? (
             <Link to={item.to} className="breadcrumb-link" style={{ color: 'var(--text-1)', fontWeight: 500 }}>
               {item.label}

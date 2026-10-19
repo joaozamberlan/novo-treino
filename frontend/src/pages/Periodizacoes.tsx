@@ -9,10 +9,7 @@ import { memoryCache } from '../services/cache';
 import { ActionMenu } from '../components/ActionMenu';
 import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
-import {
-  ArrowLeft, Plus, Calendar, AlertCircle,
-  Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban, KeyRound,
-} from 'lucide-react';
+import { ArrowLeft, ArrowsClockwise, CalendarDots, Copy, FloppyDisk, LinkSimple, Password, PencilSimple, Plus, Prohibit, ShareNetwork, Trash, WarningCircle, X } from '@phosphor-icons/react';
 import { ModalPortal } from '../components/ModalPortal';
 
 interface Aluno {
@@ -449,7 +446,7 @@ export const Periodizacoes: React.FC = () => {
   if (!aluno && error) {
     return (
       <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
+        <WarningCircle size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -497,15 +494,15 @@ export const Periodizacoes: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <ActionMenu
               label={`Acesso do aluno ${aluno?.nome ?? ''}`}
-              trigger={<><Link2 size={16} /><span>Acesso do aluno</span></>}
+              trigger={<><LinkSimple size={16} /><span>Acesso do aluno</span></>}
               align="left"
               items={[
                 // Só há PIN para redefinir depois que o aluno criou um
                 ...(aluno?.acesso === 'PIN_CRIADO'
-                  ? [{ label: 'Redefinir PIN', icon: <KeyRound size={14} />, onClick: handleRedefinirPin }]
+                  ? [{ label: 'Redefinir PIN', icon: <Password size={14} />, onClick: handleRedefinirPin }]
                   : []),
-                { label: 'Gerar novo link', icon: <RefreshCw size={14} />, onClick: handleRegenerarLink },
-                { label: 'Revogar acesso', icon: <Ban size={14} />, onClick: handleRevogarLink, danger: true },
+                { label: 'Gerar novo link', icon: <ArrowsClockwise size={14} />, onClick: handleRegenerarLink },
+                { label: 'Revogar acesso', icon: <Prohibit size={14} />, onClick: handleRevogarLink, danger: true },
               ]}
             />
             <button className="btn btn-secondary btn-sm" onClick={openImportModal}>
@@ -547,10 +544,10 @@ export const Periodizacoes: React.FC = () => {
                   <ActionMenu
                     label={`Ações de ${proto.nome}`}
                     items={[
-                      { label: 'Compartilhar link', icon: <Share2 size={14} />, onClick: () => handleShare(proto) },
+                      { label: 'Compartilhar link', icon: <ShareNetwork size={14} />, onClick: () => handleShare(proto) },
                       { label: 'Copiar para um aluno', icon: <Copy size={14} />, onClick: () => startCopyProtocolo(proto) },
-                      { label: 'Editar', icon: <Edit2 size={14} />, onClick: () => startEditProtocolo(proto) },
-                      { label: 'Excluir', icon: <Trash2 size={14} />, onClick: () => handleDeleteProtocolo(proto), danger: true },
+                      { label: 'Editar', icon: <PencilSimple size={14} />, onClick: () => startEditProtocolo(proto) },
+                      { label: 'Excluir', icon: <Trash size={14} />, onClick: () => handleDeleteProtocolo(proto), danger: true },
                     ]}
                   />
                 </div>
@@ -575,7 +572,7 @@ export const Periodizacoes: React.FC = () => {
                   )}
                   {(inicio || fim) && (
                     <span>
-                      <Calendar size={12} style={{ verticalAlign: '-1px', marginRight: '0.25rem' }} />
+                      <CalendarDots size={12} style={{ verticalAlign: '-1px', marginRight: '0.25rem' }} />
                       {inicio || '...'}{fim ? ` até ${fim}` : ''}
                     </span>
                   )}
@@ -884,7 +881,7 @@ export const Periodizacoes: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    {editingProtocoloId ? <Save size={16} /> : <Plus size={16} />}
+                    {editingProtocoloId ? <FloppyDisk size={16} /> : <Plus size={16} />}
                     <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Periodização'}</span>
                   </button>
                 </div>

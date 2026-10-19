@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Timer } from 'lucide-react';
+import { ArrowRight, Check, Timer } from '@phosphor-icons/react';
 import { PainelMarca } from '../components/PainelMarca';
 import { useTema } from '../hooks/useTema';
 import { PERFIL_KEY, type Perfil } from '../constants/storageKeys';
@@ -39,7 +39,7 @@ export const Entrada: React.FC = () => {
               <span className="entrada-amostra-num">1</span>
               <span className="entrada-amostra-dado"><b>40</b> kg</span>
               <span className="entrada-amostra-dado"><b>10</b> reps</span>
-              <span className="entrada-amostra-check"><Check size={14} strokeWidth={3} /></span>
+              <span className="entrada-amostra-check"><Check size={14} /></span>
             </span>
           </Link>
 
@@ -55,7 +55,7 @@ export const Entrada: React.FC = () => {
             <span className="entrada-amostra" aria-hidden="true">
               <span className="entrada-amostra-nome">Supino reto</span>
               <span className="entrada-amostra-dado"><b>3</b> × <b>8-12</b></span>
-              <span className="entrada-amostra-descanso"><Timer size={11} strokeWidth={2.5} />90s</span>
+              <span className="entrada-amostra-descanso"><Timer size={11} />90s</span>
             </span>
           </Link>
         </div>

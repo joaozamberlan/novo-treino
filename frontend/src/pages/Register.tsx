@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowRight, Eye, EyeOff, Check, Clock, Cloud, HardDrive, Sliders } from 'lucide-react';
+import { ArrowRight, Check, Clock, Cloud, Eye, EyeSlash, HardDrives, SlidersHorizontal } from '@phosphor-icons/react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 import { useTema } from '../hooks/useTema';
 import { useTopoEscuro } from '../hooks/useTopoEscuro';
@@ -122,7 +122,7 @@ export const Register: React.FC = () => {
             <div>30 kg</div>
             <div><span className="mock-pr-tag">PR +2.5kg</span></div>
             <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={14} strokeWidth={3} />
+              <Check size={14} />
             </div>
           </div>
 
@@ -132,7 +132,7 @@ export const Register: React.FC = () => {
             <div>32 kg</div>
             <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
             <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={14} strokeWidth={3} />
+              <Check size={14} />
             </div>
           </div>
 
@@ -142,7 +142,7 @@ export const Register: React.FC = () => {
             <div>34 kg</div>
             <div style={{ color: 'var(--accent-text)', fontWeight: 700 }}>REST-PAUSE</div>
             <div style={{ color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
-              <Clock size={12} strokeWidth={2.5} />
+              <Clock size={12} />
               <span>90s</span>
             </div>
           </div>
@@ -151,15 +151,15 @@ export const Register: React.FC = () => {
         {/* Left Footer: Clean Technical Highlights */}
         <div className="login-left-footer">
           <div className="login-tech-feature">
-            <Cloud size={14} color="var(--accent)" strokeWidth={2.2} />
+            <Cloud size={14} color="var(--accent)" />
             <span>Sincronização em Nuvem</span>
           </div>
           <div className="login-tech-feature">
-            <HardDrive size={14} color="var(--accent)" strokeWidth={2.2} />
+            <HardDrives size={14} color="var(--accent)" />
             <span>Armazenamento Offline Nativo</span>
           </div>
           <div className="login-tech-feature">
-            <Sliders size={14} color="var(--accent)" strokeWidth={2.2} />
+            <SlidersHorizontal size={14} color="var(--accent)" />
             <span>Cálculo Dinâmico de Séries e Cargas</span>
           </div>
         </div>
@@ -241,7 +241,7 @@ export const Register: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {senhaField.error && (
@@ -334,7 +334,7 @@ export const Register: React.FC = () => {
               ) : (
                 <>
                   <span>Criar Conta</span>
-                  <ArrowRight size={16} strokeWidth={2.5} />
+                  <ArrowRight size={16} />
                 </>
               )}
             </button>

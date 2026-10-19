@@ -54,6 +54,19 @@ export function statusReps(reps: number | null, faixa: [number, number] | null):
   return 'dentro';
 }
 
+// Cor do ponto no gráfico e texto do status no tooltip
+export const COR_STATUS: Record<StatusFaixa, string> = {
+  acima: 'var(--success)',
+  dentro: 'var(--text-1)',
+  abaixo: 'var(--warning)',
+};
+
+export const TEXTO_STATUS: Record<StatusFaixa, string> = {
+  acima: 'passou da faixa',
+  dentro: 'dentro da faixa',
+  abaixo: 'abaixo da faixa',
+};
+
 export const ultimaSessao = (e: ExercicioProgresso) => e.sessoes[e.sessoes.length - 1];
 
 export function statusAtual(e: ExercicioProgresso): StatusFaixa {

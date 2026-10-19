@@ -3,10 +3,7 @@ import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-do
 import { PageTransition } from './PageTransition';
 import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  Settings, LogOut, Shield, Users, Menu, Home, 
-  Sun, Moon, Download, Smartphone, ChevronDown, Dumbbell
-} from 'lucide-react';
+import { Barbell, CaretDown, DeviceMobile, DownloadSimple, Gear, House, List, Moon, Shield, SignOut, Sun, Users } from '@phosphor-icons/react';
 import { BrandLogo } from './BrandLogo';
 import { ActionMenu, type ActionMenuItem } from './ActionMenu';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -109,8 +106,8 @@ export const Layout: React.FC = () => {
   // Só o que é da conta. Tema e instalar ficam visíveis na barra: são coisas
   // que a pessoa procura com o olho, e escondidas no avatar ninguém acha.
   const menuDaConta: ActionMenuItem[] = [
-    { label: 'Configurações', icon: <Settings size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
-    { label: 'Sair', icon: <LogOut size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
+    { label: 'Configurações', icon: <Gear size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
+    { label: 'Sair', icon: <SignOut size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
   ];
 
   return (
@@ -141,7 +138,7 @@ export const Layout: React.FC = () => {
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto'
               }}>
-                <Smartphone size={24} />
+                <DeviceMobile size={24} />
               </div>
               <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
               <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
@@ -173,7 +170,7 @@ export const Layout: React.FC = () => {
             aria-expanded={isExpanded}
             style={{ marginRight: '0.25rem' }}
           >
-            <Menu size={18} aria-hidden="true" />
+            <List size={18} aria-hidden="true" />
           </button>
           <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
             <BrandLogo size={22} text="Treinos" />
@@ -189,7 +186,7 @@ export const Layout: React.FC = () => {
               title="Instalar app"
               aria-label="Instalar aplicativo no dispositivo"
             >
-              <Download size={18} aria-hidden="true" />
+              <DownloadSimple size={18} aria-hidden="true" />
             </button>
           )}
           <button
@@ -243,7 +240,7 @@ export const Layout: React.FC = () => {
               }}
               end
             >
-              <Home size={16} />
+              <House size={16} />
               <span className="sidebar-label">Início</span>
             </NavLink>
 
@@ -280,9 +277,9 @@ export const Layout: React.FC = () => {
                   }
                 }}
               >
-                <Dumbbell size={16} />
+                <Barbell size={16} />
                 <span className="sidebar-label">Biblioteca</span>
-                <ChevronDown 
+                <CaretDown 
                   size={14} 
                   className="sidebar-chevron"
                   style={{ 
@@ -339,7 +336,7 @@ export const Layout: React.FC = () => {
                 setIsExpanded(false);
               }}
             >
-              <Settings size={16} />
+              <Gear size={16} />
               <span className="sidebar-label">Configurações</span>
             </NavLink>
           </nav>
@@ -356,7 +353,7 @@ export const Layout: React.FC = () => {
       <nav className="mobile-tab-bar" aria-label="Navegação principal">
         <NavLink to="/" end className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
           <PressScale as="span" className="tab-bar-inner">
-            <Home size={22} aria-hidden="true" />
+            <House size={22} aria-hidden="true" />
             <span>Início</span>
           </PressScale>
         </NavLink>
@@ -368,13 +365,13 @@ export const Layout: React.FC = () => {
         </NavLink>
         <NavLink to="/exercicios?tab=exercicios" className={`tab-bar-item ${isExerciciosRoute ? 'active' : ''}`}>
           <PressScale as="span" className="tab-bar-inner">
-            <Dumbbell size={22} aria-hidden="true" />
+            <Barbell size={22} aria-hidden="true" />
             <span>Biblioteca</span>
           </PressScale>
         </NavLink>
         <NavLink to="/configuracoes" className={({ isActive }) => `tab-bar-item ${isActive ? 'active' : ''}`}>
           <PressScale as="span" className="tab-bar-inner">
-            <Settings size={22} aria-hidden="true" />
+            <Gear size={22} aria-hidden="true" />
             <span>Config.</span>
           </PressScale>
         </NavLink>

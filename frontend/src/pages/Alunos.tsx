@@ -3,7 +3,7 @@ import { useConfirmar } from '../hooks/useConfirmar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
-import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
+import { CaretRight, PencilSimple, Plus, Trash, Users, X } from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import { ModalPortal } from '../components/ModalPortal';
@@ -360,7 +360,7 @@ export const Alunos: React.FC = () => {
                     onClick={(e) => startEditAluno(aluno, e)}
                     title="Editar informações do aluno"
                   >
-                    <Edit2 size={14} />
+                    <PencilSimple size={14} />
                   </button>
                   <button
                     type="button"
@@ -368,7 +368,7 @@ export const Alunos: React.FC = () => {
                     onClick={(e) => handleDeleteAluno(aluno, e)}
                     title="Excluir aluno"
                   >
-                    <Trash2 size={14} />
+                    <Trash size={14} />
                   </button>
                   <button
                     type="button"
@@ -376,7 +376,7 @@ export const Alunos: React.FC = () => {
                     onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
                     title="Ver periodizações"
                   >
-                    <ChevronRight size={16} />
+                    <CaretRight size={16} />
                   </button>
                 </div>
               </div>

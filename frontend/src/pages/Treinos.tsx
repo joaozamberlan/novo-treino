@@ -8,11 +8,7 @@ import { Reorder, useDragControls } from 'motion/react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Breadcrumb } from '../components/Breadcrumb';
-import {
-  ArrowLeft, Plus,
-  Trash2, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical, Timer, MessageSquareText, MessageCircle, Copy
-} from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, ChatCircle, ChatText, Copy, DotsSixVertical, FileText, FloppyDisk, NotePencil, PencilSimple, Plus, ShareNetwork, Timer, Trash, WarningCircle, X } from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
@@ -78,7 +74,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         onPointerDown={(e) => dragControls.start(e)}
         title="Arraste para reordenar"
       >
-        <GripVertical size={16} />
+        <DotsSixVertical size={16} />
         <button className="exercise-action-btn" disabled={index === 0} onClick={() => onMove('up')} aria-label={`Subir ${item.exercicio.nome}`}>
           <ArrowUp size={14} />
         </button>
@@ -96,7 +92,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
           {item.tecnica && <span className="exercise-block-tag tecnica">{item.tecnica.nome}</span>}
           {item.observacao && (
             <span className="exercise-block-note">
-              <MessageSquareText size={12} aria-hidden="true" />
+              <ChatText size={12} aria-hidden="true" />
               {item.observacao}
             </span>
           )}
@@ -115,10 +111,10 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
       </div>
       <div className="exercise-block-actions">
         <button className="exercise-action-btn accent" onClick={onEdit} title="Editar" aria-label={`Editar ${item.exercicio.nome}`}>
-          <Edit size={14} />
+          <NotePencil size={14} />
         </button>
         <button className="exercise-action-btn danger" onClick={onRemove} title="Remover" aria-label={`Remover ${item.exercicio.nome}`}>
-          <Trash2 size={14} />
+          <Trash size={14} />
         </button>
       </div>
     </Reorder.Item>
@@ -873,7 +869,7 @@ export const Treinos: React.FC = () => {
   if (!aluno && error) {
     return (
       <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
+        <WarningCircle size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -928,10 +924,10 @@ export const Treinos: React.FC = () => {
               {linkDoAluno && (
                 <ActionMenu
                   label="Compartilhar o treino com o aluno"
-                  trigger={<><Share2 size={14} /><span>Compartilhar</span></>}
+                  trigger={<><ShareNetwork size={14} /><span>Compartilhar</span></>}
                   align="left"
                   items={[
-                    { label: 'Enviar no WhatsApp', icon: <MessageCircle size={14} />, onClick: handleCompartilharWhatsApp },
+                    { label: 'Enviar no WhatsApp', icon: <ChatCircle size={14} />, onClick: handleCompartilharWhatsApp },
                     { label: 'Copiar link', icon: <Copy size={14} />, onClick: handleCopiarLink },
                   ]}
                 />
@@ -957,7 +953,7 @@ export const Treinos: React.FC = () => {
       {catalogExercicios.length === 0 && (
         <div className="card" style={{ border: '1px solid var(--warning)', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
           <h2 style={{ color: 'var(--warning-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={22} />
+            <WarningCircle size={22} />
             Catálogo de Exercícios Vazio
           </h2>
           <p>
@@ -1061,7 +1057,7 @@ export const Treinos: React.FC = () => {
                     }}
                     title="Renomear / Editar ficha"
                   >
-                    <Edit2 size={13} />
+                    <PencilSimple size={13} />
                     <span style={{ fontSize: '0.75rem' }}>Renomear</span>
                   </button>
                   <button
@@ -1071,7 +1067,7 @@ export const Treinos: React.FC = () => {
                     onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
                     title="Excluir ficha de treino"
                   >
-                    <Trash2 size={13} />
+                    <Trash size={13} />
                     <span style={{ fontSize: '0.75rem' }}>Excluir Ficha</span>
                   </button>
                 </div>
@@ -1152,7 +1148,7 @@ export const Treinos: React.FC = () => {
       {/* Periodização não encontrada (ex: link antigo, ou excluída por outra aba) */}
       {!activeProtocol && !loading && (
         <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <AlertCircle size={32} style={{ color: 'var(--text-2)', opacity: 0.6 }} />
+          <WarningCircle size={32} style={{ color: 'var(--text-2)', opacity: 0.6 }} />
           <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-1)' }}>
             Esta periodização não foi encontrada.
           </p>
@@ -1371,7 +1367,7 @@ export const Treinos: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>Salvar Alterações</span>
                   </button>
                 </div>
@@ -1541,7 +1537,7 @@ export const Treinos: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDisk size={16} />
                     <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
                   </button>
                 </div>

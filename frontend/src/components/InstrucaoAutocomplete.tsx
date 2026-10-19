@@ -1,5 +1,5 @@
 import React, { useId, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 
 export interface Instrucao {
   idInstrucao: number;
