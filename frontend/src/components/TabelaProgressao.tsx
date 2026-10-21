@@ -9,6 +9,16 @@ const SEMANAS = [
   'Ajustar a carga para a da semana 3 e realizar 1 repetição acima do limite inferior',
 ];
 
+// Resumo de cada semana em fichas (na tela): o que muda na carga, nas reps e
+// nas séries. "forte" marca a mudança que o aluno precisa notar.
+const RESUMO: { texto: string; forte?: boolean }[][] = [
+  [{ texto: 'carga: definir' }, { texto: 'reps: média' }],
+  [{ texto: 'carga: ajustar' }, { texto: 'reps: média' }],
+  [{ texto: 'carga ↑', forte: true }, { texto: 'reps: mínimo' }],
+  [{ texto: 'carga: ajustar' }, { texto: 'reps: média' }, { texto: 'séries −1', forte: true }],
+  [{ texto: 'carga da sem. 3' }, { texto: 'reps: mín. +1' }],
+];
+
 export function TabelaProgressao({ variant }: { variant: 'screen' | 'print' }) {
   if (variant === 'print') {
     return (
@@ -39,35 +49,30 @@ export function TabelaProgressao({ variant }: { variant: 'screen' | 'print' }) {
     );
   }
 
-  const cell = { padding: '0.6rem 0.75rem 0.6rem 0', borderTop: '1px solid var(--border)', verticalAlign: 'top' as const };
-  const head = {
-    padding: '0.55rem 0.75rem 0.55rem 0',
-    textAlign: 'left' as const,
-    fontFamily: 'var(--font-mono)',
-    fontSize: '0.68rem',
-    letterSpacing: '0.08em',
-    color: 'var(--text-2)',
-  };
-
   return (
-    <section style={{ marginTop: '2rem', borderTop: '1px solid var(--border-strong)' }}>
-      <h2 style={{ fontSize: '0.95rem', margin: 0, padding: '0.85rem 0 0.4rem' }}>Progressão semanal</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-        <thead>
-          <tr>
-            <th style={{ ...head, width: '5.5rem' }}>SEMANA</th>
-            <th style={head}>INSTRUÇÃO PARA TODOS OS TREINOS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {SEMANAS.map((texto, i) => (
-            <tr key={i}>
-              <td style={{ ...cell, fontWeight: 700, color: 'var(--accent-text)', whiteSpace: 'nowrap' }}>Semana {i + 1}</td>
-              <td style={{ ...cell, color: 'var(--text-1)', lineHeight: 1.4 }}>{texto}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <section className="progressao" aria-labelledby="progressaoTitulo">
+      <header className="progressao-head">
+        <h2 id="progressaoTitulo">Progressão semanal</h2>
+        <span>Vale para todos os treinos</span>
+      </header>
+      <ol className="progressao-lista">
+        {SEMANAS.map((texto, i) => (
+          <li key={i} className="progressao-semana">
+            <span className="progressao-num">
+              <small>Semana</small>
+              {i + 1}
+            </span>
+            <p>{texto}</p>
+            <span className="progressao-resumo" aria-hidden="true">
+              {RESUMO[i].map((r) => (
+                <span key={r.texto} className={r.forte ? 'forte' : undefined}>
+                  {r.texto}
+                </span>
+              ))}
+            </span>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

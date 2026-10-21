@@ -28,6 +28,9 @@ import { ConfirmarProvider } from './components/ConfirmarProvider';
 const ExerciseCardPrototype = import.meta.env.DEV
   ? lazy(() => import('./pages/prototypes/ExerciseCardPrototype').then((m) => ({ default: m.ExerciseCardPrototype })))
   : null;
+const ProgressoPrototype = import.meta.env.DEV
+  ? lazy(() => import('./pages/prototypes/ProgressoPrototype').then((m) => ({ default: m.ProgressoPrototype })))
+  : null;
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signed, loading } = useAuth();
@@ -86,6 +89,12 @@ function App() {
               <Route
                 path="/prototypes/exercise-card"
                 element={<Suspense fallback={null}><ExerciseCardPrototype /></Suspense>}
+              />
+            )}
+            {ProgressoPrototype && (
+              <Route
+                path="/prototypes/progresso"
+                element={<Suspense fallback={null}><ProgressoPrototype /></Suspense>}
               />
             )}
 

@@ -43,9 +43,16 @@ Referências visuais em `docs/design/` e logos em `docs/logo-jvz*`.
 | `--pr-gold` / `-soft` | `#e5a93c` | — | recorde pessoal (PR) |
 
 ### Tipografia
-- `--font`: **Archivo** (400–900) → fallback de sistema Apple/Segoe/Roboto.
-- `--font-mono`: **IBM Plex Mono** (500–700) para números: cargas, reps, séries,
-  cronômetro, tabelas.
+- Uma família só: **Archivo** variável (peso 100–900, largura 62–125%), hospedada no
+  próprio app via `@fontsource-variable/archivo` (funciona offline no PWA).
+- `--font`: Archivo na largura normal, para texto corrido e títulos.
+- `--font-mono`: **Archivo Placar**, a mesma fonte presa em 75% de largura por um
+  `@font-face` no topo do `index.css`. Para números, rótulos em caixa alta e tabelas:
+  cargas, reps, séries, cronômetro. Não é monoespaçada; use `tabular-nums` onde os
+  dígitos alinham em coluna.
+- `--stretch-placar` (62%) com `font-family: var(--font)` e peso 800: só para o
+  número grande de placar (carga no card de progresso, número da semana). Não usar
+  em texto.
 - Escala compacta em `rem` (≈ 0.6875–0.875rem no corpo da UI de alta densidade).
 - Inputs com `font-size: 16px` no mobile para o iOS não dar zoom.
 
@@ -127,10 +134,12 @@ formulário claro.
 | Telas de entrada | Sempre divididas: painel de marca **preto com vermelho** (`.painel-escuro`) e formulário no tema da página. No desktop o painel fica à esquerda; no celular vira uma faixa no topo com o título da tela. Nunca uma tela toda clara. `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca`. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
 | PIN | `CampoPin`: quatro casas (`.pin-campo`, `.pin-celula`) sobre um `<input>` real e invisível |
 | Toasts | sonner, `bottom-right`, `richColors` |
-| Ícones | `@phosphor-icons/react`, nomes com sufixo `Icon` (`PlusIcon`). Peso `bold` para o app todo via `IconContext` em `main.tsx`; não usar `strokeWidth`. Biblioteca de exercícios usa `BarbellIcon` |
+| Ícones | `@phosphor-icons/react`, nomes com sufixo `Icon` (`PlusIcon`). Peso `bold` por padrão (`IconContext` em `main.tsx`); não usar `strokeWidth`. `weight="duotone"` só em destaque (ícones do índice da Home, ícone do card de progresso), com a parte clara pintada de `--accent` via CSS (`[opacity] { fill: var(--accent) }`) ou herdando a cor vermelha. Halter = `BarbellIcon` |
+| Gráficos | `MiniGrafico` (SVG próprio, sem biblioteca): uma medida por gráfico, linha de 2px, último ponto em vermelho, tooltip no toque e no mouse. Status com ▲/▼ no texto, nunca só cor |
+| Progresso (placar) | `.prog-card` com filete escuro no topo (`box-shadow: inset 0 3px 0 var(--text-0)`) e raio pequeno; `.prog-placar` = fileira das últimas sessões com a cor do status no filete de baixo. Mesmo tratamento em `.progressao` (tabela de progressão semanal). É a exceção à regra de listas: aqui o card é o placar |
 | Checkbox e radio | `CaixaMarcar` (`components/CaixaMarcar.tsx`): caixa octogonal com marca que entra com mola, adaptada do "Cyberpunk Glitch Checkbox" de pharmacist-sabot no Uiverse (MIT), sem neon nem glitch. Nunca `<input type="checkbox">` cru. Lista de opções: `.opcoes-lista` + `.opcao-linha` (a marcada leva o fio vermelho à esquerda) |
 | Select | `Seletor` (`components/Seletor.tsx`), em cima do Select do React Aria (`react-aria-components`): teclado, digitar para achar e leitor de tela vêm de lá; o visual é nosso (`.seletor-*`). Lista aberta com fio entre opções e a escolhida com fio vermelho e check. Nunca `<select>` nativo. Valor fora das opções (ex.: 0) mostra o placeholder |
-| Listas | Telas de índice (Home, periodizações, progresso) são **linhas com fio entre si**, não grades de cartões: `.hub-index-row`, `.proto-row`, `.prog-linha`, `.student-item`, `.exercise-block`, tabelas (`.table` sem moldura, cabeçalho em mono). Seções de Configurações e o volume semanal também sem caixa. Estado vazio: `.estado-vazio`. Números em coluna, `--font-mono` com `tabular-nums`. Nunca cartão dentro de cartão: uma caixa por seção no máximo |
+| Listas | Telas de índice (Home, alunos, periodizações) são **linhas com fio entre si**, não grades de cartões: `.hub-index-row`, `.aluno-linha`, `.proto-row`, `.exercise-block`, tabelas (`.table` sem moldura, cabeçalho em `--font-mono`). Seções de Configurações e o volume semanal também sem caixa. Estado vazio: `.estado-vazio`. Números em coluna com `tabular-nums`. Nunca cartão dentro de cartão: uma caixa por seção no máximo |
 
 ## 6. Regras de interação
 
