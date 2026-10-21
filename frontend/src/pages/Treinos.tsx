@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Breadcrumb } from '../components/Breadcrumb';
 import {
   ArrowDownIcon,
+  RepeatIcon,
   CaretLeftIcon,
   CaretRightIcon,
   ArrowLeftIcon,
@@ -33,6 +34,7 @@ import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { CaixaMarcar } from '../components/CaixaMarcar';
 import { Seletor } from '../components/Seletor';
+import { mapaOcorrencias, nomesDasFichas, outrasOcorrencias } from '../utils/repetidos';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
 import { VolumeSemanal } from '../components/VolumeSemanal';
@@ -60,6 +62,9 @@ const lerCardio = (tipo: string, minutos: string) => {
   return cardioMinutos === null ? null : { cardioTipo: tipo, cardioMinutos };
 };
 
+// Id negativo da linha recém-adicionada até o servidor devolver o real
+let proximoIdProvisorio = -1;
+
 // Cache em memória para catálogos estáticos
 let cachedCatalogs: {
   exercicios: Exercicio[];
@@ -74,10 +79,12 @@ interface ExerciseBlockRowProps {
   onMove: (direction: 'up' | 'down') => void;
   onEdit: () => void;
   onRemove: () => void;
+  // "também em Upper" / "2× nesta ficha": o exercício aparece em outra linha
+  repetido?: string;
 }
 
 // Item isolado por precisar do próprio useDragControls (hooks não rodam dentro de .map())
-const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total, onMove, onEdit, onRemove }) => {
+const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total, onMove, onEdit, onRemove, repetido }) => {
   const dragControls = useDragControls();
 
   return (
@@ -112,6 +119,12 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         <div className="exercise-block-detail">
           <span className="exercise-block-tag">{item.exercicio.grupoMuscular.nome}</span>
           {item.tecnica && <span className="exercise-block-tag tecnica">{item.tecnica.nome}</span>}
+          {repetido && (
+            <span className="exercise-block-tag repetido" title="Este exercício também está em outra linha da periodização">
+              <RepeatIcon size={11} aria-hidden="true" />
+              {repetido}
+            </span>
+          )}
           {item.observacao && (
             <span className="exercise-block-note">
               <ChatTextIcon size={12} aria-hidden="true" />
@@ -618,6 +631,26 @@ export const Treinos: React.FC = () => {
 
     const currentFicha = activeProtocol.treinos.find(t => t.idTreino === activeTabId);
 
+    // Na edição só pergunta se o exercício foi trocado; a própria linha não conta
+    const itemEditado = editingExercisePrescriptionId
+      ? currentFicha?.exercicios.find(x => x.idTreinoExercicio === editingExercisePrescriptionId)
+      : undefined;
+    const trocouExercicio = !itemEditado || itemEditado.exercicio.idExercicio !== exObj.idExercicio;
+    const ja = outrasOcorrencias(ocorrencias, exObj.idExercicio, editingExercisePrescriptionId);
+    if (trocouExercicio && ja.length > 0) {
+      const outras = nomesDasFichas(ja, activeTabId);
+      const fichaAtual = currentFicha?.nome ?? 'esta ficha';
+      const confirmou = await confirmar({
+        titulo: outras
+          ? `${exObj.nome} já está no ${outras}. Adicionar no ${fichaAtual} mesmo assim?`
+          : `${exObj.nome} já está nesta ficha. Adicionar de novo?`,
+        mensagem: 'É só um aviso: o exercício pode se repetir entre fichas se for de propósito.',
+        confirmar: editingExercisePrescriptionId ? 'Salvar mesmo assim' : 'Adicionar mesmo assim',
+        cancelar: 'Voltar',
+      });
+      if (!confirmou) return;
+    }
+
     if (editingExercisePrescriptionId) {
       // --- EDIÇÃO OTIMISTA INSTANTÂNEA ---
       const editId = editingExercisePrescriptionId;
@@ -671,7 +704,7 @@ export const Treinos: React.FC = () => {
       }
     } else {
       // --- ADIÇÃO OTIMISTA INSTANTÂNEA ---
-      const tempId = -Date.now();
+      const tempId = proximoIdProvisorio--;
       const newOrder = (currentFicha?.exercicios.length || 0) + 1;
       const newItem: PrescribedExercise = {
         idTreinoExercicio: tempId,
@@ -881,6 +914,17 @@ export const Treinos: React.FC = () => {
       console.error('Erro ao remover no servidor:', err);
       loadTreino(false);
     }
+  };
+
+  // Barato (poucas fichas): recalcula a cada render, então segue qualquer mudança nas fichas
+  const ocorrencias = mapaOcorrencias(activeProtocol?.treinos ?? []);
+  // Texto da tag: outras fichas primeiro; se só repete na própria ficha, quantas vezes
+  const textoRepetido = (idExercicio: number, idTreinoExercicio: number, idTreino: number) => {
+    const outras = outrasOcorrencias(ocorrencias, idExercicio, idTreinoExercicio);
+    if (outras.length === 0) return undefined;
+    const fichas = nomesDasFichas(outras, idTreino);
+    if (fichas) return `também em ${fichas}`;
+    return `${outras.length + 1}× nesta ficha`;
   };
 
   if (loading && !aluno) {
@@ -1183,6 +1227,7 @@ export const Treinos: React.FC = () => {
                       onMove={(direction) => handleMoveExercise(activeFicha, idx, direction)}
                       onEdit={() => handleEditPrescription(item, activeFicha.idTreino)}
                       onRemove={() => handleRemoveExercise(item.idTreinoExercicio)}
+                      repetido={textoRepetido(item.exercicio.idExercicio, item.idTreinoExercicio, activeFicha.idTreino)}
                     />
                   ))}
                 </Reorder.Group>
@@ -1525,7 +1570,11 @@ export const Treinos: React.FC = () => {
                       valor={selectedExercicio}
                       opcoes={catalogExercicios
                         .filter(ex => ex.idGrupoMuscular === selectedGrupo)
-                        .map(ex => ({ valor: ex.idExercicio, texto: ex.nome }))}
+                        .map(ex => {
+                          const ja = outrasOcorrencias(ocorrencias, ex.idExercicio, editingExercisePrescriptionId);
+                          const onde = [...new Set(ja.map(o => (o.idTreino === activeTabId ? 'nesta ficha' : o.nomeFicha)))].join(', ');
+                          return { valor: ex.idExercicio, texto: ex.nome, detalhe: onde ? `em ${onde}` : undefined };
+                        })}
                       onChange={setSelectedExercicio}
                       placeholder={!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}
                       desabilitado={!selectedGrupo}

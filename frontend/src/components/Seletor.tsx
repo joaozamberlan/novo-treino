@@ -13,6 +13,8 @@ export type ValorSeletor = string | number;
 export interface OpcaoSeletor<V extends ValorSeletor> {
   valor: V;
   texto: string;
+  // Texto de apoio à direita, em mono pequeno (ex.: "em Upper")
+  detalhe?: string;
   desabilitada?: boolean;
 }
 
@@ -70,7 +72,12 @@ export function Seletor<V extends ValorSeletor>({
               {({ isSelected }) => (
                 <>
                   <span>{o.texto}</span>
-                  {isSelected && <CheckIcon size={14} className="seletor-opcao-check" aria-hidden="true" />}
+                  {(o.detalhe || isSelected) && (
+                    <span className="seletor-opcao-fim">
+                      {o.detalhe && <span className="seletor-opcao-detalhe">{o.detalhe}</span>}
+                      {isSelected && <CheckIcon size={14} className="seletor-opcao-check" aria-hidden="true" />}
+                    </span>
+                  )}
                 </>
               )}
             </ListBoxItem>
