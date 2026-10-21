@@ -78,7 +78,7 @@
   --font-mono: 'Archivo Placar', 'Archivo Variable', 'Arial Narrow', sans-serif;
   /* Placar: só para o número grande de carga e o número da semana */
   --stretch-placar: 62%;
-
+  
   /* Apple & Motion Physics */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -722,6 +722,12 @@ select.form-input {
   transform: scale(0.985) translateY(0);
 }
 
+/* Estado vazio ou "não encontrado": texto solto entre fios, sem caixa */
+.estado-vazio {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
 .card-flat {
   background: transparent;
   border: none;
@@ -732,8 +738,7 @@ select.form-input {
 
 .table-container {
   overflow-x: auto;
-  border-radius: var(--radius-m);
-  border: 1px solid var(--border);
+  border-top: 1px solid var(--border-strong);
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
   -webkit-overflow-scrolling: touch;
@@ -777,11 +782,13 @@ select.form-input {
 }
 
 .table th {
-  background: var(--bg-2);
-  color: var(--text-1);
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 0.75rem;
-  letter-spacing: normal;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .table tr:last-child td {
@@ -789,8 +796,8 @@ select.form-input {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .table tr:hover td {
-    background: rgba(255, 255, 255, 0.015);
+  .table tbody tr:hover td {
+    background: var(--bg-1);
   }
 }
 
@@ -853,18 +860,19 @@ select.form-input {
 
 /* ── Student List ──────────────────────────────────────────────────────── */
 
+/* Linhas com fio, sem caixa em volta: mesmo idioma da Home */
 .student-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  border-top: 1px solid var(--border-strong);
 }
 
 .student-item {
   display: flex;
   align-items: center;
-  padding: 0.65rem 0.75rem;
+  padding: 0.85rem 0.75rem;
   gap: 1rem;
-  background: var(--bg-1);
+  background: transparent;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background var(--transition);
@@ -873,35 +881,24 @@ select.form-input {
 
 @media (hover: hover) and (pointer: fine) {
   .student-item:hover {
-    background: var(--bg-2);
+    background: var(--bg-1);
   }
 }
 
-.student-item:first-child {
-  border-radius: var(--radius-l) var(--radius-l) 0 0;
-}
-
-.student-item:last-child {
-  border-radius: 0 0 var(--radius-l) var(--radius-l);
-  border-bottom: none;
-}
-
 .student-item-name {
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
   color: var(--text-0);
   flex: 1;
 }
 
 /* ── Prescription Tabs ─────────────────────────────────────────────────── */
 
+/* Abas sem trilho em caixa: fio embaixo, a ativa sublinhada em vermelho */
 .ficha-tabs {
   display: flex;
-  gap: 0.35rem;
-  background: var(--bg-2);
-  padding: 0.25rem;
-  border-radius: var(--radius-m);
-  border: 1px solid var(--border);
+  gap: 1.75rem;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 1.25rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -913,17 +910,19 @@ select.form-input {
 }
 
 .ficha-tab {
-  min-height: 38px;
-  padding: 0.45rem 1rem;
+  min-height: 44px;
+  padding: 0;
+  margin-bottom: -1px;
   font-size: 0.8125rem;
   font-weight: 700;
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
   color: var(--text-1);
   cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: var(--radius-s);
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  transition-property: transform, opacity, border-color, color;
   transition-duration: 140ms;
   transition-timing-function: var(--ease-out);
   background: transparent;
@@ -943,25 +942,13 @@ select.form-input {
 @media (hover: hover) and (pointer: fine) {
   .ficha-tab:hover {
     color: var(--text-0);
-    background: var(--bg-3);
   }
 }
 
 .ficha-tab.active {
-  background: var(--bg-0);
-  color: var(--accent-text);
-  border-color: var(--border-strong);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  border-bottom: 2.5px solid var(--accent);
+  color: var(--text-0);
+  border-bottom-color: var(--accent);
   font-weight: 800;
-}
-
-body.light-theme .ficha-tab.active {
-  background: #ffffff;
-  color: var(--accent-text);
-  border-color: var(--border);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  border-bottom: 2.5px solid var(--accent);
 }
 
 .ficha-tab-add {
@@ -972,7 +959,7 @@ body.light-theme .ficha-tab.active {
   color: var(--text-2);
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -1px;
   transition: color var(--transition);
   background: transparent;
   border-top: none;
@@ -997,33 +984,35 @@ body.light-theme .ficha-tab.active {
 .exercise-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  border-top: 1px solid var(--border-strong);
 }
 
+/* Linha com fio, não cartão. Fundo opaco da página para o arrasto levantar
+   a linha sem deixar ver o que está embaixo. */
 .exercise-block {
   position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1rem 0.875rem 0.75rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  background: var(--bg-0);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
   transition: border-color var(--transition), opacity 200ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* O cartão não é clicável (só a alça e os botões agem): o hover marca a linha
-   com a borda e mais nada. Sombra e escala ficam para o arrasto (whileDrag em
-   Treinos.tsx), que é quando ele de fato levanta. */
+/* A linha não é clicável (só a alça e os botões agem): o hover só clareia o
+   fundo. Sombra e escala ficam para o arrasto (whileDrag em Treinos.tsx),
+   que é quando ela de fato levanta. */
 .exercise-block:focus-within {
-  border-color: var(--border-strong);
+  background: var(--bg-1);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .exercise-block:hover {
-    border-color: var(--border-strong);
+    background: var(--bg-1);
   }
 }
 
@@ -1766,11 +1755,9 @@ body.light-theme {
 }
 
 .vol-semanal {
-  margin-top: 1.5rem;
-  padding: 1rem 1rem 0.75rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-strong);
 }
 
 .vol-head h2 {
@@ -3122,9 +3109,8 @@ body.light-theme .mobile-tab-bar {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Só escurece: desfocar a página inteira custa caro para pintar */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3199,6 +3185,41 @@ body.modal-aberto {
 /* O foco vai para o diálogo ao abrir; o anel fica para os controles de dentro */
 .modal-backdrop:focus {
   outline: none;
+}
+
+/* ── Modal de formulário (treinador) ─────────────────────────────────────
+   Centralizado e um pouco mais largo que o modal comum. Cabeçalho com fio
+   e rodapé presos; só o miolo rola. No celular segue a folha de baixo. */
+@media (min-width: 641px) {
+  .modal-content--form {
+    display: flex;
+    flex-direction: column;
+    max-width: min(600px, 100%) !important;
+    max-height: min(88dvh, 820px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 1.75rem;
+    background: var(--bg-1);
+  }
+
+  .modal-content--form > .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 -1.75rem 1.5rem;
+    padding: 1.5rem 1.75rem 1.1rem;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-content--form .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: 1rem -1.75rem 0 !important;
+    padding: 1rem 1.75rem 1.25rem !important;
+    background: var(--bg-1);
+  }
 }
 
 /* ── Confirmação (useConfirmar) ────────────────────────────────────────── */
@@ -4034,7 +4055,7 @@ body.modal-aberto {
 }
 
 .hub-search-item:focus-visible,
-.hub-recent-card:focus-visible {
+.hub-recent-row:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
@@ -4045,221 +4066,284 @@ body.modal-aberto {
   }
 }
 
-.hub-grid {
+/* Índice de módulos: linhas separadas por fio, sem cartão. O título é o
+   link; o ::after dele cobre a linha inteira, e o botão "+" fica por cima. */
+.hub-index {
+  border-top: 1px solid var(--border-strong);
+  margin-bottom: 3rem;
+}
+
+.hub-index-row {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2.75rem;
+  grid-template-columns: 3rem minmax(0, 1fr) 6rem 2.75rem 1.25rem;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 160ms var(--ease);
 }
 
-@media (max-width: 920px) {
-  .hub-grid {
-    grid-template-columns: 1fr;
-  }
+.hub-index-row:has(.hub-index-link:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
-.hub-card {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  padding: 1.75rem 1.5rem;
+.hub-index-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hub-index-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.hub-index-link:focus-visible {
+  outline: none;
+}
+
+/* Ícone do módulo com o número embaixo, os dois no vermelho */
+.hub-index-marca {
+  align-self: start;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 180ms;
-  transition-timing-function: var(--ease);
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding-top: 0.2rem;
+  color: var(--accent);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .hub-card:hover {
-    border-color: var(--border-strong);
-  }
-}
-
-.hub-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  /* Mesma altura com ou sem o contador à direita: os títulos ficam alinhados */
-  min-height: 1.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.hub-card-tag {
+.hub-index-num {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  font-weight: 800;
-  color: var(--accent-text);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.hub-card-stat {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-1);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-s);
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
 }
 
-.hub-card-title {
-  font-size: 1.35rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  margin-bottom: 0.6rem;
+.hub-index-title {
+  transition: color 160ms var(--ease);
+  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
   color: var(--text-0);
 }
 
-.hub-card-desc {
+.hub-index-desc {
+  max-width: 60ch;
+  margin-top: 0.45rem;
   font-size: 0.85rem;
+  line-height: 1.55;
   color: var(--text-1);
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  min-height: 2.7rem;
 }
 
-.hub-card-actions {
+.hub-index-stat {
   display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border);
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
 }
 
-.btn-hub-primary {
-  background: var(--accent);
-  color: #ffffff;
-  border: none;
-  padding: 0.55rem 1.05rem;
-  border-radius: var(--radius-m);
-  font-size: 0.8125rem;
-  font-weight: 700;
+.hub-index-stat-num {
   font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-0);
+}
+
+.hub-index-stat-label {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.hub-index-add {
+  position: relative;
+  z-index: 1;
+  width: 2.75rem;
+  height: 2.75rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 140ms;
-  transition-timing-function: var(--ease);
-  box-shadow: 0 2px 8px rgba(207, 52, 39, 0.28);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .btn-hub-primary:hover {
-    background: var(--accent-hover);
-  }
-}
-
-.btn-hub-subtle {
+  justify-content: center;
   background: transparent;
   color: var(--text-1);
-  border: 1px solid var(--border);
-  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-m);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
   cursor: pointer;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-property: background-color, border-color, color;
   transition-duration: 140ms;
   transition-timing-function: var(--ease);
 }
 
+.hub-index-arrow {
+  color: var(--text-2);
+  transition: transform 160ms var(--ease), color 160ms var(--ease);
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .btn-hub-subtle:hover {
-    color: var(--text-0);
-    border-color: var(--border-strong);
-    background: var(--bg-2);
+  .hub-index-row:hover {
+    background: var(--bg-1);
+  }
+
+  .hub-index-row:hover .hub-index-title {
+    color: var(--accent-text);
+  }
+
+  .hub-index-row:hover .hub-index-arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  .hub-index-add:hover {
+    color: #ffffff;
+    background: var(--accent);
+    border-color: var(--accent);
   }
 }
 
-.hub-recents-section {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  padding: 1.35rem 1.5rem;
+@media (max-width: 640px) {
+  .hub-index-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr) 2.75rem;
+    gap: 0.85rem;
+    padding: 1.25rem 0.25rem;
+  }
+
+  .hub-index-marca {
+    padding-top: 0.1rem;
+  }
+
+  .hub-index-marca svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* No celular o contador vai para baixo do texto, alinhado à esquerda */
+  .hub-index-stat {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .hub-index-stat:empty,
+  .hub-index-arrow {
+    display: none;
+  }
+
+  .hub-index-stat-num {
+    font-size: 1.125rem;
+  }
+
+  .hub-index-stat-label {
+    margin-top: 0;
+  }
 }
 
+/* Alunos recentes: lista corrida com fios, sem caixa por aluno */
 .hub-recents-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.15rem;
+  margin-bottom: 0.75rem;
 }
 
 .hub-recents-title {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-1);
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
 }
 
-.hub-recents-title span {
+.hub-recents-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+.hub-recent-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1fr) 1rem;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.9rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease);
+}
+
+.hub-recent-initials {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--accent-text);
 }
 
-.hub-recents-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+.hub-recent-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-@media (max-width: 860px) {
-  .hub-recents-grid {
-    grid-template-columns: 1fr;
-  }
+.hub-recent-meta {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.hub-recent-card {
-  background: var(--bg-2);
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-m);
-  padding: 0.85rem 1.15rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 140ms;
-  transition-timing-function: ease;
-  text-decoration: none;
+.hub-recent-arrow {
+  color: var(--text-2);
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.hub-recents-vazio {
+  padding: 1rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  border-top: 1px solid var(--border-strong);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .hub-recent-card:hover {
-    border-color: var(--border-strong);
-    background: var(--bg-3);
+  .hub-recent-row:hover {
+    background: var(--bg-1);
+  }
+
+  .hub-recent-row:hover .hub-recent-arrow {
+    color: var(--accent);
+    transform: translateX(2px);
   }
 }
 
-.hub-recent-card-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
+@media (max-width: 640px) {
+  .hub-recent-row {
+    grid-template-columns: 2rem minmax(0, 1fr) 1rem;
+    gap: 0.75rem;
+    padding: 0.85rem 0.25rem;
+  }
+
+  .hub-recent-meta {
+    display: none;
+  }
 }
 
+/* Avatar das sugestões da busca */
 .hub-recent-avatar {
   width: 34px;
   height: 34px;
@@ -4274,36 +4358,6 @@ body.modal-aberto {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.hub-recent-name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--text-0);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hub-recent-meta {
-  font-size: 0.72rem;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hub-recent-arrow {
-  color: var(--text-2);
-  transition: transform 140ms ease, color 140ms ease;
-  flex-shrink: 0;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .hub-recent-card:hover .hub-recent-arrow {
-    color: var(--accent);
-    transform: translateX(2px);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4390,56 +4444,176 @@ body.modal-aberto {
   background: var(--border);
 }
 
-/* ── Cartão de periodização ─────────────────────────────────────────────── */
+/* ── Lista de periodizações ─────────────────────────────────────────────
+   Uma linha por periodização, colunas alinhadas: nome · fichas · exercícios
+   · datas · ações. A atual ganha um fio vermelho à esquerda, não uma borda. */
 
-.proto-card {
+.proto-lista {
+  border-top: 1px solid var(--border-strong);
+}
+
+.proto-row {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.1rem 1.15rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) 5rem 6.5rem 12rem auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.1rem 0.75rem 1.1rem 1rem;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color var(--transition), box-shadow var(--transition), transform 120ms var(--ease-out);
+  transition: background-color var(--transition);
+}
+
+.proto-row.is-current::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .proto-card:hover {
-    border-color: var(--border-strong);
+  .proto-row:hover {
+    background: var(--bg-1);
+  }
+
+  .proto-row:hover .proto-row-title {
+    color: var(--accent-text);
   }
 }
 
-.proto-card:active {
-  transform: scale(0.995);
-}
-
-.proto-card.is-current {
-  border-color: var(--accent-border);
-}
-
-.proto-card-head {
+.proto-row-main {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
-.proto-card-title {
-  margin: 0;
-  font-size: 1.05rem;
+.proto-row-indice {
+  align-self: start;
+  padding-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-0);
-  line-height: 1.3;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
 }
 
-.proto-card-goal {
-  margin: 0.15rem 0 0;
+.proto-row-title {
+  margin: 0;
+  transition: color 160ms var(--ease);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text-0);
+}
+
+.proto-row-goal {
+  margin: 0;
   font-size: 0.8rem;
   color: var(--text-1);
+}
+
+.proto-row-aviso {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--warning-text);
+}
+
+.proto-row-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.proto-row-num strong {
+  font-family: var(--font-mono);
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-0);
+}
+
+.proto-row-num span {
+  margin-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.proto-row-datas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.proto-row-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.proto-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2.5rem 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+.proto-vazio p {
+  margin: 0;
+  max-width: 400px;
+  color: var(--text-1);
+}
+
+@media (max-width: 900px) {
+  .proto-row {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 0.75rem 1.25rem;
+    padding: 1rem 0.25rem 1rem 0.85rem;
+  }
+
+  .proto-row-main,
+  .proto-row-acoes {
+    grid-column: 1 / -1;
+  }
+
+  .proto-row-indice {
+    display: none;
+  }
+
+  .proto-row-num {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+
+  .proto-row-num strong {
+    font-size: 1rem;
+  }
+
+  .proto-row-num span {
+    margin-top: 0;
+  }
+
+  .proto-row-acoes {
+    justify-content: flex-start;
+  }
 }
 
 .proto-badges {
@@ -4473,30 +4647,6 @@ body.modal-aberto {
 .proto-badge.running {
   color: var(--accent-text);
   background: var(--accent-soft);
-}
-
-.proto-card-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  font-size: 0.78rem;
-  color: var(--text-1);
-  font-variant-numeric: tabular-nums;
-}
-
-.proto-card-stats strong {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--text-0);
-}
-
-.proto-card-foot {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: auto;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
 }
 
 /* ── Busca de listas e linha de aluno ───────────────────────────────────── */
@@ -4554,34 +4704,27 @@ body.modal-aberto {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .proto-card {
-    transition: none;
-  }
-}
-
 /* ── Configurações ─────────────────────────────────────────────────────── */
 
 .settings-page {
   max-width: 880px;
 }
 
+/* Seções sem caixa: fio forte em cima, título grande. Os campos ficam
+   direto no fundo da página. */
 .settings-page .settings-group {
-  margin-bottom: 1rem;
-  padding: 1.25rem 1.35rem 1.35rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-strong);
 }
 
 .settings-page .settings-group-title {
   margin-bottom: 0.4rem;
   padding-bottom: 0;
   border-bottom: none;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .settings-desc {
@@ -4714,59 +4857,6 @@ body.modal-aberto {
   .table tbody tr:hover .table-actions,
   .table tbody tr:focus-within .table-actions {
     opacity: 1;
-  }
-}
-
-/* ── Home: botão secundário e cartão largo ──────────────────────────────── */
-
-.btn-hub-outline {
-  background: transparent;
-  color: var(--accent-text);
-  border: 1px solid var(--accent-border);
-  padding: 0.55rem 1.05rem;
-  border-radius: var(--radius-m);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 140ms;
-  transition-timing-function: var(--ease);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .btn-hub-outline:hover {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-  }
-}
-
-/* Rodapés dos cartões numa linha só: os divisores ficam alinhados entre cartões */
-.hub-card-actions {
-  flex-wrap: nowrap;
-}
-
-@media (min-width: 921px) {
-  .hub-card--wide {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .hub-card--wide .hub-card-desc {
-    margin-bottom: 0;
-    min-height: 0;
-  }
-
-  .hub-card--wide .hub-card-actions {
-    padding-top: 0;
-    border-top: none;
-    flex-shrink: 0;
   }
 }
 
@@ -5043,7 +5133,7 @@ body.modal-aberto {
   margin-bottom: 1rem;
 }
 
-.protocolo-seletor select {
+.protocolo-seletor .seletor-botao {
   height: 44px;
   font-size: 1rem;
 }
@@ -5804,17 +5894,30 @@ body.modal-aberto {
   }
 }
 
-/* Abas da Biblioteca. Ativa = fundo neutro e texto forte, só o ícone em
+/* Barra da Biblioteca: abas à esquerda, filtro e busca à direita, sem caixa */
+.cat-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* As abas ocupam a linha toda; filtro e busca descem para a de baixo */
+.cat-barra > .cat-abas {
+  flex: 1 0 100%;
+}
+
+/* Abas da Biblioteca. Ativa = texto forte e sublinhado vermelho, ícone em
    vermelho (a mesma regra do menu lateral). */
 .cat-abas {
   display: flex;
-  gap: 0.25rem;
+  gap: 1.5rem;
   max-width: 100%;
-  padding: 0.25rem;
   overflow-x: auto;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-m);
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
 }
 
 .cat-aba {
@@ -5822,11 +5925,13 @@ body.modal-aberto {
   align-items: center;
   gap: 0.4rem;
   flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 1rem;
+  min-height: 44px;
+  padding: 0;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-s);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 0;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 600;
@@ -5837,9 +5942,8 @@ body.modal-aberto {
 }
 
 .cat-aba.ativa {
-  background: var(--bg-1);
   color: var(--text-0);
-  box-shadow: 0 0 0 1px var(--border);
+  border-bottom-color: var(--accent);
 }
 
 .cat-aba.ativa svg {
@@ -5879,10 +5983,7 @@ body.modal-aberto {
    de toque todo controle tem pelo menos 44px, o mínimo que o dedo acerta. */
 @media (pointer: coarse) {
   .btn,
-  .btn-sm,
-  .btn-hub-primary,
-  .btn-hub-outline,
-  .btn-hub-subtle {
+  .btn-sm {
     height: auto;
     min-height: 44px;
   }
@@ -5892,8 +5993,7 @@ body.modal-aberto {
   }
 
   .btn-icon,
-  .login-toggle-password,
-  .btn-hub-subtle {
+  .login-toggle-password {
     min-width: 44px;
   }
 
@@ -5948,4 +6048,692 @@ body.modal-aberto {
     height: 22px;
     flex-shrink: 0;
   }
+}
+
+/* ── CaixaMarcar: checkbox e radio ─────────────────────────────────────────
+   Adaptado do "Cyberpunk Glitch Checkbox" de pharmacist-sabot (Uiverse.io,
+   licença MIT): caixa octogonal por clip-path e marca que entra com mola.
+   Sem neon nem glitch; cores dos tokens do app. */
+.caixa-marcar {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.82rem;
+  color: var(--text-0);
+}
+
+.caixa-marcar input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.caixa-marcar-caixa {
+  --octogono: polygon(15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%, 0 15%);
+  position: relative;
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.05rem;
+  background: var(--text-2);
+  clip-path: var(--octogono);
+  transition: background-color 160ms var(--ease-out);
+}
+
+/* A borda é o fundo da caixa aparecendo em volta deste miolo: clip-path
+   corta border comum nos cantos diagonais */
+.caixa-marcar-caixa::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: var(--bg-1);
+  clip-path: var(--octogono);
+}
+
+.caixa-marcar-marca {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 55%;
+  height: 55%;
+  background: var(--accent);
+  clip-path: var(--octogono);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 260ms var(--ease-spring-bounce), opacity 160ms var(--ease-out);
+}
+
+.caixa-marcar input:checked + .caixa-marcar-caixa {
+  background: var(--accent);
+}
+
+.caixa-marcar input:checked + .caixa-marcar-caixa .caixa-marcar-marca {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.caixa-marcar input:focus-visible + .caixa-marcar-caixa {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.caixa-marcar:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .caixa-marcar:hover input:not(:checked):not(:disabled) + .caixa-marcar-caixa {
+    background: var(--text-0);
+  }
+}
+
+.caixa-marcar-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  line-height: 1.4;
+}
+
+.caixa-marcar--compacta {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Lista de opções num formulário: linhas com fio, a marcada com o fio
+   vermelho à esquerda (o mesmo da periodização atual) */
+.opcoes-lista {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.opcao-linha {
+  padding: 0.75rem 0.5rem 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 140ms var(--ease-out);
+}
+
+.opcao-linha:has(input[type="radio"]:checked)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .opcao-linha:hover {
+    background: var(--bg-2);
+  }
+}
+
+.opcao-titulo {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-0);
+}
+
+.opcao-desc {
+  font-size: 0.75rem;
+  color: var(--text-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caixa-marcar-marca {
+    transition: opacity 160ms var(--ease-out);
+  }
+}
+
+/* ── Admin: faixa de números ───────────────────────────────────────────── */
+.admin-numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-numero {
+  padding: 1rem 1.25rem 1.1rem 0;
+}
+
+.admin-numero + .admin-numero {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--border);
+}
+
+.admin-numero dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.admin-numero dd {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-0);
+}
+
+@media (max-width: 640px) {
+  .admin-numeros {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-numero,
+  .admin-numero + .admin-numero {
+    padding: 0.85rem 0;
+    border-left: 0;
+  }
+
+  .admin-numero + .admin-numero {
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* ── Seletor (React Aria Select) ───────────────────────────────────────────
+   O botão tem a mesma caixa dos campos (.form-input). A lista aberta segue
+   o idioma das linhas do app: fio entre opções, a escolhida com o fio
+   vermelho à esquerda e o check. */
+.seletor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.seletor-botao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  height: 36px;
+  padding: 0 0.65rem 0 0.75rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--text-0);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.seletor-botao[data-focus-visible] {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.seletor-botao[data-pressed],
+.seletor[data-open] .seletor-botao {
+  border-color: var(--border-focus);
+  background: var(--bg-1);
+}
+
+.seletor-botao[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .seletor-botao:not([data-disabled]):hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.seletor-valor {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.seletor-valor[data-placeholder] {
+  color: var(--text-2);
+}
+
+.seletor-seta {
+  flex-shrink: 0;
+  color: var(--text-2);
+  transition: transform 160ms var(--ease-out);
+}
+
+.seletor[data-open] .seletor-seta {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+/* Acima dos modais (500) e da confirmação (600): a lista abre por cima deles */
+.seletor-popover {
+  z-index: 700;
+  width: var(--trigger-width);
+  max-height: min(320px, var(--visual-viewport-height, 100vh));
+  overflow-y: auto;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  transform-origin: top;
+}
+
+.seletor-popover[data-entering] {
+  animation: seletorEntra 140ms var(--ease-out);
+}
+
+.seletor-popover[data-placement="top"] {
+  transform-origin: bottom;
+}
+
+@keyframes seletorEntra {
+  from {
+    opacity: 0;
+    transform: scaleY(0.96);
+  }
+}
+
+.seletor-lista {
+  outline: none;
+}
+
+.seletor-opcao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 38px;
+  padding: 0.45rem 0.75rem 0.45rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--text-0);
+  cursor: pointer;
+  outline: none;
+}
+
+.seletor-opcao:last-child {
+  border-bottom: 0;
+}
+
+.seletor-opcao[data-focused] {
+  background: var(--bg-2);
+}
+
+.seletor-opcao[data-focus-visible] {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.seletor-opcao[data-selected] {
+  font-weight: 700;
+}
+
+.seletor-opcao[data-selected]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.seletor-opcao[data-disabled] {
+  color: var(--text-2);
+  cursor: default;
+}
+
+.seletor-opcao-check {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .seletor-botao {
+    min-height: 44px;
+  }
+
+  .seletor-opcao {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 16px: o iOS não dá zoom ao tocar */
+  .seletor-botao,
+  .seletor-opcao {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seletor-popover[data-entering] {
+    animation: fadeIn 120ms var(--ease-out);
+  }
+}
+
+.seletor--flex {
+  flex: 1;
+}
+
+.seletor--filtro {
+  min-width: 200px;
+}
+
+.seletor--filtro .seletor-botao {
+  height: 40px;
+}
+
+/* ── Cabeçalho de página e busca em linha ──────────────────────────────────
+   Título grande como o da Home e o total como número em mono à direita. */
+.pagina-cabeca {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pagina-titulo {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.pagina-cabeca-lado {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+}
+
+.pagina-contador {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.pagina-contador strong {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-0);
+}
+
+.pagina-contador span {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.busca-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  padding: 0 0.25rem;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-2);
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.busca-linha:focus-within {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.busca-linha input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text-0);
+}
+
+.busca-linha input::placeholder {
+  color: var(--text-2);
+}
+
+/* ── Lista de alunos: colunas alinhadas ───────────────────────────────── */
+.aluno-colunas,
+.aluno-linha {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1.4fr) minmax(0, 1fr) 8.5rem 7.5rem;
+  align-items: center;
+  gap: 1rem;
+}
+
+.aluno-colunas {
+  padding: 0 0.75rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.aluno-linha {
+  padding: 1rem 0.75rem;
+}
+
+.aluno-iniciais {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-text);
+}
+
+.aluno-id {
+  min-width: 0;
+}
+
+.aluno-nome {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 140ms var(--ease);
+}
+
+.aluno-contato {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+.aluno-contato span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-plano {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.aluno-plano-nome {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-plano-data {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-1);
+}
+
+.aluno-plano-data.vencida {
+  color: var(--warning-text);
+}
+
+.aluno-plano-vazio {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.aluno-linha-acesso {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.aluno-linha.inativo .aluno-nome,
+.aluno-linha.inativo .aluno-iniciais {
+  color: var(--text-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aluno-linha:hover .aluno-nome {
+    color: var(--accent-text);
+  }
+}
+
+@media (max-width: 760px) {
+  .aluno-colunas {
+    display: none;
+  }
+
+  .aluno-linha {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "ini id acoes"
+      ". plano plano"
+      ". acesso acesso";
+    gap: 0.4rem 0.75rem;
+    padding: 0.9rem 0.25rem;
+  }
+
+  .aluno-iniciais { grid-area: ini; align-self: start; padding-top: 0.15rem; }
+  .aluno-id { grid-area: id; }
+  .aluno-plano { grid-area: plano; }
+  .aluno-linha-acesso { grid-area: acesso; }
+  .aluno-linha .student-item-actions { grid-area: acoes; }
+
+  .pagina-cabeca-lado {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pagina-contador {
+    align-items: flex-start;
+  }
+}
+
+/* Periodização atual: a linha do tempo do período, em semanas */
+.proto-tempo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 26rem;
+  margin-top: 0.35rem;
+}
+
+.proto-tempo-texto {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.proto-tempo-texto strong {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.proto-tempo-trilho {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.proto-tempo-barra {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.proto-cabeca-contato {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-1);
+}
+
+.proto-cabeca {
+  padding-bottom: 0.5rem;
+}
+
+/* ── Reordenar fichas ──────────────────────────────────────────────────── */
+.ficha-tabs-grupo {
+  display: flex;
+  gap: 1.75rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ficha-tabs-grupo .ficha-tab {
+    cursor: grab;
+  }
+
+  .ficha-tabs-grupo .ficha-tab:active {
+    cursor: grabbing;
+  }
+}
+
+.ficha-mover {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding-right: 0.4rem;
+  margin-right: 0.1rem;
+  border-right: 1px solid var(--border);
 }

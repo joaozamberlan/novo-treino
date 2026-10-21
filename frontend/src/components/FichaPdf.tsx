@@ -92,7 +92,7 @@ export function FichaPdf({
                 </div>
                 <div>
                   <div className="print-brand-title">TREINOS // APP</div>
-                  <div className="print-brand-sub">PRESCRIÇÃO & CIÊNCIA DO TREINAMENTO</div>
+                  <div className="print-brand-sub">PRESCRIÇÃO E CIÊNCIA DO TREINAMENTO</div>
                 </div>
               </div>
             )}
@@ -198,11 +198,11 @@ export function FichaPdf({
                 <thead>
                   <tr>
                     <th style={{ width: '32px', textAlign: 'center' }}>#</th>
-                    <th style={{ width: '34%' }}>EXERCÍCIO & GRUPO</th>
+                    <th style={{ width: '34%' }}>EXERCÍCIO E GRUPO</th>
                     <th style={{ width: '48px', textAlign: 'center' }}>SÉRIES</th>
                     <th style={{ width: '68px', textAlign: 'center' }}>REPS</th>
                     <th style={{ width: '64px', textAlign: 'center' }}>PAUSA</th>
-                    <th>TÉCNICA & ORIENTAÇÕES</th>
+                    <th>TÉCNICA E ORIENTAÇÕES</th>
                   </tr>
                 </thead>
                 <tbody>

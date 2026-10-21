@@ -1,5 +1,5 @@
 import React, { useId, useMemo, useState } from 'react';
-import { Plus } from '@phosphor-icons/react';
+import { PlusIcon } from '@phosphor-icons/react';
 
 export interface Instrucao {
   idInstrucao: number;
@@ -152,7 +152,7 @@ export const InstrucaoAutocomplete: React.FC<Props> = ({
             >
               {row.kind === 'save' ? (
                 <>
-                  <Plus size={14} aria-hidden="true" />
+                  <PlusIcon size={14} aria-hidden="true" />
                   <span>Salvar "{row.texto}" na biblioteca</span>
                 </>
               ) : (

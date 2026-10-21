@@ -125,18 +125,21 @@ formulário claro.
 | Formulário | `.form-group` · `.form-label` · `.form-row` · `.form-control` |
 | Cartões | `.card` · `.card-clickable` · `.card-flat` |
 | Badges | `.badge` + `-success` · `-danger` · `-warning` · `-accent` · `-neutral` |
-| Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-close` · `.modal-footer`, sempre via `ModalPortal`, que trava a rolagem do fundo, leva o foco para dentro, prende o Tab, fecha no Esc e devolve o foco a quem abriu. O fundo leva `role="dialog"`, `aria-modal` e `aria-labelledby` |
+| Modal | `.modal-backdrop` · `.modal-content` · `.modal-header` · `.modal-close` · `.modal-footer`, sempre via `ModalPortal`, que trava a rolagem do fundo, leva o foco para dentro, prende o Tab, fecha no Esc e devolve o foco a quem abriu. O fundo leva `role="dialog"`, `aria-modal` e `aria-labelledby`. Formulário do treinador usa `.modal-content--form`: centralizado, até 600px, cabeçalho com fio e rodapé presos, só o miolo rola. No celular, tudo vira folha de baixo |
 | Confirmação | `useConfirmar()` no lugar do `confirm()` do navegador: título em forma de pergunta, mensagem dizendo o que se perde e botão com o verbo da ação ("Excluir ficha", nunca "OK"). Com `perigo`, o foco começa em Cancelar |
-| Abas de seção | `.cat-abas` / `.cat-aba` (Biblioteca): ativa = fundo neutro e texto forte, só o ícone em vermelho |
+| Abas de seção | `.cat-abas` / `.cat-aba` (Biblioteca) e `.ficha-tabs` / `.ficha-tab` (fichas): sem trilho em caixa, fio embaixo; a ativa tem texto forte e sublinhado vermelho |
 | Link de ação | `.link-acao`: ação secundária ao lado de um rótulo ("Esqueceu a senha?", "Gerar aleatória") |
 | Página | `.page-header` |
 | Menus | `ActionMenu` (menu "⋯" dos cartões). `align="left"` quando o gatilho fica na borda esquerda da tela |
 | Telas de entrada | Sempre divididas: painel de marca **preto com vermelho** (`.painel-escuro`) e formulário no tema da página. No desktop o painel fica à esquerda; no celular vira uma faixa no topo com o título da tela. Nunca uma tela toda clara. `.entrada` (escolha de perfil) e `.entrada--form` (login do aluno, primeiro acesso), com `PainelMarca`. Campos e botão iguais aos do login do treinador (`.login-input-wrap`, `.btn-login-submit`, `.auth-error`) |
 | PIN | `CampoPin`: quatro casas (`.pin-campo`, `.pin-celula`) sobre um `<input>` real e invisível |
 | Toasts | sonner, `bottom-right`, `richColors` |
-| Ícones | `@phosphor-icons/react`. Peso `bold` por padrão (`IconContext` em `main.tsx`). `weight="duotone"` só em destaque (ícone do card de progresso), com a parte clara pintada de `--accent` via CSS (`[opacity] { fill: var(--accent) }`). Halter = `Barbell` |
+| Ícones | `@phosphor-icons/react`, nomes com sufixo `Icon` (`PlusIcon`). Peso `bold` por padrão (`IconContext` em `main.tsx`); não usar `strokeWidth`. `weight="duotone"` só em destaque (ícones do índice da Home, ícone do card de progresso), com a parte clara pintada de `--accent` via CSS (`[opacity] { fill: var(--accent) }`) ou herdando a cor vermelha. Halter = `BarbellIcon` |
 | Gráficos | `MiniGrafico` (SVG próprio, sem biblioteca): uma medida por gráfico, linha de 2px, último ponto em vermelho, tooltip no toque e no mouse. Status com ▲/▼ no texto, nunca só cor |
-| Progresso (placar) | `.prog-card` com filete escuro no topo (`box-shadow: inset 0 3px 0 var(--text-0)`) e raio pequeno; `.prog-placar` = fileira das últimas sessões com a cor do status no filete de baixo. Mesmo tratamento em `.progressao` (tabela de progressão semanal) |
+| Progresso (placar) | `.prog-card` com filete escuro no topo (`box-shadow: inset 0 3px 0 var(--text-0)`) e raio pequeno; `.prog-placar` = fileira das últimas sessões com a cor do status no filete de baixo. Mesmo tratamento em `.progressao` (tabela de progressão semanal). É a exceção à regra de listas: aqui o card é o placar |
+| Checkbox e radio | `CaixaMarcar` (`components/CaixaMarcar.tsx`): caixa octogonal com marca que entra com mola, adaptada do "Cyberpunk Glitch Checkbox" de pharmacist-sabot no Uiverse (MIT), sem neon nem glitch. Nunca `<input type="checkbox">` cru. Lista de opções: `.opcoes-lista` + `.opcao-linha` (a marcada leva o fio vermelho à esquerda) |
+| Select | `Seletor` (`components/Seletor.tsx`), em cima do Select do React Aria (`react-aria-components`): teclado, digitar para achar e leitor de tela vêm de lá; o visual é nosso (`.seletor-*`). Lista aberta com fio entre opções e a escolhida com fio vermelho e check. Nunca `<select>` nativo. Valor fora das opções (ex.: 0) mostra o placeholder |
+| Listas | Telas de índice (Home, alunos, periodizações) são **linhas com fio entre si**, não grades de cartões: `.hub-index-row`, `.aluno-linha`, `.proto-row`, `.exercise-block`, tabelas (`.table` sem moldura, cabeçalho em `--font-mono`). Seções de Configurações e o volume semanal também sem caixa. Estado vazio: `.estado-vazio`. Números em coluna com `tabular-nums`. Nunca cartão dentro de cartão: uma caixa por seção no máximo |
 
 ## 6. Regras de interação
 

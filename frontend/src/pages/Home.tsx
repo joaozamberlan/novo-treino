@@ -3,7 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { memoryCache } from '../services/cache';
-import { ArrowRight, MagnifyingGlass } from '@phosphor-icons/react';
+import {
+  ArrowRightIcon,
+  BarbellIcon,
+  GearSixIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  ShieldCheckIcon,
+  UsersThreeIcon,
+} from '@phosphor-icons/react';
 
 interface Aluno {
   idAluno: number;
@@ -112,7 +120,7 @@ export const Home: React.FC = () => {
       {/* ─── Spotlight / Quick Jump Bar ─── */}
       <div className="hub-spotlight-bar" ref={searchWrapRef}>
         <div className="hub-search-input-wrap">
-          <MagnifyingGlass size={18} className="hub-search-icon" />
+          <MagnifyingGlassIcon size={18} className="hub-search-icon" />
           <input
             type="text"
             className="hub-search-input"
@@ -151,7 +159,7 @@ export const Home: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="hub-recent-arrow" aria-hidden="true" />
+                  <ArrowRightIcon size={16} className="hub-recent-arrow" aria-hidden="true" />
                 </button>
               ))
             ) : (
@@ -163,111 +171,113 @@ export const Home: React.FC = () => {
         )}
       </div>
 
-      {/* ─── 3 Hero Tactical Module Cards ─── */}
-      <div className="hub-grid">
-        {/* Card 01: Alunos */}
-        <div className="hub-card">
-          <div>
-            <div className="hub-card-header">
-              <span className="hub-card-tag">Alunos</span>
-              <span className="hub-card-stat">{alunos.length === 1 ? '1 aluno' : `${alunos.length} alunos`}</span>
-            </div>
-            <h2 className="hub-card-title">Alunos & Prescrições</h2>
-            <p className="hub-card-desc">
+      {/* ─── Índice de módulos: linhas, não cartões ─── */}
+      <nav className="hub-index" aria-label="Módulos">
+        <div className="hub-index-row">
+          <span className="hub-index-marca" aria-hidden="true">
+            <UsersThreeIcon size={30} weight="duotone" />
+            <span className="hub-index-num">01</span>
+          </span>
+          <div className="hub-index-main">
+            <Link to="/alunos" className="hub-index-link">
+              <h2 className="hub-index-title">Alunos e Prescrições</h2>
+            </Link>
+            <p className="hub-index-desc">
               Cadastre prontuários, estruture fichas de treinos, controle histórico de cargas e envie links interativos aos alunos.
             </p>
           </div>
-          <div className="hub-card-actions">
-            <button className="btn-hub-primary" onClick={() => navigate('/alunos')}>
-              <span>Acessar Alunos</span>
-              <ArrowRight size={15} />
-            </button>
-            <button
-              className="btn-hub-subtle"
-              onClick={() => navigate('/alunos', { state: { openAdd: true } })}
-              aria-label="Cadastrar novo aluno"
-              title="Cadastrar novo aluno"
-            >
-              <span aria-hidden="true" style={{ fontSize: '1rem', lineHeight: 1 }}>+</span>
-            </button>
+          <div className="hub-index-stat">
+            <span className="hub-index-stat-num">{alunos.length}</span>
+            <span className="hub-index-stat-label">{alunos.length === 1 ? 'aluno' : 'alunos'}</span>
           </div>
+          <button
+            className="hub-index-add"
+            onClick={() => navigate('/alunos', { state: { openAdd: true } })}
+            aria-label="Cadastrar novo aluno"
+            title="Cadastrar novo aluno"
+          >
+            <PlusIcon size={16} aria-hidden="true" />
+          </button>
+          <ArrowRightIcon size={18} className="hub-index-arrow" aria-hidden="true" />
         </div>
 
-        {/* Card 02: Biblioteca */}
-        <div className="hub-card">
-          <div>
-            <div className="hub-card-header">
-              <span className="hub-card-tag">Exercícios</span>
-              {exerciciosCount > 0 && <span className="hub-card-stat">{exerciciosCount} exercícios</span>}
-            </div>
-            <h2 className="hub-card-title">Biblioteca de Exercícios</h2>
-            <p className="hub-card-desc">
+        <div className="hub-index-row">
+          <span className="hub-index-marca" aria-hidden="true">
+            <BarbellIcon size={30} weight="duotone" />
+            <span className="hub-index-num">02</span>
+          </span>
+          <div className="hub-index-main">
+            <Link to="/exercicios" className="hub-index-link">
+              <h2 className="hub-index-title">Biblioteca de Exercícios</h2>
+            </Link>
+            <p className="hub-index-desc">
               Catálogo completo separado por grupamentos musculares, biomecânica, vídeos de execução e métodos avançados.
             </p>
           </div>
-          <div className="hub-card-actions">
-            <button className="btn-hub-outline" onClick={() => navigate('/exercicios')}>
-              <span>Explorar Catálogo</span>
-              <ArrowRight size={15} />
-            </button>
-            <button
-              className="btn-hub-subtle"
-              onClick={() => navigate('/exercicios', { state: { openAdd: true } })}
-              aria-label="Cadastrar novo exercício"
-              title="Cadastrar novo exercício"
-            >
-              <span aria-hidden="true" style={{ fontSize: '1rem', lineHeight: 1 }}>+</span>
-            </button>
+          <div className="hub-index-stat">
+            {exerciciosCount > 0 && (
+              <>
+                <span className="hub-index-stat-num">{exerciciosCount}</span>
+                <span className="hub-index-stat-label">exercícios</span>
+              </>
+            )}
           </div>
+          <button
+            className="hub-index-add"
+            onClick={() => navigate('/exercicios', { state: { openAdd: true } })}
+            aria-label="Cadastrar novo exercício"
+            title="Cadastrar novo exercício"
+          >
+            <PlusIcon size={16} aria-hidden="true" />
+          </button>
+          <ArrowRightIcon size={18} className="hub-index-arrow" aria-hidden="true" />
         </div>
 
-        {/* Card 03: Configurações */}
-        <div className="hub-card">
-          <div>
-            <div className="hub-card-header">
-              <span className="hub-card-tag">Perfil</span>
-            </div>
-            <h2 className="hub-card-title">Configurações & Marca</h2>
-            <p className="hub-card-desc">
+        <div className="hub-index-row">
+          <span className="hub-index-marca" aria-hidden="true">
+            <GearSixIcon size={30} weight="duotone" />
+            <span className="hub-index-num">03</span>
+          </span>
+          <div className="hub-index-main">
+            <Link to="/configuracoes" className="hub-index-link">
+              <h2 className="hub-index-title">Configurações e Marca</h2>
+            </Link>
+            <p className="hub-index-desc">
               Personalize seu registro CREF, logotipo, contatos, link do WhatsApp e dados que aparecem no cabeçalho dos treinos.
             </p>
           </div>
-          <div className="hub-card-actions">
-            <button className="btn-hub-outline" onClick={() => navigate('/configuracoes')}>
-              <span>Ajustar Perfil</span>
-              <ArrowRight size={15} />
-            </button>
-          </div>
+          <div className="hub-index-stat" />
+          <span className="hub-index-add-slot" />
+          <ArrowRightIcon size={18} className="hub-index-arrow" aria-hidden="true" />
         </div>
 
-        {/* Card 04: Superadmin if applicable */}
         {user?.role === 'SUPERADMIN' && (
-          <div className="hub-card hub-card--wide">
-            <div>
-              <div className="hub-card-header">
-                <span className="hub-card-tag">Admin</span>
-              </div>
-              <h2 className="hub-card-title">Administração Geral</h2>
-              <p className="hub-card-desc">
+          <div className="hub-index-row">
+            <span className="hub-index-marca" aria-hidden="true">
+              <ShieldCheckIcon size={30} weight="duotone" />
+              <span className="hub-index-num">04</span>
+            </span>
+            <div className="hub-index-main">
+              <Link to="/admin" className="hub-index-link">
+                <h2 className="hub-index-title">Administração Geral</h2>
+              </Link>
+              <p className="hub-index-desc">
                 Controle de permissões, gestão de usuários e acesso global de profissionais ao sistema.
               </p>
             </div>
-            <div className="hub-card-actions">
-              <button className="btn-hub-outline" onClick={() => navigate('/admin')}>
-                <span>Painel Admin</span>
-                <ArrowRight size={15} />
-              </button>
-            </div>
+            <div className="hub-index-stat" />
+            <span className="hub-index-add-slot" />
+            <ArrowRightIcon size={18} className="hub-index-arrow" aria-hidden="true" />
           </div>
         )}
-      </div>
+      </nav>
 
-      {/* ─── Fast Resume: 3 Recent Students (Clean & Minimalist, No Table) ─── */}
-      <div className="hub-recents-section">
+      {/* ─── Alunos recentes: lista corrida ─── */}
+      <section className="hub-recents-section" aria-labelledby="hub-recents-title">
         <div className="hub-recents-header">
-          <div className="hub-recents-title">
+          <h2 className="hub-recents-title" id="hub-recents-title">
             Alunos recentes
-          </div>
+          </h2>
           <Link
             to="/alunos"
             style={{
@@ -283,33 +293,27 @@ export const Home: React.FC = () => {
         </div>
 
         {recentAlunos.length > 0 ? (
-          <div className="hub-recents-grid">
+          <ul className="hub-recents-list">
             {recentAlunos.map((aluno) => (
-              <Link key={aluno.idAluno} className="hub-recent-card" to={`/alunos/${aluno.idAluno}/periodizacoes`}>
-                <div className="hub-recent-card-left">
-                  <div className="hub-recent-avatar">
-                    {getInitials(aluno.nome)}
-                  </div>
-                  <div>
-                    <div className="hub-recent-name">{aluno.nome}</div>
-                    <div className="hub-recent-meta">
-                      {aluno.email || 'Acessar ficha de treinos'}
-                    </div>
-                  </div>
-                </div>
-                <ArrowRight size={16} className="hub-recent-arrow" aria-hidden="true" />
-              </Link>
+              <li key={aluno.idAluno}>
+                <Link className="hub-recent-row" to={`/alunos/${aluno.idAluno}/periodizacoes`}>
+                  <span className="hub-recent-initials" aria-hidden="true">{getInitials(aluno.nome)}</span>
+                  <span className="hub-recent-name">{aluno.nome}</span>
+                  <span className="hub-recent-meta">{aluno.email || 'Acessar ficha de treinos'}</span>
+                  <ArrowRightIcon size={16} className="hub-recent-arrow" aria-hidden="true" />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-2)' }}>
+          <p className="hub-recents-vazio">
             Nenhum aluno cadastrado no momento.{' '}
             <Link to="/alunos" state={{ openAdd: true }} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>
               Clique aqui para cadastrar seu primeiro aluno
             </Link>.
-          </div>
+          </p>
         )}
-      </div>
+      </section>
     </div>
   );
 };

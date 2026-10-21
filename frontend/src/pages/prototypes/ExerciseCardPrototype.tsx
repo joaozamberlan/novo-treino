@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CaretDown, CaretUp, Check, Info, Sparkle, Timer, VideoCamera } from '@phosphor-icons/react';
+import {
+  ArrowLeftIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckIcon,
+  InfoIcon,
+  SparkleIcon,
+  TimerIcon,
+  VideoCameraIcon,
+} from '@phosphor-icons/react';
 import './picker.css';
 
 // ── Variant 1: Tactile iOS (Apple Design Physics) ──────────────────────────
@@ -60,7 +69,7 @@ const VariantTactileIOS: React.FC = () => {
           style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px', borderRadius: '50%' }}
         >
           {completed ? (
-            <Check size={24} className="check-pop-icon" aria-hidden="true" />
+            <CheckIcon size={24} className="check-pop-icon" aria-hidden="true" />
           ) : (
             <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--border-strong)' }} aria-hidden="true" />
           )}
@@ -136,7 +145,7 @@ const VariantTactileIOS: React.FC = () => {
             onClick={handleTimer}
             aria-label="Iniciar 60s descanso"
           >
-            <Timer size={12} aria-hidden="true" />
+            <TimerIcon size={12} aria-hidden="true" />
             <span>{timerActive ? `${secondsLeft}s` : '60s'}</span>
           </button>
         </div>
@@ -275,14 +284,14 @@ const VariantProCompact: React.FC = () => {
           style={{ width: '38px', height: '38px', minWidth: '38px', minHeight: '38px' }}
           aria-label={checked ? "Desmarcar Agachamento" : "Concluir Agachamento"}
         >
-          {checked ? <Check size={18} className="check-pop-icon" /> : null}
+          {checked ? <CheckIcon size={18} className="check-pop-icon" /> : null}
         </button>
 
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Agachamento Livre
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-1)' }}>Quadríceps & Glúteos • 90s rest</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-1)' }}>Quadríceps e Glúteos • 90s rest</div>
         </div>
       </div>
 
@@ -376,7 +385,7 @@ const VariantMediaForward: React.FC = () => {
           position: 'relative',
           cursor: 'pointer'
         }}>
-          <VideoCamera size={22} color="var(--accent)" />
+          <VideoCameraIcon size={22} color="var(--accent)" />
           <span style={{ fontSize: '0.6rem', color: 'var(--text-1)', marginTop: '2px', fontWeight: 600 }}>0:45</span>
         </div>
 
@@ -407,9 +416,9 @@ const VariantMediaForward: React.FC = () => {
                 padding: 0
               }}
             >
-              <Info size={14} />
+              <InfoIcon size={14} />
               <span>Instruções biomecânicas</span>
-              {expanded ? <CaretUp size={14} /> : <CaretDown size={14} />}
+              {expanded ? <CaretUpIcon size={14} /> : <CaretDownIcon size={14} />}
             </button>
           </div>
         </div>
@@ -428,7 +437,7 @@ const VariantMediaForward: React.FC = () => {
           animation: 'fadeIn 180ms var(--ease-out)'
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
-            <Info size={14} style={{ color: 'var(--accent-text)', flexShrink: 0, marginTop: '2px' }} />
+            <InfoIcon size={14} style={{ color: 'var(--accent-text)', flexShrink: 0, marginTop: '2px' }} />
             <span><strong>Dica de execução:</strong> Mantenha ligeira inclinação do tronco à frente e cotovelos semiflexionados. Conduza o movimento pelo cotovelo, sem encolher os ombros.</span>
           </div>
         </div>
@@ -440,7 +449,7 @@ const VariantMediaForward: React.FC = () => {
           className="rest-timer-trigger"
           onClick={() => { if ('vibrate' in navigator) navigator.vibrate(10); }}
         >
-          <Timer size={12} />
+          <TimerIcon size={12} />
           <span>45s descanso</span>
         </button>
 
@@ -560,11 +569,11 @@ export const ExerciseCardPrototype: React.FC = () => {
             className="btn btn-secondary btn-sm"
             aria-label="Voltar para o app"
           >
-            <ArrowLeft size={14} /> Voltar
+            <ArrowLeftIcon size={14} /> Voltar
           </button>
           <div>
             <div style={{ fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Sparkle size={14} color="var(--accent)" />
+              <SparkleIcon size={14} color="var(--accent)" />
               <span>Protótipo: Exercise Card (Variações 1–4)</span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)' }}>
@@ -584,7 +593,7 @@ export const ExerciseCardPrototype: React.FC = () => {
             <span style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>João da Silva</span>
           </div>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>
-            Treino A — Peito & Ombros
+            Treino A — Peito e Ombros
           </h1>
         </div>
 

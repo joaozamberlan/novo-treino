@@ -3,7 +3,19 @@ import { useConfirmar } from '../hooks/useConfirmar';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { ArrowsClockwise, CalendarDots, Check, Copy, Envelope, Key, MagnifyingGlass, Phone, ShieldWarning, User, X } from '@phosphor-icons/react';
+import {
+  ArrowsClockwiseIcon,
+  CalendarBlankIcon,
+  CheckIcon,
+  CopyIcon,
+  EnvelopeIcon,
+  KeyIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  ShieldWarningIcon,
+  UserIcon,
+  XIcon,
+} from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -192,7 +204,7 @@ const AdminPanel: React.FC = () => {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
         <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <ShieldWarning size={32} style={{ color: 'var(--accent-text)' }} />
+          <ShieldWarningIcon size={32} style={{ color: 'var(--accent-text)' }} />
           Painel do SuperAdmin
         </h1>
         <p>Aprove novas contas, gerencie acessos e defina cargos de SuperAdmin no TreinosApp.</p>
@@ -211,29 +223,26 @@ const AdminPanel: React.FC = () => {
       )}
 
       {/* Estatísticas Rápidas de Contas */}
-      <div className="grid grid-cols-3">
-        <div className="card stagger-1">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Total de Clientes</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem' }}>{professionals.length}</div>
+      {/* Números das contas: uma faixa com fios, não três cartões */}
+      <dl className="admin-numeros">
+        <div className="admin-numero">
+          <dt>Total de Clientes</dt>
+          <dd>{professionals.length}</dd>
         </div>
-        <div className="card stagger-2">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Contas Ativas (Pagas)</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--success-text)' }}>
-            {professionals.filter(p => p.ativo).length}
-          </div>
+        <div className="admin-numero">
+          <dt>Contas Ativas (Pagas)</dt>
+          <dd style={{ color: 'var(--success-text)' }}>{professionals.filter(p => p.ativo).length}</dd>
         </div>
-        <div className="card stagger-3">
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-1)' }}>Aprovações Pendentes</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem', color: 'var(--warning-text)' }}>
-            {professionals.filter(p => !p.ativo).length}
-          </div>
+        <div className="admin-numero">
+          <dt>Aprovações Pendentes</dt>
+          <dd style={{ color: 'var(--warning-text)' }}>{professionals.filter(p => !p.ativo).length}</dd>
         </div>
-      </div>
+      </dl>
 
       {/* Barra de Busca */}
-      <div className="card" style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-2)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
-          <MagnifyingGlass size={18} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--bg-1)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border-strong)' }}>
+          <MagnifyingGlassIcon size={18} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
           <input
             type="text"
             className="form-control"
@@ -248,7 +257,7 @@ const AdminPanel: React.FC = () => {
       </div>
 
       {/* Tabela de Profissionais */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div>
         <div className="table-container">
           <table className="table">
             <thead>
@@ -256,7 +265,7 @@ const AdminPanel: React.FC = () => {
                 <th>Treinador</th>
                 <th>Contato</th>
                 <th>Cadastro</th>
-                <th>Status & Nível</th>
+                <th>Status e Nível</th>
                 <th style={{ textAlign: 'right' }}>Ações de Acesso</th>
               </tr>
             </thead>
@@ -280,7 +289,7 @@ const AdminPanel: React.FC = () => {
                           {prof.logoUrl ? (
                             <img src={prof.logoUrl} alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
-                            <User size={16} style={{ color: 'var(--text-1)' }} />
+                            <UserIcon size={16} style={{ color: 'var(--text-1)' }} />
                           )}
                         </div>
                         <div>
@@ -294,12 +303,12 @@ const AdminPanel: React.FC = () => {
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.8rem' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-1)' }}>
-                          <Envelope size={12} style={{ color: 'var(--text-muted)' }} />
+                          <EnvelopeIcon size={12} style={{ color: 'var(--text-muted)' }} />
                           {prof.email}
                         </span>
                         {prof.telefone && (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-2)' }}>
-                            <Phone size={12} style={{ color: 'var(--text-muted)' }} />
+                            <PhoneIcon size={12} style={{ color: 'var(--text-muted)' }} />
                             {prof.telefone}
                           </span>
                         )}
@@ -307,7 +316,7 @@ const AdminPanel: React.FC = () => {
                     </td>
                     <td>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--text-1)' }}>
-                        <CalendarDots size={12} style={{ color: 'var(--text-muted)' }} />
+                        <CalendarBlankIcon size={12} style={{ color: 'var(--text-muted)' }} />
                         {new Date(prof.dataCadastro).toLocaleDateString()}
                       </div>
                     </td>
@@ -337,7 +346,7 @@ const AdminPanel: React.FC = () => {
                             className="btn btn-secondary"
                             title="Redefinir Senha Temporária do Treinador"
                             >
-                            <Key size={12} />
+                            <KeyIcon size={12} />
                             <span>Senha</span>
                           </button>
 
@@ -382,7 +391,7 @@ const AdminPanel: React.FC = () => {
             aria-labelledby="modalRedefinirSenhaTitulo"
           >
             <div
-              className="modal-content"
+              className="modal-content modal-content--form"
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -399,7 +408,7 @@ const AdminPanel: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                    <Key size={20} />
+                    <KeyIcon size={20} />
                   </div>
                   <div>
                     <h3 id="modalRedefinirSenhaTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Redefinir Senha</h3>
@@ -413,7 +422,7 @@ const AdminPanel: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -429,7 +438,7 @@ const AdminPanel: React.FC = () => {
                     onClick={generateRandomPassword}
                     className="link-acao"
                   >
-                    <ArrowsClockwise size={12} />
+                    <ArrowsClockwiseIcon size={12} />
                     <span>Gerar aleatória</span>
                   </button>
                 </div>
@@ -451,7 +460,7 @@ const AdminPanel: React.FC = () => {
                     title="Copiar senha"
                     style={{ padding: '0 0.85rem' }}
                   >
-                    {copiedPassword ? <Check size={16} color="var(--success)" className="check-pop-icon" /> : <Copy size={16} />}
+                    {copiedPassword ? <CheckIcon size={16} color="var(--success)" className="check-pop-icon" /> : <CopyIcon size={16} />}
                   </button>
                 </div>
               </div>

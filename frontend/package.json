@@ -16,6 +16,7 @@
     "html2pdf.js": "^0.14.0",
     "motion": "^13.3.0",
     "react": "^19.2.7",
+    "react-aria-components": "^1.22.1",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.0",
     "sonner": "^2.0.8"

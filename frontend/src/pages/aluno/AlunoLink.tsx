@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, ArrowsClockwise, WarningCircle } from '@phosphor-icons/react';
+import { WarningCircleIcon, ArrowRightIcon, ArrowsClockwiseIcon } from '@phosphor-icons/react';
 import alunoApi from '../../services/alunoApi';
 import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
 import { mensagemDeErro, telefoneValido } from '../../utils/alunoAcesso';
@@ -58,7 +58,7 @@ export const AlunoLink: React.FC = () => {
     return (
       <AlunoAcessoShell titulo="Não foi possível abrir o treino">
         <p className="aluno-acesso-aviso aluno-acesso-aviso--erro" role="alert">
-          <WarningCircle size={16} aria-hidden="true" />
+          <WarningCircleIcon size={16} aria-hidden="true" />
           <span>{erroLink}</span>
         </p>
       </AlunoAcessoShell>
@@ -68,7 +68,7 @@ export const AlunoLink: React.FC = () => {
   if (!acesso) {
     return (
       <div className="aluno-acesso" style={{ color: 'var(--text-1)', gap: '0.75rem' }}>
-        <ArrowsClockwise className="animate-spin" size={22} aria-hidden="true" />
+        <ArrowsClockwiseIcon className="animate-spin" size={22} aria-hidden="true" />
         <span>Abrindo seu treino…</span>
       </div>
     );
@@ -168,7 +168,7 @@ export const AlunoLink: React.FC = () => {
 
         <button type="submit" className="btn-login-submit" disabled={enviando}>
           <span>{enviando ? 'Aguarde…' : criando ? 'Criar PIN e abrir treino' : 'Entrar'}</span>
-          <ArrowRight size={16} aria-hidden="true" />
+          <ArrowRightIcon size={16} aria-hidden="true" />
         </button>
       </form>
 

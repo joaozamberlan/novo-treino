@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Barbell, FloppyDisk, Medal, Phone, Shield, Users } from '@phosphor-icons/react';
+import { ShieldIcon, PhoneIcon, FloppyDiskIcon, MedalIcon, UsersIcon, BarbellIcon } from '@phosphor-icons/react';
 
 const Instagram: React.FC<any> = (props) => (
   <svg
@@ -180,7 +180,7 @@ export const Dashboard: React.FC = () => {
             flexShrink: 0,
             border: '1px solid var(--accent-border)',
           }}>
-            <Users size={24} />
+            <UsersIcon size={24} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 500, marginBottom: '0.2rem' }}>Alunos Cadastrados</div>
@@ -198,7 +198,7 @@ export const Dashboard: React.FC = () => {
             flexShrink: 0,
             border: '1px solid var(--border)',
           }}>
-            <Medal size={24} />
+            <MedalIcon size={24} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', fontWeight: 500, marginBottom: '0.2rem' }}>Especialidade</div>
@@ -210,8 +210,8 @@ export const Dashboard: React.FC = () => {
       {/* Configuração da Marca (White Label) */}
       <div className="card">
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Shield size={20} style={{ color: 'var(--accent-text)' }} />
-          Branding & Identidade Visual
+          <ShieldIcon size={20} style={{ color: 'var(--accent-text)' }} />
+          Branding e Identidade Visual
         </h2>
         <p style={{ marginBottom: '2rem' }}>
           Configure os dados que serão mostrados nos cabeçalhos das fichas de treino (PDFs) gerados para seus alunos.
@@ -305,7 +305,7 @@ export const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2">
             <div className="form-group">
               <label className="form-label" htmlFor="telProf">
-                <Phone size={14} style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} />
+                <PhoneIcon size={14} style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} />
                 Telefone de Contato
               </label>
               <input
@@ -340,7 +340,7 @@ export const Dashboard: React.FC = () => {
             style={{ alignSelf: 'flex-end', minWidth: '200px' }}
             disabled={saving}
           >
-            <FloppyDisk size={16} />
+            <FloppyDiskIcon size={16} />
             {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </form>
@@ -349,8 +349,8 @@ export const Dashboard: React.FC = () => {
       {/* Catálogo de Exercícios Card */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Barbell size={20} style={{ color: 'var(--accent-text)' }} />
-          Catálogo & Biblioteca de Exercícios
+          <BarbellIcon size={20} style={{ color: 'var(--accent-text)' }} />
+          Catálogo e Biblioteca de Exercícios
         </h2>
         <p>
           Para prescrever treinos para seus alunos, o sistema precisa de um catálogo básico de exercícios e técnicas. Você pode inicializá-los ou recarregá-los a qualquer momento abaixo.
@@ -379,7 +379,7 @@ export const Dashboard: React.FC = () => {
             disabled={seeding}
             style={{ minWidth: '220px' }}
           >
-            <Barbell size={16} />
+            <BarbellIcon size={16} />
             {seeding ? 'Carregando...' : (exerciciosCount > 0 ? 'Recarregar Catálogo Padrão' : 'Carregar Catálogo Padrão')}
           </button>
         </div>

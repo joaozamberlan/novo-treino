@@ -4,7 +4,16 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowSquareOut, Barbell, Eye, EyeSlash, FloppyDisk, Lock, Shield, UploadSimple } from '@phosphor-icons/react';
+import {
+  ArrowSquareOutIcon,
+  BarbellIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  FloppyDiskIcon,
+  LockIcon,
+  ShieldIcon,
+  UploadSimpleIcon,
+} from '@phosphor-icons/react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Configuracoes: React.FC = () => {
@@ -335,7 +344,7 @@ export const Configuracoes: React.FC = () => {
               className="btn btn-primary btn-sm"
               disabled={saving}
             >
-              <FloppyDisk size={14} />
+              <FloppyDiskIcon size={14} />
               <span>{saving ? 'Salvando...' : 'Salvar alterações'}</span>
             </button>
           </div>
@@ -360,7 +369,7 @@ export const Configuracoes: React.FC = () => {
 
           <div className="logo-upload-body">
             <label className={`btn btn-secondary btn-sm logo-upload-btn${uploadingLogo ? ' is-disabled' : ''}`}>
-              <UploadSimple size={14} />
+              <UploadSimpleIcon size={14} />
               <span>{uploadingLogo ? 'Enviando...' : logoUrl ? 'Trocar logo' : 'Enviar logo'}</span>
               <input
                 type="file"
@@ -384,7 +393,7 @@ export const Configuracoes: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <Link to="/exercicios" className="btn btn-secondary btn-sm">
-            <ArrowSquareOut size={14} />
+            <ArrowSquareOutIcon size={14} />
             <span>Gerenciar Biblioteca</span>
           </Link>
 
@@ -395,7 +404,7 @@ export const Configuracoes: React.FC = () => {
               onClick={handleSeedCatalog}
               disabled={seeding}
             >
-              <Barbell size={14} />
+              <BarbellIcon size={14} />
               <span>{seeding ? 'Carregando...' : 'Carregar Exercícios Padrão'}</span>
             </button>
           )}
@@ -405,7 +414,7 @@ export const Configuracoes: React.FC = () => {
       {/* Group 4: Security & Password */}
       <div className="settings-group">
         <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <Lock size={15} color="var(--accent)" />
+          <LockIcon size={15} color="var(--accent)" />
           <span>Segurança e Senha de Acesso</span>
         </div>
         <p className="settings-desc">
@@ -432,7 +441,7 @@ export const Configuracoes: React.FC = () => {
                 onClick={() => setShowSenhaAtual(!showSenhaAtual)}
                 title={showSenhaAtual ? 'Ocultar senha' : 'Exibir senha'}
               >
-                {showSenhaAtual ? <EyeSlash size={16} /> : <Eye size={16} />}
+                {showSenhaAtual ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
               </button>
             </div>
           </div>
@@ -457,7 +466,7 @@ export const Configuracoes: React.FC = () => {
                   onClick={() => setShowNovaSenha(!showNovaSenha)}
                   title={showNovaSenha ? 'Ocultar senha' : 'Exibir senha'}
                 >
-                  {showNovaSenha ? <EyeSlash size={16} /> : <Eye size={16} />}
+                  {showNovaSenha ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
                 </button>
               </div>
               {novaSenhaField.error && (
@@ -491,7 +500,7 @@ export const Configuracoes: React.FC = () => {
             disabled={savingPassword}
             style={{ marginTop: '0.75rem' }}
           >
-            <Lock size={14} />
+            <LockIcon size={14} />
             <span>{savingPassword ? 'Atualizando...' : 'Atualizar Senha'}</span>
           </button>
         </form>
@@ -501,14 +510,14 @@ export const Configuracoes: React.FC = () => {
       {user?.role === 'SUPERADMIN' && (
         <div className="settings-group">
           <div className="settings-group-title" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <Shield size={15} color="var(--accent)" />
+            <ShieldIcon size={15} color="var(--accent)" />
             <span>Administração</span>
           </div>
           <p className="settings-desc">
             Gerencie contas de treinadores, aprovações de acesso e permissões de SuperAdmin.
           </p>
           <Link to="/admin" className="btn btn-secondary btn-sm">
-            <ArrowSquareOut size={14} />
+            <ArrowSquareOutIcon size={14} />
             <span>Abrir Painel Admin</span>
           </Link>
         </div>
