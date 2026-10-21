@@ -1572,8 +1572,11 @@ export const Treinos: React.FC = () => {
                         .filter(ex => ex.idGrupoMuscular === selectedGrupo)
                         .map(ex => {
                           const ja = outrasOcorrencias(ocorrencias, ex.idExercicio, editingExercisePrescriptionId);
-                          const onde = [...new Set(ja.map(o => (o.idTreino === activeTabId ? 'nesta ficha' : o.nomeFicha)))].join(', ');
-                          return { valor: ex.idExercicio, texto: ex.nome, detalhe: onde ? `em ${onde}` : undefined };
+                          // "em Upper, Pull" para outras fichas; "já nesta ficha" para a aberta
+                          const outras = activeTabId ? nomesDasFichas(ja, activeTabId) : '';
+                          const nestaFicha = ja.some(o => o.idTreino === activeTabId);
+                          const partes = [outras && `em ${outras}`, nestaFicha && 'já nesta ficha'].filter(Boolean);
+                          return { valor: ex.idExercicio, texto: ex.nome, detalhe: partes.join(' · ') || undefined };
                         })}
                       onChange={setSelectedExercicio}
                       placeholder={!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}
