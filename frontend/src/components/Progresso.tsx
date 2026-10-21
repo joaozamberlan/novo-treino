@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { X } from 'lucide-react';
+import { XIcon } from '@phosphor-icons/react';
 import {
   type CardioProgresso,
   type ExercicioProgresso,
@@ -232,7 +232,7 @@ function DetalheExercicio({
             </p>
           </div>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Fechar" autoFocus>
-            <X size={18} />
+            <XIcon size={18} />
           </button>
         </div>
 
@@ -293,24 +293,22 @@ function DetalheExercicio({
   );
 }
 
-// ─── painel do treinador: um cartão por exercício, agrupado por ficha ───
+// ─── painel do treinador: uma linha por exercício, agrupada por ficha ───
 export function PainelProgresso({ progresso }: { progresso: Progresso | null }) {
   const [filtro, setFiltro] = useState<StatusFaixa | null>(null);
   const [aberto, setAberto] = useState<ExercicioProgresso | null>(null);
 
   if (!progresso) {
-    return <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-2)' }}>Carregando progresso...</div>;
+    return <p className="prog-estado">Carregando progresso...</p>;
   }
 
   const todos = progresso.fichas.flatMap((f) => f.exercicios).filter((e) => e.sessoes.length > 0);
   const temCardioFeito = progresso.fichas.some((f) => (f.cardio?.sessoes.length ?? 0) > 0);
   if (todos.length === 0 && !temCardioFeito) {
     return (
-      <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-1)' }}>
+      <div className="prog-estado">
         O aluno ainda não registrou cargas no link desta periodização.
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-2)', marginTop: '0.35rem' }}>
-          O progresso aparece aqui assim que ele marcar as primeiras séries como feitas.
-        </div>
+        <span>O progresso aparece aqui assim que ele marcar as primeiras séries como feitas.</span>
       </div>
     );
   }
@@ -357,11 +355,11 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
         return (
           <section key={f.idTreino} className="prog-ficha">
             <h3>{f.nome}</h3>
-            <div className="prog-grid">
+            <div className="prog-lista">
               {exs.map((e) => (
-                <CardExercicio key={e.idTreinoExercicio} e={e} onOpen={() => setAberto(e)} />
+                <LinhaExercicio key={e.idTreinoExercicio} e={e} onOpen={() => setAberto(e)} />
               ))}
-              {cardio && <CardCardio cardio={cardio} />}
+              {cardio && <LinhaCardio cardio={cardio} />}
             </div>
           </section>
         );
@@ -372,38 +370,46 @@ export function PainelProgresso({ progresso }: { progresso: Progresso | null }) 
   );
 }
 
-function CardExercicio({ e, onOpen }: { e: ExercicioProgresso; onOpen: () => void }) {
+function LinhaExercicio({ e, onOpen }: { e: ExercicioProgresso; onOpen: () => void }) {
   const u = ultimaSessao(e);
   const pontos = useMemo(() => pontosDe(e), [e]);
 
   if (!u) {
     return (
-      <div className="prog-card vazio">
-        <span className="prog-card-nome">{e.nome}</span>
-        <span className="prog-card-meta">Sem registros ainda · faixa {e.repeticoes}</span>
+      <div className="prog-linha vazio">
+        <span className="prog-linha-id">
+          <span className="prog-card-nome">{e.nome}</span>
+          <span className="prog-card-meta">Sem registros ainda · faixa {e.repeticoes}</span>
+        </span>
       </div>
     );
   }
 
   return (
-    <button type="button" className="prog-card" onClick={onOpen}>
-      <div className="prog-card-topo">
+    <button type="button" className="prog-linha" onClick={onOpen}>
+      <span className="prog-linha-id">
         <span className="prog-card-nome">{e.nome}</span>
-        <Selo status={statusAtual(e)} />
-      </div>
-      <div className="prog-card-valor">
+        <span className="prog-card-meta">
+          {e.sessoes.length} {e.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(e.sessoes[0].data)}
+        </span>
+      </span>
+      <span className="prog-linha-valor">
         <span className="prog-valor">
           {formatKg(u.melhor.cargaKg)}
           <small> kg</small> × {u.melhor.repeticoes ?? '—'}
         </span>
-        <Variacao e={e} />
-      </div>
-      <span className="prog-mini-rotulo">CARGA (KG)</span>
-      <GraficoLinha pontos={pontos} medida="kg" altura={54} />
-      <span className="prog-mini-rotulo">REPS{e.faixa ? ` · FAIXA ${e.faixa[0]}–${e.faixa[1]}` : ''}</span>
-      <GraficoLinha pontos={pontos} medida="reps" faixa={e.faixa} altura={46} />
-      <span className="prog-card-meta">
-        {e.sessoes.length} {e.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(e.sessoes[0].data)}
+        <span className="prog-linha-sinais">
+          <Variacao e={e} />
+          <Selo status={statusAtual(e)} />
+        </span>
+      </span>
+      <span className="prog-linha-graf">
+        <span className="prog-mini-rotulo">CARGA (KG)</span>
+        <GraficoLinha pontos={pontos} medida="kg" altura={54} />
+      </span>
+      <span className="prog-linha-graf">
+        <span className="prog-mini-rotulo">REPS{e.faixa ? ` · FAIXA ${e.faixa[0]}–${e.faixa[1]}` : ''}</span>
+        <GraficoLinha pontos={pontos} medida="reps" faixa={e.faixa} altura={46} />
       </span>
     </button>
   );
@@ -412,33 +418,40 @@ function CardExercicio({ e, onOpen }: { e: ExercicioProgresso; onOpen: () => voi
 // Aeróbico da ficha: prescrito × o que o aluno marcou nas últimas sessões
 const MAX_LINHAS_CARDIO = 6;
 
-function CardCardio({ cardio }: { cardio: CardioProgresso }) {
+function LinhaCardio({ cardio }: { cardio: CardioProgresso }) {
   const nome = `Aeróbico · ${modeloCardio(cardio.tipo)?.nome ?? cardio.tipo}`;
   const ultima = cardio.sessoes[cardio.sessoes.length - 1];
 
   if (!ultima) {
     return (
-      <div className="prog-card vazio">
-        <span className="prog-card-nome">{nome}</span>
-        <span className="prog-card-meta">Sem registros ainda · prescrito {cardio.minutos} min</span>
+      <div className="prog-linha vazio">
+        <span className="prog-linha-id">
+          <span className="prog-card-nome">{nome}</span>
+          <span className="prog-card-meta">Sem registros ainda · prescrito {cardio.minutos} min</span>
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="prog-card" style={{ cursor: 'default' }}>
-      <div className="prog-card-topo">
+    <div className="prog-linha estatica">
+      <span className="prog-linha-id">
         <span className="prog-card-nome">{nome}</span>
-        {ultima.minutos < cardio.minutos && <span className="prog-selo abaixo">▼ Abaixo do prescrito</span>}
-      </div>
-      <div className="prog-card-valor">
+        <span className="prog-card-meta">
+          {cardio.sessoes.length} {cardio.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(cardio.sessoes[0].data)}
+        </span>
+      </span>
+      <span className="prog-linha-valor">
         <span className="prog-valor">
           {ultima.minutos}
           <small> min</small>
         </span>
-        <span className="prog-variacao">de {cardio.minutos} prescritos</span>
-      </div>
-      <table className="prog-tabela">
+        <span className="prog-linha-sinais">
+          <span className="prog-variacao">de {cardio.minutos} prescritos</span>
+          {ultima.minutos < cardio.minutos && <span className="prog-selo abaixo">▼ Abaixo do prescrito</span>}
+        </span>
+      </span>
+      <table className="prog-tabela prog-linha-tabela">
         <thead>
           <tr>
             <th>DATA</th>
@@ -454,9 +467,6 @@ function CardCardio({ cardio }: { cardio: CardioProgresso }) {
           ))}
         </tbody>
       </table>
-      <span className="prog-card-meta">
-        {cardio.sessoes.length} {cardio.sessoes.length === 1 ? 'sessão' : 'sessões'} · desde {formatData(cardio.sessoes[0].data)}
-      </span>
     </div>
   );
 }

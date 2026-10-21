@@ -2,15 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { useConfirmar } from '../hooks/useConfirmar';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { 
-  Plus, Layers, Sparkles, Edit, Trash2, 
-  Video, Save, FolderPlus, X, MessageSquareText
-} from 'lucide-react';
+import {
+  ChatTextIcon,
+  FloppyDiskIcon,
+  FolderPlusIcon,
+  PencilSimpleLineIcon,
+  PlusIcon,
+  SparkleIcon,
+  StackIcon,
+  TrashIcon,
+  VideoCameraIcon,
+  XIcon,
+} from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { toast } from 'sonner';
 import type { GrupoMuscular, Exercicio, TecnicaTreino } from '../types/treino';
 import type { Instrucao } from '../components/InstrucaoAutocomplete';
 import { ModalPortal } from '../components/ModalPortal';
+import { Seletor } from '../components/Seletor';
 
 export const Catalog: React.FC = () => {
   const confirmar = useConfirmar();
@@ -470,7 +479,7 @@ export const Catalog: React.FC = () => {
               {activeTab === 'instrucoes' && `BIBLIOTECA // ${instrucoes.length} INSTRUÇÕES`}
             </span>
           </div>
-          <h1 style={{ margin: 0 }}>Biblioteca & Catálogo</h1>
+          <h1 style={{ margin: 0 }}>Biblioteca e Catálogo</h1>
           <p>Gerencie seus exercícios, grupos musculares e técnicas de treinamento.</p>
         </div>
         
@@ -482,7 +491,7 @@ export const Catalog: React.FC = () => {
               setShowExForm(true);
             }}
           >
-            <Plus size={18} />
+            <PlusIcon size={18} />
             <span>Novo exercício</span>
           </button>
         ) : activeTab === 'tecnicas' ? (
@@ -493,7 +502,7 @@ export const Catalog: React.FC = () => {
               setShowTecForm(true);
             }}
           >
-            <Plus size={18} />
+            <PlusIcon size={18} />
             <span>Nova técnica</span>
           </button>
         ) : activeTab === 'instrucoes' ? (
@@ -504,7 +513,7 @@ export const Catalog: React.FC = () => {
               setShowInsForm(true);
             }}
           >
-            <Plus size={18} />
+            <PlusIcon size={18} />
             <span>Nova instrução</span>
           </button>
         ) : (
@@ -515,14 +524,14 @@ export const Catalog: React.FC = () => {
               setShowGrupoTabForm(true);
             }}
           >
-            <Plus size={18} />
+            <PlusIcon size={18} />
             <span>Novo grupo</span>
           </button>
         )}
       </div>
 
       {/* Tabs Navigation & Search */}
-      <div className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="cat-barra">
         
         {/* Tabs */}
         <div className="cat-abas" role="tablist" aria-label="Seções da biblioteca">
@@ -533,7 +542,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'exercicios' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('exercicios')}
           >
-            <Layers size={16} aria-hidden="true" />
+            <StackIcon size={16} aria-hidden="true" />
             Exercícios
           </button>
           <button
@@ -543,7 +552,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'grupos' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('grupos')}
           >
-            <FolderPlus size={16} aria-hidden="true" />
+            <FolderPlusIcon size={16} aria-hidden="true" />
             Grupos Musculares
           </button>
           <button
@@ -553,7 +562,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'tecnicas' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('tecnicas')}
           >
-            <Sparkles size={16} aria-hidden="true" />
+            <SparkleIcon size={16} aria-hidden="true" />
             Técnicas de Treino
           </button>
           <button
@@ -563,28 +572,23 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'instrucoes' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('instrucoes')}
           >
-            <MessageSquareText size={16} aria-hidden="true" />
+            <ChatTextIcon size={16} aria-hidden="true" />
             Instruções
           </button>
         </div>
 
         {/* Filtro de Grupo Muscular (Apenas para Exercícios) */}
         {activeTab === 'exercicios' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-2)', padding: '0.25rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', minWidth: '180px' }}>
-            <select
-              className="form-control"
-              style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, color: 'var(--text-primary)', fontSize: '0.9rem', cursor: 'pointer' }}
-              value={selectedGrupoFilter}
-              onChange={(e) => setSelectedGrupoFilter(Number(e.target.value))}
-            >
-              <option value={0} style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-primary)' }}>Todos os Grupos</option>
-              {grupos.map((g) => (
-                <option key={g.idGrupoMuscular} value={g.idGrupoMuscular} style={{ backgroundColor: 'var(--bg-2)', color: 'var(--text-primary)' }}>
-                  {g.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Seletor
+            ariaLabel="Filtrar por grupo muscular"
+            className="seletor--filtro"
+            valor={selectedGrupoFilter}
+            opcoes={[
+              { valor: 0, texto: 'Todos os Grupos' },
+              ...grupos.map((g) => ({ valor: g.idGrupoMuscular, texto: g.nome })),
+            ]}
+            onChange={setSelectedGrupoFilter}
+          />
         )}
 
         {/* Search Input */}
@@ -604,7 +608,7 @@ export const Catalog: React.FC = () => {
 
       {/* --- EXERCISES TAB TABLE --- */}
       {activeTab === 'exercicios' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           <div className="table-container table-responsive">
             <table className="table">
               <thead>
@@ -637,7 +641,7 @@ export const Catalog: React.FC = () => {
                               aria-label={`Ver vídeo de ${ex.nome}`}
                               style={{ flexShrink: 0 }}
                             >
-                              <Video size={14} />
+                              <VideoCameraIcon size={14} />
                             </a>
                           )}
                           <span style={{ color: ex.descricao ? 'var(--text-1)' : 'var(--text-2)', fontSize: '0.875rem', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -648,10 +652,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar exercício" aria-label={`Editar ${ex.nome}`} onClick={() => handleEditExercicio(ex)}>
-                            <Edit size={14} />
+                            <PencilSimpleLineIcon size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir exercício" aria-label={`Excluir ${ex.nome}`} onClick={() => handleDeleteExercicio(ex.idExercicio)}>
-                            <Trash2 size={14} />
+                            <TrashIcon size={14} />
                           </button>
                         </div>
                       </td>
@@ -672,7 +676,7 @@ export const Catalog: React.FC = () => {
 
       {/* --- TECHNIQUES TAB TABLE --- */}
       {activeTab === 'tecnicas' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           <div className="table-container table-responsive">
             <table className="table">
               <thead>
@@ -693,10 +697,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar técnica" aria-label={`Editar ${tec.nome}`} onClick={() => handleEditTecnica(tec)}>
-                            <Edit size={14} />
+                            <PencilSimpleLineIcon size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir técnica" aria-label={`Excluir ${tec.nome}`} onClick={() => handleDeleteTecnica(tec.idTecnica)}>
-                            <Trash2 size={14} />
+                            <TrashIcon size={14} />
                           </button>
                         </div>
                       </td>
@@ -717,7 +721,7 @@ export const Catalog: React.FC = () => {
 
       {/* --- INSTRUCTIONS TAB TABLE --- */}
       {activeTab === 'instrucoes' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           <div className="table-container table-responsive">
             <table className="table">
               <thead>
@@ -734,10 +738,10 @@ export const Catalog: React.FC = () => {
                       <td data-label="Ações" style={{ textAlign: 'right' }}>
                         <div className="table-actions">
                           <button className="exercise-action-btn accent" title="Editar instrução" aria-label={`Editar ${ins.texto}`} onClick={() => handleEditInstrucao(ins)}>
-                            <Edit size={14} />
+                            <PencilSimpleLineIcon size={14} />
                           </button>
                           <button className="exercise-action-btn danger" title="Excluir instrução" aria-label={`Excluir ${ins.texto}`} onClick={() => handleDeleteInstrucao(ins.idInstrucao)}>
-                            <Trash2 size={14} />
+                            <TrashIcon size={14} />
                           </button>
                         </div>
                       </td>
@@ -758,7 +762,7 @@ export const Catalog: React.FC = () => {
 
       {/* --- MUSCLE GROUPS TAB TABLE --- */}
       {activeTab === 'grupos' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div>
           <div className="table-container table-responsive">
             <table className="table">
               <thead>
@@ -783,10 +787,10 @@ export const Catalog: React.FC = () => {
                         <td data-label="Ações" style={{ textAlign: 'right' }}>
                           <div className="table-actions">
                             <button className="exercise-action-btn accent" title="Editar grupo muscular" aria-label={`Editar ${g.nome}`} onClick={() => handleEditGrupoTab(g)}>
-                              <Edit size={14} />
+                              <PencilSimpleLineIcon size={14} />
                             </button>
                             <button className="exercise-action-btn danger" title="Excluir grupo muscular" aria-label={`Excluir ${g.nome}`} onClick={() => handleDeleteGrupoTab(g.idGrupoMuscular)}>
-                              <Trash2 size={14} />
+                              <TrashIcon size={14} />
                             </button>
                           </div>
                         </td>
@@ -819,7 +823,7 @@ export const Catalog: React.FC = () => {
             aria-labelledby="modalExercicioTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '520px' }}
             >
@@ -842,7 +846,7 @@ export const Catalog: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -864,13 +868,13 @@ export const Catalog: React.FC = () => {
 
                 <div className="form-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <label className="form-label" htmlFor="exGrupo" style={{ margin: 0 }}>Grupo Muscular *</label>
+                    <span className="form-label" style={{ margin: 0 }}>Grupo Muscular *</span>
                     <button 
                       type="button" 
                       className="link-acao"
                       onClick={() => setShowGrupoForm(!showGrupoForm)}
                     >
-                      <FolderPlus size={12} />
+                      <FolderPlusIcon size={12} />
                       {showGrupoForm ? 'Fechar' : 'Novo Grupo'}
                     </button>
                   </div>
@@ -908,23 +912,19 @@ export const Catalog: React.FC = () => {
                         style={{ fontSize: '0.8125rem' }}
                         title="Cancelar"
                       >
-                        <X size={14} />
+                        <XIcon size={14} />
                       </button>
                     </div>
                   )}
 
-                  <select
-                    id="exGrupo"
-                    className="form-input"
-                    value={exGrupoId}
-                    onChange={(e) => setExGrupoId(Number(e.target.value))}
-                    required
-                  >
-                    <option value={0}>Selecione um grupo muscular...</option>
-                    {grupos.map((g) => (
-                      <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>{g.nome}</option>
-                    ))}
-                  </select>
+                  <Seletor
+                    ariaLabel="Grupo Muscular"
+                    valor={exGrupoId}
+                    opcoes={grupos.map((g) => ({ valor: g.idGrupoMuscular, texto: g.nome }))}
+                    onChange={setExGrupoId}
+                    placeholder="Selecione um grupo muscular..."
+                    obrigatorio
+                  />
                 </div>
 
                 <div className="form-group">
@@ -958,7 +958,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>{editingExId ? 'Atualizar Exercício' : 'Salvar Exercício'}</span>
                   </button>
                 </div>
@@ -981,7 +981,7 @@ export const Catalog: React.FC = () => {
             aria-labelledby="modalTecnicaTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -1004,7 +1004,7 @@ export const Catalog: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -1042,7 +1042,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>{editingTecId ? 'Atualizar Técnica' : 'Salvar Técnica'}</span>
                   </button>
                 </div>
@@ -1062,7 +1062,7 @@ export const Catalog: React.FC = () => {
             aria-labelledby="modalInstrucaoTitle"
           >
             <div
-              className="modal-content"
+              className="modal-content modal-content--form"
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -1077,7 +1077,7 @@ export const Catalog: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -1102,7 +1102,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>{editingInsId ? 'Atualizar Instrução' : 'Salvar Instrução'}</span>
                   </button>
                 </div>
@@ -1125,7 +1125,7 @@ export const Catalog: React.FC = () => {
             aria-labelledby="modalGrupoTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '420px' }}
             >
@@ -1148,7 +1148,7 @@ export const Catalog: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -1173,7 +1173,7 @@ export const Catalog: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>{editingGrupoId ? 'Atualizar Grupo' : 'Salvar Grupo'}</span>
                   </button>
                 </div>

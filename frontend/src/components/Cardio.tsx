@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Check, HeartPulse, Info, X } from 'lucide-react';
+import { CheckIcon, HeartbeatIcon, InfoIcon, XIcon } from '@phosphor-icons/react';
+import { Seletor } from './Seletor';
 import { ModalPortal } from './ModalPortal';
 import {
   CARDIO_MODELOS,
@@ -26,23 +27,21 @@ export const CardioCampos: React.FC<CardioCamposProps> = ({ idPrefix, tipo, minu
 
   return (
     <div className="form-group">
-      <label className="form-label" htmlFor={`${idPrefix}CardioTipo`}>Aeróbico (opcional)</label>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <select
-          id={`${idPrefix}CardioTipo`}
-          className="form-input"
-          style={{ flex: 1, minWidth: 0 }}
-          value={tipo}
-          onChange={(e) => {
-            const novo = modeloCardio(e.target.value);
-            onChange(e.target.value, novo?.minutosSugeridos ? String(novo.minutosSugeridos) : '');
+      <span className="form-label">Aeróbico (opcional)</span>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+        <Seletor<string>
+          ariaLabel="Aeróbico (opcional)"
+          className="seletor--flex"
+          valor={tipo}
+          opcoes={[
+            { valor: '', texto: 'Sem aeróbico' },
+            ...CARDIO_MODELOS.map((m) => ({ valor: m.tipo, texto: m.nome })),
+          ]}
+          onChange={(v) => {
+            const novo = modeloCardio(v);
+            onChange(v, novo?.minutosSugeridos ? String(novo.minutosSugeridos) : '');
           }}
-        >
-          <option value="">Sem aeróbico</option>
-          {CARDIO_MODELOS.map((m) => (
-            <option key={m.tipo} value={m.tipo}>{m.nome}</option>
-          ))}
-        </select>
+        />
         {modelo && (
           <div className="set-input-wrap" style={{ width: '110px', flexShrink: 0 }}>
             <input
@@ -93,19 +92,19 @@ const CardioTipoBotao: React.FC<{ modelo: CardioModelo; minutos: number }> = ({ 
         title="Ver como funciona"
       >
         {modelo.nome}
-        <Info size={13} aria-hidden="true" />
+        <InfoIcon size={13} aria-hidden="true" />
       </button>
 
       {aberto && (
         <ModalPortal>
           <div className="modal-backdrop" onClick={() => setAberto(false)} role="dialog" aria-modal="true" aria-labelledby={idTitulo}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <div className="modal-content modal-content--form" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
               <div className="modal-header">
                 <h3 id={idTitulo} style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-0)' }}>
                   {modelo.nome}
                 </h3>
                 <button type="button" className="modal-close" onClick={() => setAberto(false)} title="Fechar" aria-label="Fechar">
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -147,9 +146,9 @@ const CardioTipoBotao: React.FC<{ modelo: CardioModelo; minutos: number }> = ({ 
 // ── Aluno: aviso fixo no topo da ficha (só leitura) ─────────────────────────
 
 export const CardioCabecalho: React.FC<{ modelo: CardioModelo; minutos: number }> = ({ modelo, minutos }) => (
-  <div className="card" style={{ padding: '0.7rem 1rem', marginBottom: '1rem', backgroundColor: 'var(--bg-1)', border: '1px solid var(--border)', borderRadius: 'var(--radius-m)' }}>
+  <div style={{ padding: '0.7rem 0', marginBottom: '1rem', borderTop: '1px solid var(--border-strong)', borderBottom: '1px solid var(--border)' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-      <HeartPulse size={15} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
+      <HeartbeatIcon size={15} style={{ color: 'var(--accent-text)', flexShrink: 0 }} aria-hidden="true" />
       <span style={{ fontSize: '0.8rem', color: 'var(--text-0)' }}>
         Aeróbico pós-treino: <strong>{minutos} min</strong>
       </span>
@@ -196,7 +195,7 @@ export const CardioRegistro: React.FC<CardioRegistroProps> = ({
       )}
     </div>
 
-    <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.75rem', padding: '0.35rem 0.6rem', backgroundColor: 'var(--bg-2)', borderRadius: 'var(--radius-s)' }}>
+    <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.5rem' }}>
       Meta prescrita: <strong>{minutosPrescritos} min</strong>
     </div>
 
@@ -230,7 +229,7 @@ export const CardioRegistro: React.FC<CardioRegistroProps> = ({
           title={feito ? 'Desmarcar aeróbico' : 'Marcar aeróbico como feito'}
         >
           {feito ? (
-            <Check size={18} strokeWidth={3} className="check-pop-icon" aria-hidden="true" />
+            <CheckIcon size={18} className="check-pop-icon" aria-hidden="true" />
           ) : (
             <div style={{ width: 10, height: 10, borderRadius: 2, border: '1.5px solid var(--border-strong)' }} aria-hidden="true" />
           )}

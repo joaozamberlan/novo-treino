@@ -9,12 +9,30 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Breadcrumb } from '../components/Breadcrumb';
 import {
-  ArrowLeft, Plus,
-  Trash2, AlertCircle,
-  ArrowUp, ArrowDown, Edit, Edit2, Share2, X, Save, FileText, GripVertical, Timer, MessageSquareText, MessageCircle, Copy
-} from 'lucide-react';
+  ArrowDownIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  ArrowLeftIcon,
+  ArrowUpIcon,
+  ChatCircleIcon,
+  ChatTextIcon,
+  CopyIcon,
+  DotsSixVerticalIcon,
+  FileTextIcon,
+  FloppyDiskIcon,
+  PencilSimpleIcon,
+  PencilSimpleLineIcon,
+  PlusIcon,
+  ShareNetworkIcon,
+  TimerIcon,
+  TrashIcon,
+  WarningCircleIcon,
+  XIcon,
+} from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
+import { CaixaMarcar } from '../components/CaixaMarcar';
+import { Seletor } from '../components/Seletor';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
 import { VolumeSemanal } from '../components/VolumeSemanal';
@@ -78,12 +96,12 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         onPointerDown={(e) => dragControls.start(e)}
         title="Arraste para reordenar"
       >
-        <GripVertical size={16} />
+        <DotsSixVerticalIcon size={16} />
         <button className="exercise-action-btn" disabled={index === 0} onClick={() => onMove('up')} aria-label={`Subir ${item.exercicio.nome}`}>
-          <ArrowUp size={14} />
+          <ArrowUpIcon size={14} />
         </button>
         <button className="exercise-action-btn" disabled={index === total - 1} onClick={() => onMove('down')} aria-label={`Descer ${item.exercicio.nome}`}>
-          <ArrowDown size={14} />
+          <ArrowDownIcon size={14} />
         </button>
       </div>
       <span className="exercise-block-index" aria-hidden="true">
@@ -96,7 +114,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
           {item.tecnica && <span className="exercise-block-tag tecnica">{item.tecnica.nome}</span>}
           {item.observacao && (
             <span className="exercise-block-note">
-              <MessageSquareText size={12} aria-hidden="true" />
+              <ChatTextIcon size={12} aria-hidden="true" />
               {item.observacao}
             </span>
           )}
@@ -108,17 +126,17 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
         </span>
         {item.descansoSegundos && (
           <span className="exercise-block-rest">
-            <Timer size={12} aria-hidden="true" />
+            <TimerIcon size={12} aria-hidden="true" />
             {formatDescanso(item.descansoSegundos, item.descansoMaxSegundos)}
           </span>
         )}
       </div>
       <div className="exercise-block-actions">
         <button className="exercise-action-btn accent" onClick={onEdit} title="Editar" aria-label={`Editar ${item.exercicio.nome}`}>
-          <Edit size={14} />
+          <PencilSimpleLineIcon size={14} />
         </button>
         <button className="exercise-action-btn danger" onClick={onRemove} title="Remover" aria-label={`Remover ${item.exercicio.nome}`}>
-          <Trash2 size={14} />
+          <TrashIcon size={14} />
         </button>
       </div>
     </Reorder.Item>
@@ -772,6 +790,36 @@ export const Treinos: React.FC = () => {
     }
   };
 
+  // Fichas na nova ordem: grava 1..n em todas (corrige também ordens repetidas
+  // ou com buracos). Só o que mudou vai para o servidor.
+  const handleReorderFichas = async (novaOrdem: FichaTreino[]) => {
+    const anteriores = new Map(activeProtocol?.treinos.map((t) => [t.idTreino, t.ordem]) ?? []);
+    const atualizadas = novaOrdem.map((t, idx) => ({ ...t, ordem: idx + 1 }));
+
+    setActiveProtocol((prev) => (prev ? { ...prev, treinos: atualizadas } : prev));
+
+    try {
+      await Promise.all(
+        atualizadas
+          .filter((t) => anteriores.get(t.idTreino) !== t.ordem)
+          .map((t) => api.patch(`/treinos/fichas/${t.idTreino}`, { ordem: t.ordem })),
+      );
+    } catch (err) {
+      console.error('Erro ao reordenar fichas:', err);
+      toast.error('Não foi possível salvar a nova ordem das fichas.');
+      loadTreino(false);
+    }
+  };
+
+  const handleMoveFicha = (idTreino: number, direcao: -1 | 1) => {
+    const lista = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
+    const i = lista.findIndex((t) => t.idTreino === idTreino);
+    const j = i + direcao;
+    if (i < 0 || j < 0 || j >= lista.length) return;
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+    handleReorderFichas(lista);
+  };
+
   // Reordenação via drag-and-drop — recebe a lista já na nova ordem
   const handleReorderExercises = async (treino: FichaTreino, newOrder: PrescribedExercise[]) => {
     const updatedList = newOrder.map((ex, idx) => ({ ...ex, ordem: idx + 1 }));
@@ -872,8 +920,8 @@ export const Treinos: React.FC = () => {
 
   if (!aluno && error) {
     return (
-      <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
+      <div className="estado-vazio animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <WarningCircleIcon size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -885,6 +933,7 @@ export const Treinos: React.FC = () => {
     );
   }
 
+  const arrastoComMouse = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const sortedTreinos = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const activeFicha = activeProtocol?.treinos.find(t => t.idTreino === activeTabId);
   const cardioAtivo = cardioDaFicha(activeFicha);
@@ -911,7 +960,7 @@ export const Treinos: React.FC = () => {
           <div className="flex-between" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Link to={`/alunos/${idAluno}/periodizacoes`} className="btn btn-ghost btn-icon" aria-label="Voltar para as periodizações">
-                <ArrowLeft size={18} />
+                <ArrowLeftIcon size={18} />
               </Link>
               <div>
                 <h1>{aluno?.nome}</h1>
@@ -928,17 +977,17 @@ export const Treinos: React.FC = () => {
               {linkDoAluno && (
                 <ActionMenu
                   label="Compartilhar o treino com o aluno"
-                  trigger={<><Share2 size={14} /><span>Compartilhar</span></>}
+                  trigger={<><ShareNetworkIcon size={14} /><span>Compartilhar</span></>}
                   align="left"
                   items={[
-                    { label: 'Enviar no WhatsApp', icon: <MessageCircle size={14} />, onClick: handleCompartilharWhatsApp },
-                    { label: 'Copiar link', icon: <Copy size={14} />, onClick: handleCopiarLink },
+                    { label: 'Enviar no WhatsApp', icon: <ChatCircleIcon size={14} />, onClick: handleCompartilharWhatsApp },
+                    { label: 'Copiar link', icon: <CopyIcon size={14} />, onClick: handleCopiarLink },
                   ]}
                 />
               )}
               {activeProtocol && (
                 <button className="btn btn-secondary btn-sm" onClick={() => setShowPrintModal(true)}>
-                  <FileText size={14} />
+                  <FileTextIcon size={14} />
                   Gerar PDF
                 </button>
               )}
@@ -957,7 +1006,7 @@ export const Treinos: React.FC = () => {
       {catalogExercicios.length === 0 && (
         <div className="card" style={{ border: '1px solid var(--warning)', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
           <h2 style={{ color: 'var(--warning-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={22} />
+            <WarningCircleIcon size={22} />
             Catálogo de Exercícios Vazio
           </h2>
           <p>
@@ -987,19 +1036,34 @@ export const Treinos: React.FC = () => {
       {activeProtocol && abaView === 'fichas' && (
         <>
           <div className="ficha-tabs">
-            {sortedTreinos.map((treino) => (
-              <button
-                key={treino.idTreino}
-                className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTabId(treino.idTreino);
-                  setEditingFichaId(null);
-                  cancelEdit();
-                }}
-              >
-                {treino.nome}
-              </button>
-            ))}
+            <Reorder.Group
+              as="div"
+              axis="x"
+              values={sortedTreinos}
+              onReorder={handleReorderFichas}
+              className="ficha-tabs-grupo"
+            >
+              {sortedTreinos.map((treino) => (
+                <Reorder.Item
+                  key={treino.idTreino}
+                  value={treino}
+                  as="button"
+                  type="button"
+                  dragListener={arrastoComMouse}
+                  className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
+                  whileDrag={{ scale: 1.04, zIndex: 5 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
+                  title={arrastoComMouse ? 'Clique para abrir · arraste para reordenar' : undefined}
+                  onClick={() => {
+                    setActiveTabId(treino.idTreino);
+                    setEditingFichaId(null);
+                    cancelEdit();
+                  }}
+                >
+                  {treino.nome}
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
             <button
               className="ficha-tab ficha-tab-add"
               onClick={() => {
@@ -1012,7 +1076,7 @@ export const Treinos: React.FC = () => {
               }}
               title="Nova Ficha de Treino"
             >
-              <Plus size={16} />
+              <PlusIcon size={16} />
             </button>
           </div>
 
@@ -1037,13 +1101,37 @@ export const Treinos: React.FC = () => {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {sortedTreinos.length > 1 && (
+                    <div className="ficha-mover" role="group" aria-label="Posição da ficha">
+                      <button
+                        type="button"
+                        className="exercise-action-btn"
+                        disabled={sortedTreinos[0]?.idTreino === activeFicha.idTreino}
+                        onClick={() => handleMoveFicha(activeFicha.idTreino, -1)}
+                        aria-label={`Mover ${activeFicha.nome} para a esquerda`}
+                        title="Mover ficha para a esquerda"
+                      >
+                        <CaretLeftIcon size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="exercise-action-btn"
+                        disabled={sortedTreinos[sortedTreinos.length - 1]?.idTreino === activeFicha.idTreino}
+                        onClick={() => handleMoveFicha(activeFicha.idTreino, 1)}
+                        aria-label={`Mover ${activeFicha.nome} para a direita`}
+                        title="Mover ficha para a direita"
+                      >
+                        <CaretRightIcon size={14} />
+                      </button>
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="btn btn-primary btn-sm"
                     onClick={openNewExerciseModal}
                     title="Adicionar exercício à ficha"
                   >
-                    <Plus size={13} />
+                    <PlusIcon size={13} />
                     <span style={{ fontSize: '0.75rem' }}>Exercício</span>
                   </button>
                   <button
@@ -1061,7 +1149,7 @@ export const Treinos: React.FC = () => {
                     }}
                     title="Renomear / Editar ficha"
                   >
-                    <Edit2 size={13} />
+                    <PencilSimpleIcon size={13} />
                     <span style={{ fontSize: '0.75rem' }}>Renomear</span>
                   </button>
                   <button
@@ -1071,7 +1159,7 @@ export const Treinos: React.FC = () => {
                     onClick={() => handleDeleteTreino(activeFicha.idTreino, activeFicha.nome)}
                     title="Excluir ficha de treino"
                   >
-                    <Trash2 size={13} />
+                    <TrashIcon size={13} />
                     <span style={{ fontSize: '0.75rem' }}>Excluir Ficha</span>
                   </button>
                 </div>
@@ -1103,7 +1191,7 @@ export const Treinos: React.FC = () => {
                   <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                     <p style={{ margin: 0 }}>Nenhum exercício prescrito nesta ficha ainda.</p>
                     <button type="button" className="btn btn-primary btn-sm" onClick={openNewExerciseModal}>
-                      <Plus size={14} />
+                      <PlusIcon size={14} />
                       Prescrever Primeiro Exercício
                     </button>
                   </div>
@@ -1133,7 +1221,7 @@ export const Treinos: React.FC = () => {
                 }}
                 onClick={openNewExerciseModal}
               >
-                <Plus size={16} style={{ color: 'var(--accent-text)' }} />
+                <PlusIcon size={16} style={{ color: 'var(--accent-text)' }} />
                 <span>Adicionar Exercício à Ficha</span>
               </button>
 
@@ -1141,7 +1229,7 @@ export const Treinos: React.FC = () => {
             </>
           ) : (
             activeProtocol.treinos.length === 0 && (
-              <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-2)' }}>
+              <div className="estado-vazio" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-2)' }}>
                 Crie sua primeira ficha (Treino A, B...) para começar a prescrever exercícios.
               </div>
             )
@@ -1151,8 +1239,8 @@ export const Treinos: React.FC = () => {
 
       {/* Periodização não encontrada (ex: link antigo, ou excluída por outra aba) */}
       {!activeProtocol && !loading && (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <AlertCircle size={32} style={{ color: 'var(--text-2)', opacity: 0.6 }} />
+        <div className="estado-vazio" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <WarningCircleIcon size={32} style={{ color: 'var(--text-2)', opacity: 0.6 }} />
           <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-1)' }}>
             Esta periodização não foi encontrada.
           </p>
@@ -1191,7 +1279,7 @@ export const Treinos: React.FC = () => {
             aria-labelledby="modalTreinoTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '440px' }}
             >
@@ -1214,7 +1302,7 @@ export const Treinos: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -1259,7 +1347,7 @@ export const Treinos: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Plus size={16} />
+                    <PlusIcon size={16} />
                     <span>Criar Ficha</span>
                   </button>
                 </div>
@@ -1282,7 +1370,7 @@ export const Treinos: React.FC = () => {
             aria-labelledby="modalEditFichaTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '440px' }}
             >
@@ -1305,7 +1393,7 @@ export const Treinos: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -1356,14 +1444,9 @@ export const Treinos: React.FC = () => {
                     value={editFichaRodape}
                     onChange={(e) => setEditFichaRodape(e.target.value)}
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', marginTop: '0.4rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={editFichaSemRodape}
-                      onChange={(e) => setEditFichaSemRodape(e.target.checked)}
-                    />
+                  <CaixaMarcar checked={editFichaSemRodape} onChange={setEditFichaSemRodape} className="caixa-marcar--compacta">
                     Não exibir rodapé nesta ficha
-                  </label>
+                  </CaixaMarcar>
                 </div>
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
@@ -1371,7 +1454,7 @@ export const Treinos: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>Salvar Alterações</span>
                   </button>
                 </div>
@@ -1394,7 +1477,7 @@ export const Treinos: React.FC = () => {
             aria-labelledby="modalExercisePrescriptionTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '520px' }}
             >
@@ -1417,52 +1500,37 @@ export const Treinos: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
               <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="campoTreinosGrupoMuscular">Grupo Muscular *</label>
-                    <select
-                      id="campoTreinosGrupoMuscular"
-                      className="form-input"
-                      value={selectedGrupo}
-                      onChange={(e) => {
-                        setSelectedGrupo(Number(e.target.value));
+                    <Seletor
+                      label="Grupo Muscular *"
+                      valor={selectedGrupo}
+                      opcoes={catalogGrupos.map(g => ({ valor: g.idGrupoMuscular, texto: g.nome }))}
+                      onChange={(v) => {
+                        setSelectedGrupo(v);
                         setSelectedExercicio(0);
                       }}
-                      required
-                    >
-                      <option value={0}>Selecione...</option>
-                      {catalogGrupos.map(g => (
-                        <option key={g.idGrupoMuscular} value={g.idGrupoMuscular}>
-                          {g.nome}
-                        </option>
-                      ))}
-                    </select>
+                      obrigatorio
+                    />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" htmlFor="campoTreinosExercicio">Exercício *</label>
-                    <select
-                      id="campoTreinosExercicio"
-                      className="form-input"
-                      value={selectedExercicio}
-                      onChange={(e) => setSelectedExercicio(Number(e.target.value))}
-                      disabled={!selectedGrupo}
-                      required
-                    >
-                      <option value={0}>{!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}</option>
-                      {catalogExercicios
+                    <Seletor
+                      label="Exercício *"
+                      valor={selectedExercicio}
+                      opcoes={catalogExercicios
                         .filter(ex => ex.idGrupoMuscular === selectedGrupo)
-                        .map(ex => (
-                          <option key={ex.idExercicio} value={ex.idExercicio}>
-                            {ex.nome}
-                          </option>
-                        ))}
-                    </select>
+                        .map(ex => ({ valor: ex.idExercicio, texto: ex.nome }))}
+                      onChange={setSelectedExercicio}
+                      placeholder={!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}
+                      desabilitado={!selectedGrupo}
+                      obrigatorio
+                    />
                   </div>
                 </div>
 
@@ -1510,18 +1578,15 @@ export const Treinos: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="campoTreinosTecnicaAvancadaOpcional">Técnica Avançada (opcional)</label>
-                  <select
-                    id="campoTreinosTecnicaAvancadaOpcional"
-                    className="form-input"
-                    value={selectedTecnica || ''}
-                    onChange={(e) => setSelectedTecnica(e.target.value ? Number(e.target.value) : undefined)}
-                  >
-                    <option value="">Nenhuma (execução padrão)</option>
-                    {catalogTecnicas.map(t => (
-                      <option key={t.idTecnica} value={t.idTecnica}>{t.nome}</option>
-                    ))}
-                  </select>
+                  <Seletor<number>
+                    label="Técnica Avançada (opcional)"
+                    valor={selectedTecnica ?? 0}
+                    opcoes={[
+                      { valor: 0, texto: 'Nenhuma (execução padrão)' },
+                      ...catalogTecnicas.map(t => ({ valor: t.idTecnica, texto: t.nome })),
+                    ]}
+                    onChange={(v) => setSelectedTecnica(v || undefined)}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -1541,7 +1606,7 @@ export const Treinos: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <Save size={16} />
+                    <FloppyDiskIcon size={16} />
                     <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
                   </button>
                 </div>
@@ -1564,7 +1629,7 @@ export const Treinos: React.FC = () => {
             aria-labelledby="modalPrintTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '520px' }}
             >
@@ -1586,7 +1651,7 @@ export const Treinos: React.FC = () => {
                   onClick={() => setShowPrintModal(false)}
                   aria-label="Fechar"
                 >
-                  <X size={16} />
+                  <XIcon size={16} />
                 </button>
               </div>
 
@@ -1596,66 +1661,35 @@ export const Treinos: React.FC = () => {
                   <label className="section-label" style={{ marginBottom: '0.5rem' }}>
                     Fichas a Incluir
                   </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label 
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'flex-start', 
-                        gap: '0.65rem', 
-                        padding: '0.75rem', 
-                        borderRadius: 'var(--radius-m)',
-                        border: printScope === 'all' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                        backgroundColor: printScope === 'all' ? 'var(--accent-dim)' : 'var(--bg-1)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
+                  <div className="opcoes-lista" role="radiogroup" aria-label="Fichas a incluir">
+                    <CaixaMarcar
+                      type="radio"
+                      name="printScope"
+                      className="opcao-linha"
+                      checked={printScope === 'all'}
+                      onChange={() => setPrintScope('all')}
                     >
-                      <input 
-                        type="radio" 
-                        name="printScope" 
-                        checked={printScope === 'all'} 
-                        onChange={() => setPrintScope('all')} 
-                        style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
-                          Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                          Inclui todas as divisões do ciclo ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
-                        </div>
-                      </div>
-                    </label>
-
-                    <label 
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'flex-start', 
-                        gap: '0.65rem', 
-                        padding: '0.75rem', 
-                        borderRadius: 'var(--radius-m)',
-                        border: printScope === 'current' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                        backgroundColor: printScope === 'current' ? 'var(--accent-dim)' : 'var(--bg-1)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
+                      <span className="opcao-titulo">
+                        Protocolo Completo ({activeProtocol?.treinos.length} {activeProtocol?.treinos.length === 1 ? 'Ficha' : 'Fichas'})
+                      </span>
+                      <span className="opcao-desc">
+                        Inclui todas as divisões do ciclo ({activeProtocol?.treinos.map(t => t.nome).join(', ')}).
+                      </span>
+                    </CaixaMarcar>
+                    <CaixaMarcar
+                      type="radio"
+                      name="printScope"
+                      className="opcao-linha"
+                      checked={printScope === 'current'}
+                      onChange={() => setPrintScope('current')}
                     >
-                      <input 
-                        type="radio" 
-                        name="printScope" 
-                        checked={printScope === 'current'} 
-                        onChange={() => setPrintScope('current')} 
-                        style={{ marginTop: '3px', accentColor: 'var(--accent)' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-0)' }}>
-                          Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-1)', marginTop: '0.15rem' }}>
-                          Gera arquivo avulso apenas da divisão aberta no momento.
-                        </div>
-                      </div>
-                    </label>
+                      <span className="opcao-titulo">
+                        Apenas a Ficha Ativa ({currentFicha?.nome || 'Ficha Selecionada'})
+                      </span>
+                      <span className="opcao-desc">
+                        Gera arquivo avulso apenas da divisão aberta no momento.
+                      </span>
+                    </CaixaMarcar>
                   </div>
                 </div>
 
@@ -1664,27 +1698,15 @@ export const Treinos: React.FC = () => {
                   <label className="section-label" style={{ marginBottom: '0.5rem' }}>
                     Opções de Diagramação
                   </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--bg-1)', padding: '0.75rem', borderRadius: 'var(--radius-m)', border: '1px solid var(--border)' }}>
+                  <div className="opcoes-lista">
                     {printScope === 'all' && (
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={printPagePerFicha} 
-                          onChange={e => setPrintPagePerFicha(e.target.checked)} 
-                          style={{ accentColor: 'var(--accent)' }}
-                        />
+                      <CaixaMarcar className="opcao-linha" checked={printPagePerFicha} onChange={setPrintPagePerFicha}>
                         <span><strong>Uma página por ficha</strong> (Ideal para visualização rápida no celular)</span>
-                      </label>
+                      </CaixaMarcar>
                     )}
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-0)', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={printGuidelines} 
-                        onChange={e => setPrintGuidelines(e.target.checked)} 
-                        style={{ accentColor: 'var(--accent)' }}
-                      />
+                    <CaixaMarcar className="opcao-linha" checked={printGuidelines} onChange={setPrintGuidelines}>
                       <span><strong>Rodapé de cada treino</strong> (instruções do treinador, definidas em Configurações)</span>
-                    </label>
+                    </CaixaMarcar>
                   </div>
                 </div>
 
@@ -1701,7 +1723,7 @@ export const Treinos: React.FC = () => {
                     className="btn btn-primary" 
                     onClick={handleTriggerPrint}
                   >
-                    <FileText size={16} />
+                    <FileTextIcon size={16} />
                     <span>Gerar PDF Offline</span>
                   </button>
                 </div>

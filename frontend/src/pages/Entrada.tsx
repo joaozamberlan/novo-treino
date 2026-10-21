@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Timer } from 'lucide-react';
+import { ArrowRightIcon, CheckIcon, TimerIcon } from '@phosphor-icons/react';
 import { PainelMarca } from '../components/PainelMarca';
 import { useTema } from '../hooks/useTema';
 import { PERFIL_KEY, type Perfil } from '../constants/storageKeys';
@@ -32,14 +32,14 @@ export const Entrada: React.FC = () => {
                 <strong>Sou aluno</strong>
                 <span>Ver meu treino e registrar minhas cargas</span>
               </span>
-              <ArrowRight size={18} aria-hidden="true" />
+              <ArrowRightIcon size={18} aria-hidden="true" />
             </span>
             {/* O que o aluno faz no app: marca a série feita */}
             <span className="entrada-amostra entrada-amostra--aluno" aria-hidden="true">
               <span className="entrada-amostra-num">1</span>
               <span className="entrada-amostra-dado"><b>40</b> kg</span>
               <span className="entrada-amostra-dado"><b>10</b> reps</span>
-              <span className="entrada-amostra-check"><Check size={14} strokeWidth={3} /></span>
+              <span className="entrada-amostra-check"><CheckIcon size={14} /></span>
             </span>
           </Link>
 
@@ -49,13 +49,13 @@ export const Entrada: React.FC = () => {
                 <strong>Sou treinador</strong>
                 <span>Montar fichas e acompanhar meus alunos</span>
               </span>
-              <ArrowRight size={18} aria-hidden="true" />
+              <ArrowRightIcon size={18} aria-hidden="true" />
             </span>
             {/* O que o treinador faz no app: prescreve o exercício */}
             <span className="entrada-amostra" aria-hidden="true">
               <span className="entrada-amostra-nome">Supino reto</span>
               <span className="entrada-amostra-dado"><b>3</b> × <b>8-12</b></span>
-              <span className="entrada-amostra-descanso"><Timer size={11} strokeWidth={2.5} />90s</span>
+              <span className="entrada-amostra-descanso"><TimerIcon size={11} />90s</span>
             </span>
           </Link>
         </div>

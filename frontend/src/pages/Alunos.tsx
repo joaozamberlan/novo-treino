@@ -3,10 +3,11 @@ import { useConfirmar } from '../hooks/useConfirmar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
-import { Plus, ChevronRight, Edit2, Trash2, X, Users } from 'lucide-react';
+import { PlusIcon, CaretRightIcon, PencilSimpleIcon, TrashIcon, XIcon, UsersIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { memoryCache } from '../services/cache';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import { ModalPortal } from '../components/ModalPortal';
+import { Seletor } from '../components/Seletor';
 import { mensagemDeErro, telefoneValido } from '../utils/alunoAcesso';
 import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
 
@@ -22,6 +23,11 @@ interface Aluno {
   dataCadastro: string;
   protocolos?: { idProtocolo: number; nome: string; dataFim?: string | null }[];
 }
+
+const iniciais = (nome: string) => {
+  const partes = nome.trim().split(/\s+/);
+  return (partes.length >= 2 ? partes[0][0] + partes[partes.length - 1][0] : nome.slice(0, 2)).toUpperCase();
+};
 
 export const Alunos: React.FC = () => {
   const confirmar = useConfirmar();
@@ -248,32 +254,34 @@ export const Alunos: React.FC = () => {
   return (
     <div className="animate-in">
       {/* Header */}
-      <div className="flex-between" style={{ marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+      <header className="pagina-cabeca">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
             <span style={{ width: '7px', height: '7px', backgroundColor: 'var(--accent)', borderRadius: '1.5px', display: 'inline-block' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               GESTÃO DE ALUNOS // BASE ATIVA
             </span>
           </div>
-          <h1 style={{ margin: 0 }}>Alunos</h1>
-          <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: 'var(--text-1)' }}>
-            {alunos.length} {alunos.length === 1 ? 'aluno cadastrado' : 'alunos cadastrados'}
-          </p>
+          <h1 className="pagina-titulo">Alunos</h1>
         </div>
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={() => {
-            setShowAddForm(true);
-            setTelefoneErro('');
-            cancelEdit();
-          }}
-          style={{ gap: '0.35rem', padding: '0 0.85rem' }}
-        >
-          <Plus size={16} />
-          <span>Novo aluno</span>
-        </button>
-      </div>
+        <div className="pagina-cabeca-lado">
+          <div className="pagina-contador">
+            <strong>{alunos.length}</strong>
+            <span>{alunos.length === 1 ? 'aluno cadastrado' : 'alunos cadastrados'}</span>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setShowAddForm(true);
+              setTelefoneErro('');
+              cancelEdit();
+            }}
+          >
+            <PlusIcon size={16} />
+            <span>Novo aluno</span>
+          </button>
+        </div>
+      </header>
 
       {/* Error message */}
       {error && (
@@ -283,73 +291,70 @@ export const Alunos: React.FC = () => {
       )}
 
       {/* Search */}
-      <div style={{ marginBottom: '0.75rem' }}>
+      <label className="busca-linha">
+        <MagnifyingGlassIcon size={18} aria-hidden="true" />
         <input
           type="search"
-          className="list-search"
           aria-label="Buscar aluno por nome"
           placeholder="Buscar aluno por nome..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
+      </label>
 
       {/* Student List */}
       {filteredAlunos.length > 0 ? (
-        <div style={{ borderRadius: 'var(--radius-l)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div>
+          <div className="aluno-colunas" aria-hidden="true">
+            <span />
+            <span>Aluno</span>
+            <span>Periodização atual</span>
+            <span>Acesso</span>
+            <span />
+          </div>
           <div className="student-list">
             {filteredAlunos.map((aluno) => (
               <div
                 key={aluno.idAluno}
-                className="student-item"
+                className={`student-item aluno-linha${aluno.ativo ? '' : ' inativo'}`}
                 onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem' }}
               >
-                {/* Avatar + info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', minWidth: 0, flex: 1 }}>
-                  <div style={{
-                    width: '36px', height: '36px',
-                    borderRadius: '50%',
-                    background: 'var(--accent-soft)',
-                    border: '1px solid var(--accent-border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--accent-text)',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    flexShrink: 0,
-                    letterSpacing: '-0.01em',
-                  }}>
-                    {aluno.nome.charAt(0).toUpperCase()}
+                <span className="aluno-iniciais" aria-hidden="true">{iniciais(aluno.nome)}</span>
+
+                <div className="aluno-id">
+                  <div className="student-item-name aluno-nome">{aluno.nome}</div>
+                  <div className="aluno-contato">
+                    {aluno.email && <span>{aluno.email}</span>}
+                    {aluno.telefone && <span>{aluno.telefone}</span>}
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div className="student-item-name" style={{ fontWeight: 600, marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{aluno.nome}</div>
-                    <div className="student-item-sub">
-                      {(() => {
-                        const atual = aluno.protocolos?.[0];
-                        if (!atual) return <span style={{ color: 'var(--text-2)' }}>Sem periodização atual</span>;
-                        const estado = estadoPeriodo(null, atual.dataFim);
-                        const fim = formatarDia(atual.dataFim);
-                        return (
-                          <span className="student-item-plan">
-                            {atual.nome}
-                            {fim && (
-                              <span style={{ fontWeight: 400, color: estado === 'encerrada' ? 'var(--warning)' : 'var(--text-1)' }}>
-                                {estado === 'encerrada' ? `· ${ROTULO_ESTADO.encerrada.toLowerCase()} em ${fim}` : `· até ${fim}`}
-                              </span>
-                            )}
+                </div>
+
+                <div className="aluno-plano">
+                  {(() => {
+                    const atual = aluno.protocolos?.[0];
+                    if (!atual) return <span className="aluno-plano-vazio">Sem periodização atual</span>;
+                    const estado = estadoPeriodo(null, atual.dataFim);
+                    const fim = formatarDia(atual.dataFim);
+                    return (
+                      <>
+                        <span className="aluno-plano-nome">{atual.nome}</span>
+                        {fim && (
+                          <span className={`aluno-plano-data${estado === 'encerrada' ? ' vencida' : ''}`}>
+                            {estado === 'encerrada' ? `${ROTULO_ESTADO.encerrada.toLowerCase()} em ${fim}` : `até ${fim}`}
                           </span>
-                        );
-                      })()}
-                      {aluno.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{aluno.email}</span>}
-                      {aluno.telefone && <span>{aluno.telefone}</span>}
-                      {aluno.acesso && (
-                        <span className={`badge ${ROTULO_ACESSO[aluno.acesso].classe}`} title={ROTULO_ACESSO[aluno.acesso].dica}>
-                          {ROTULO_ACESSO[aluno.acesso].texto}
-                        </span>
-                      )}
-                      {!aluno.ativo && <span className="badge badge-danger">Inativo</span>}
-                    </div>
-                  </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+
+                <div className="aluno-linha-acesso">
+                  {aluno.acesso && (
+                    <span className={`badge ${ROTULO_ACESSO[aluno.acesso].classe}`} title={ROTULO_ACESSO[aluno.acesso].dica}>
+                      {ROTULO_ACESSO[aluno.acesso].texto}
+                    </span>
+                  )}
+                  {!aluno.ativo && <span className="badge badge-danger">Inativo</span>}
                 </div>
 
                 {/* Actions */}
@@ -360,7 +365,7 @@ export const Alunos: React.FC = () => {
                     onClick={(e) => startEditAluno(aluno, e)}
                     title="Editar informações do aluno"
                   >
-                    <Edit2 size={14} />
+                    <PencilSimpleIcon size={14} />
                   </button>
                   <button
                     type="button"
@@ -368,7 +373,7 @@ export const Alunos: React.FC = () => {
                     onClick={(e) => handleDeleteAluno(aluno, e)}
                     title="Excluir aluno"
                   >
-                    <Trash2 size={14} />
+                    <TrashIcon size={14} />
                   </button>
                   <button
                     type="button"
@@ -376,7 +381,7 @@ export const Alunos: React.FC = () => {
                     onClick={() => navigate(`/alunos/${aluno.idAluno}/periodizacoes`)}
                     title="Ver periodizações"
                   >
-                    <ChevronRight size={16} />
+                    <CaretRightIcon size={16} />
                   </button>
                 </div>
               </div>
@@ -390,7 +395,7 @@ export const Alunos: React.FC = () => {
           border: '1px dashed var(--border)', borderRadius: 'var(--radius-l)',
           color: 'var(--text-2)',
         }}>
-          <Users size={32} style={{ color: 'var(--text-2)', opacity: 0.5 }} />
+          <UsersIcon size={32} style={{ color: 'var(--text-2)', opacity: 0.5 }} />
           <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-1)' }}>
             {search ? `Nenhum aluno encontrado para "${search}"` : 'Nenhum aluno cadastrado ainda'}
           </div>
@@ -400,7 +405,7 @@ export const Alunos: React.FC = () => {
               onClick={() => { setShowAddForm(true); setTelefoneErro(''); cancelEdit(); }}
               style={{ marginTop: '0.25rem' }}
             >
-              <Plus size={14} />
+              <PlusIcon size={14} />
               Adicionar primeiro aluno
             </button>
           )}
@@ -418,7 +423,7 @@ export const Alunos: React.FC = () => {
             aria-labelledby="modalNovoAlunoTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -441,7 +446,7 @@ export const Alunos: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -525,7 +530,7 @@ export const Alunos: React.FC = () => {
             aria-labelledby="modalEditAlunoTitle"
           >
             <div 
-              className="modal-content" 
+              className="modal-content modal-content--form" 
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -548,7 +553,7 @@ export const Alunos: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -597,18 +602,15 @@ export const Alunos: React.FC = () => {
                     : <span id="telAlunoEditAjuda" className="field-hint">É o login do aluno: ele confirma este número ao abrir o link pela primeira vez.</span>}
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="campoAlunosStatusDoAluno">Status do Aluno</label>
-                  <select
-                    id="campoAlunosStatusDoAluno"
-                    className="form-input"
-                    value={editAtivo ? 'true' : 'false'}
-                    onChange={(e) => setEditAtivo(e.target.value === 'true')}
-                  >
-                    <option value="true">Ativo</option>
-                    <option value="false">Inativo</option>
-                  </select>
-                </div>
+                <Seletor
+                  label="Status do Aluno"
+                  valor={editAtivo ? 'ativo' : 'inativo'}
+                  opcoes={[
+                    { valor: 'ativo', texto: 'Ativo' },
+                    { valor: 'inativo', texto: 'Inativo' },
+                  ]}
+                  onChange={(v) => setEditAtivo(v === 'ativo')}
+                />
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
                   <button

@@ -8,12 +8,25 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import { memoryCache } from '../services/cache';
 import { ActionMenu } from '../components/ActionMenu';
 import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
-import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
+import { estadoPeriodo, formatarDia, progressoPeriodo, ROTULO_ESTADO } from '../utils/periodo';
 import {
-  ArrowLeft, Plus, Calendar, AlertCircle,
-  Edit2, Trash2, Share2, X, Save, Copy, Link2, RefreshCw, Ban, KeyRound,
-} from 'lucide-react';
+  ArrowLeftIcon,
+  ArrowsClockwiseIcon,
+  CalendarBlankIcon,
+  CopyIcon,
+  FloppyDiskIcon,
+  LinkSimpleIcon,
+  PasswordIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  ProhibitIcon,
+  ShareNetworkIcon,
+  TrashIcon,
+  WarningCircleIcon,
+  XIcon,
+} from '@phosphor-icons/react';
 import { ModalPortal } from '../components/ModalPortal';
+import { Seletor } from '../components/Seletor';
 
 interface Aluno {
   idAluno: number;
@@ -437,9 +450,11 @@ export const Periodizacoes: React.FC = () => {
           </div>
           <div className="skeleton" style={{ width: '160px', height: '32px' }} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+        <div className="proto-lista">
           {[1, 2, 3].map(n => (
-            <div key={n} className="skeleton" style={{ height: '140px', borderRadius: 'var(--radius-l)' }} />
+            <div key={n} className="proto-row" style={{ cursor: 'default' }}>
+              <div className="skeleton" style={{ width: '45%', height: '20px' }} />
+            </div>
           ))}
         </div>
       </div>
@@ -448,8 +463,8 @@ export const Periodizacoes: React.FC = () => {
 
   if (!aluno && error) {
     return (
-      <div className="card animate-in" style={{ textAlign: 'center', padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-        <AlertCircle size={36} style={{ color: 'var(--danger-text)' }} />
+      <div className="proto-vazio animate-in">
+        <WarningCircleIcon size={36} style={{ color: 'var(--danger-text)' }} />
         <h2>Aluno não encontrado</h2>
         <p style={{ color: 'var(--text-1)', maxWidth: '400px' }}>
           Este aluno não existe no banco de dados atual. Acesse a lista de alunos para cadastrar um novo ou selecionar um existente.
@@ -466,10 +481,10 @@ export const Periodizacoes: React.FC = () => {
       <div>
         <Breadcrumb items={[{ label: 'Alunos', to: '/alunos' }, { label: aluno?.nome || '...' }]} />
 
-        <div className="flex-between" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="flex-between proto-cabeca" style={{ flexWrap: 'wrap', rowGap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem' }}>
             <Link to="/alunos" className="btn btn-ghost btn-icon" aria-label="Voltar para a lista de alunos">
-              <ArrowLeft size={18} />
+              <ArrowLeftIcon size={18} />
             </Link>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem' }}>
@@ -478,8 +493,8 @@ export const Periodizacoes: React.FC = () => {
                   PERIODIZAÇÕES{protocolos.length > 0 ? ` // ${protocolos.length}` : ''}
                 </span>
               </div>
-              <h1 style={{ margin: 0, fontSize: '1.6rem' }}>{aluno?.nome}</h1>
-              <p style={{ margin: '0.15rem 0 0' }}>
+              <h1 className="pagina-titulo">{aluno?.nome}</h1>
+              <p className="proto-cabeca-contato">
                 {aluno?.email || 'Aluno'}
                 {aluno?.acesso && (
                   <span
@@ -497,23 +512,23 @@ export const Periodizacoes: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <ActionMenu
               label={`Acesso do aluno ${aluno?.nome ?? ''}`}
-              trigger={<><Link2 size={16} /><span>Acesso do aluno</span></>}
+              trigger={<><LinkSimpleIcon size={16} /><span>Acesso do aluno</span></>}
               align="left"
               items={[
                 // Só há PIN para redefinir depois que o aluno criou um
                 ...(aluno?.acesso === 'PIN_CRIADO'
-                  ? [{ label: 'Redefinir PIN', icon: <KeyRound size={14} />, onClick: handleRedefinirPin }]
+                  ? [{ label: 'Redefinir PIN', icon: <PasswordIcon size={14} />, onClick: handleRedefinirPin }]
                   : []),
-                { label: 'Gerar novo link', icon: <RefreshCw size={14} />, onClick: handleRegenerarLink },
-                { label: 'Revogar acesso', icon: <Ban size={14} />, onClick: handleRevogarLink, danger: true },
+                { label: 'Gerar novo link', icon: <ArrowsClockwiseIcon size={14} />, onClick: handleRegenerarLink },
+                { label: 'Revogar acesso', icon: <ProhibitIcon size={14} />, onClick: handleRevogarLink, danger: true },
               ]}
             />
             <button className="btn btn-secondary btn-sm" onClick={openImportModal}>
-              <Copy size={16} />
+              <CopyIcon size={16} />
               <span>Copiar de outro aluno</span>
             </button>
             <button className="btn btn-primary btn-sm" onClick={openNewForm}>
-              <Plus size={16} />
+              <PlusIcon size={16} />
               <span>Nova Periodização</span>
             </button>
           </div>
@@ -527,98 +542,112 @@ export const Periodizacoes: React.FC = () => {
       )}
 
       {protocolos.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
-          {protocolos.map((proto) => {
+        <div className="proto-lista">
+          {protocolos.map((proto, i) => {
             const estado = estadoPeriodo(proto.dataInicio, proto.dataFim);
+            const progresso = proto.ativo ? progressoPeriodo(proto.dataInicio, proto.dataFim) : null;
             const inicio = formatarDia(proto.dataInicio);
             const fim = formatarDia(proto.dataFim);
             const abrir = () => navigate(`/alunos/${idAluno}/treinos?periodizacao=${proto.idProtocolo}`);
             return (
               <div
                 key={proto.idProtocolo}
-                className={`proto-card${proto.ativo ? ' is-current' : ''}`}
+                className={`proto-row${proto.ativo ? ' is-current' : ''}`}
                 onClick={abrir}
               >
-                <div className="proto-card-head">
-                  <div style={{ minWidth: 0 }}>
-                    <h3 className="proto-card-title">{proto.nome}</h3>
-                    {proto.objetivo && <p className="proto-card-goal">{proto.objetivo}</p>}
-                  </div>
-                  <ActionMenu
-                    label={`Ações de ${proto.nome}`}
-                    items={[
-                      { label: 'Compartilhar link', icon: <Share2 size={14} />, onClick: () => handleShare(proto) },
-                      { label: 'Copiar para um aluno', icon: <Copy size={14} />, onClick: () => startCopyProtocolo(proto) },
-                      { label: 'Editar', icon: <Edit2 size={14} />, onClick: () => startEditProtocolo(proto) },
-                      { label: 'Excluir', icon: <Trash2 size={14} />, onClick: () => handleDeleteProtocolo(proto), danger: true },
-                    ]}
-                  />
-                </div>
-
-                {(proto.ativo || estado) && (
-                  <div className="proto-badges">
-                    {proto.ativo && <span className="proto-badge current">Atual</span>}
-                    {estado && (
-                      <span className={`proto-badge ${estado === 'encerrada' ? 'expired' : estado === 'andamento' ? 'running' : ''}`}>
-                        {ROTULO_ESTADO[estado]}
+                <span className="proto-row-indice" aria-hidden="true">{String(protocolos.length - i).padStart(2, '0')}</span>
+                <div className="proto-row-main">
+                  <h3 className="proto-row-title">{proto.nome}</h3>
+                  {proto.objetivo && <p className="proto-row-goal">{proto.objetivo}</p>}
+                  {(proto.ativo || estado) && (
+                    <div className="proto-badges">
+                      {proto.ativo && <span className="proto-badge current">Atual</span>}
+                      {estado && (
+                        <span className={`proto-badge ${estado === 'encerrada' ? 'expired' : estado === 'andamento' ? 'running' : ''}`}>
+                          {ROTULO_ESTADO[estado]}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {progresso && estado === 'andamento' && (
+                    <div className="proto-tempo">
+                      <span className="proto-tempo-texto">
+                        Semana <strong>{progresso.semana}</strong> de {progresso.totalSemanas}
                       </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="proto-card-stats">
-                  {proto.totalFichas !== undefined && (
-                    <span><strong>{proto.totalFichas}</strong> {proto.totalFichas === 1 ? 'ficha' : 'fichas'}</span>
+                      <span className="proto-tempo-trilho" aria-hidden="true">
+                        <span className="proto-tempo-barra" style={{ width: `${Math.max(progresso.fracao * 100, 2)}%` }} />
+                      </span>
+                    </div>
                   )}
-                  {proto.totalExercicios !== undefined && (
-                    <span><strong>{proto.totalExercicios}</strong> {proto.totalExercicios === 1 ? 'exercício' : 'exercícios'}</span>
-                  )}
-                  {(inicio || fim) && (
-                    <span>
-                      <Calendar size={12} style={{ verticalAlign: '-1px', marginRight: '0.25rem' }} />
-                      {inicio || '...'}{fim ? ` até ${fim}` : ''}
-                    </span>
+                  {proto.ativo && estado === 'encerrada' && (
+                    <p className="proto-row-aviso">
+                      O período desta periodização já terminou. Ela continua como a atual do aluno até você mudar.
+                    </p>
                   )}
                 </div>
 
-                {proto.ativo && estado === 'encerrada' && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--warning-text)' }}>
-                    O período desta periodização já terminou. Ela continua como a atual do aluno até você mudar.
-                  </div>
-                )}
+                <div className="proto-row-num">
+                  {proto.totalFichas !== undefined && (
+                    <>
+                      <strong>{proto.totalFichas}</strong>
+                      <span>{proto.totalFichas === 1 ? 'ficha' : 'fichas'}</span>
+                    </>
+                  )}
+                </div>
+                <div className="proto-row-num">
+                  {proto.totalExercicios !== undefined && (
+                    <>
+                      <strong>{proto.totalExercicios}</strong>
+                      <span>{proto.totalExercicios === 1 ? 'exercício' : 'exercícios'}</span>
+                    </>
+                  )}
+                </div>
+                <div className="proto-row-datas">
+                  {(inicio || fim) && (
+                    <>
+                      <CalendarBlankIcon size={12} aria-hidden="true" />
+                      <span>{inicio || '...'}{fim ? ` até ${fim}` : ''}</span>
+                    </>
+                  )}
+                </div>
 
-                <div className="proto-card-foot">
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    style={{ fontSize: '0.8rem', padding: '0 0.9rem' }}
-                    onClick={(e) => { e.stopPropagation(); abrir(); }}
-                  >
-                    Ver Treino
-                  </button>
+                <div className="proto-row-acoes">
                   {!proto.ativo && (
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.8rem', padding: '0 0.9rem' }}
                       onClick={(e) => handleActivateProtocolo(proto, e)}
                       title="Marcar esta periodização como a atual"
                     >
                       Marcar como Atual
                     </button>
                   )}
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={(e) => { e.stopPropagation(); abrir(); }}
+                  >
+                    Ver Treino
+                  </button>
+                  <ActionMenu
+                    label={`Ações de ${proto.nome}`}
+                    items={[
+                      { label: 'Compartilhar link', icon: <ShareNetworkIcon size={14} />, onClick: () => handleShare(proto) },
+                      { label: 'Copiar para um aluno', icon: <CopyIcon size={14} />, onClick: () => startCopyProtocolo(proto) },
+                      { label: 'Editar', icon: <PencilSimpleIcon size={14} />, onClick: () => startEditProtocolo(proto) },
+                      { label: 'Excluir', icon: <TrashIcon size={14} />, onClick: () => handleDeleteProtocolo(proto), danger: true },
+                    ]}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-1)' }}>
-            Nenhuma periodização cadastrada para este aluno ainda.
-          </p>
+        <div className="proto-vazio">
+          <p>Nenhuma periodização cadastrada para este aluno ainda.</p>
           <button type="button" className="btn btn-primary" onClick={openNewForm}>
-            <Plus size={16} />
+            <PlusIcon size={16} />
             Criar primeira periodização
           </button>
         </div>
@@ -635,7 +664,7 @@ export const Periodizacoes: React.FC = () => {
             aria-labelledby="modalImportarTitle"
           >
             <div
-              className="modal-content"
+              className="modal-content modal-content--form"
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -650,7 +679,7 @@ export const Periodizacoes: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -661,46 +690,30 @@ export const Periodizacoes: React.FC = () => {
                 </p>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="alunoOrigem">Aluno de origem *</label>
-                  <select
-                    id="alunoOrigem"
-                    className="form-input"
-                    value={idAlunoOrigem}
-                    onChange={(e) => handleSelectAlunoOrigem(Number(e.target.value))}
-                    required
-                  >
-                    <option value={0} disabled>Selecione um aluno</option>
-                    {alunosOrigem.map((a) => (
-                      <option key={a.idAluno} value={a.idAluno}>
-                        {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <Seletor
+                    label="Aluno de origem *"
+                    valor={idAlunoOrigem}
+                    opcoes={alunosOrigem.map((a) => ({ valor: a.idAluno, texto: a.nome + (a.idAluno === Number(idAluno) ? ' (este aluno)' : '') }))}
+                    onChange={handleSelectAlunoOrigem}
+                    placeholder="Selecione um aluno"
+                    obrigatorio
+                  />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="protocoloOrigem">Periodização *</label>
-                  <select
-                    id="protocoloOrigem"
-                    className="form-input"
-                    value={idProtocoloOrigem}
-                    onChange={(e) => setIdProtocoloOrigem(Number(e.target.value))}
-                    disabled={!idAlunoOrigem || carregandoOrigem}
-                    required
-                  >
-                    <option value={0} disabled>
-                      {carregandoOrigem
-                        ? 'Carregando...'
-                        : idAlunoOrigem && protocolosOrigem.length === 0
-                          ? 'Este aluno não tem periodizações'
-                          : 'Selecione uma periodização'}
-                    </option>
-                    {protocolosOrigem.map((pr) => (
-                      <option key={pr.idProtocolo} value={pr.idProtocolo}>
-                        {pr.nome}{pr.ativo ? ' (atual)' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <Seletor
+                    label="Periodização *"
+                    valor={idProtocoloOrigem}
+                    opcoes={protocolosOrigem.map((pr) => ({ valor: pr.idProtocolo, texto: pr.nome + (pr.ativo ? ' (atual)' : '') }))}
+                    onChange={setIdProtocoloOrigem}
+                    placeholder={carregandoOrigem
+                      ? 'Carregando...'
+                      : idAlunoOrigem && protocolosOrigem.length === 0
+                        ? 'Este aluno não tem periodizações'
+                        : 'Selecione uma periodização'}
+                    desabilitado={!idAlunoOrigem || carregandoOrigem}
+                    obrigatorio
+                  />
                 </div>
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
@@ -708,7 +721,7 @@ export const Periodizacoes: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={!idProtocoloOrigem || importando}>
-                    <Copy size={16} />
+                    <CopyIcon size={16} />
                     <span>{importando ? 'Copiando...' : 'Copiar'}</span>
                   </button>
                 </div>
@@ -729,7 +742,7 @@ export const Periodizacoes: React.FC = () => {
             aria-labelledby="modalCopiarTitle"
           >
             <div
-              className="modal-content"
+              className="modal-content modal-content--form"
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '460px' }}
             >
@@ -744,7 +757,7 @@ export const Periodizacoes: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -755,21 +768,14 @@ export const Periodizacoes: React.FC = () => {
                 </p>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="alunoDestino">Copiar para *</label>
-                  <select
-                    id="alunoDestino"
-                    className="form-input"
-                    value={idAlunoDestino}
-                    onChange={(e) => setIdAlunoDestino(Number(e.target.value))}
-                    required
-                  >
-                    <option value={0} disabled>Selecione um aluno</option>
-                    {alunosDestino.map((a) => (
-                      <option key={a.idAluno} value={a.idAluno}>
-                        {a.nome}{a.idAluno === Number(idAluno) ? ' (este aluno)' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <Seletor
+                    label="Copiar para *"
+                    valor={idAlunoDestino}
+                    opcoes={alunosDestino.map((a) => ({ valor: a.idAluno, texto: a.nome + (a.idAluno === Number(idAluno) ? ' (este aluno)' : '') }))}
+                    onChange={setIdAlunoDestino}
+                    placeholder="Selecione um aluno"
+                    obrigatorio
+                  />
                 </div>
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
@@ -777,7 +783,7 @@ export const Periodizacoes: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={!idAlunoDestino || duplicando}>
-                    <Copy size={16} />
+                    <CopyIcon size={16} />
                     <span>{duplicando ? 'Copiando...' : 'Copiar'}</span>
                   </button>
                 </div>
@@ -800,7 +806,7 @@ export const Periodizacoes: React.FC = () => {
             aria-labelledby="modalPeriodizacaoTitle"
           >
             <div
-              className="modal-content"
+              className="modal-content modal-content--form"
               onClick={(e) => e.stopPropagation()}
               style={{ maxWidth: '480px' }}
             >
@@ -823,7 +829,7 @@ export const Periodizacoes: React.FC = () => {
                   title="Fechar"
                   aria-label="Fechar modal"
                 >
-                  <X size={18} />
+                  <XIcon size={18} />
                 </button>
               </div>
 
@@ -884,7 +890,7 @@ export const Periodizacoes: React.FC = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    {editingProtocoloId ? <Save size={16} /> : <Plus size={16} />}
+                    {editingProtocoloId ? <FloppyDiskIcon size={16} /> : <PlusIcon size={16} />}
                     <span>{editingProtocoloId ? 'Salvar Alterações' : 'Criar Periodização'}</span>
                   </button>
                 </div>

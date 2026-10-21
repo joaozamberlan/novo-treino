@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRightIcon } from '@phosphor-icons/react';
 import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
 import { mensagemDeErro, telefoneValido } from '../../utils/alunoAcesso';
 import { useAlunoAuth, type ContaComToken } from '../../contexts/AlunoAuthContext';
@@ -81,7 +81,7 @@ export const AlunoEntrar: React.FC = () => {
                 <strong>{c.profissional.nome}</strong>
                 <span>{c.aluno.nome}</span>
               </span>
-              <ArrowRight size={16} aria-hidden="true" />
+              <ArrowRightIcon size={16} aria-hidden="true" />
             </button>
           ))}
         </div>
@@ -126,7 +126,7 @@ export const AlunoEntrar: React.FC = () => {
 
         <button type="submit" className="btn-login-submit" disabled={enviando}>
           <span>{enviando ? 'Entrando…' : 'Entrar'}</span>
-          <ArrowRight size={16} strokeWidth={2.5} aria-hidden="true" />
+          <ArrowRightIcon size={16} aria-hidden="true" />
         </button>
       </form>
 

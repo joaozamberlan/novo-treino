@@ -39,20 +39,19 @@ export function TabelaProgressao({ variant }: { variant: 'screen' | 'print' }) {
     );
   }
 
-  const cell = { padding: '0.6rem 0.75rem', borderTop: '1px solid var(--border)', verticalAlign: 'top' as const };
+  const cell = { padding: '0.6rem 0.75rem 0.6rem 0', borderTop: '1px solid var(--border)', verticalAlign: 'top' as const };
   const head = {
-    padding: '0.55rem 0.75rem',
+    padding: '0.55rem 0.75rem 0.55rem 0',
     textAlign: 'left' as const,
     fontFamily: 'var(--font-mono)',
     fontSize: '0.68rem',
     letterSpacing: '0.08em',
     color: 'var(--text-2)',
-    backgroundColor: 'var(--bg-2, rgba(128,128,128,0.08))',
   };
 
   return (
-    <div className="card" style={{ marginTop: '1.25rem', padding: 0, overflow: 'hidden' }}>
-      <h2 style={{ fontSize: '0.95rem', margin: 0, padding: '0.85rem 0.75rem 0.65rem' }}>Progressão semanal</h2>
+    <section style={{ marginTop: '2rem', borderTop: '1px solid var(--border-strong)' }}>
+      <h2 style={{ fontSize: '0.95rem', margin: 0, padding: '0.85rem 0 0.4rem' }}>Progressão semanal</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
         <thead>
           <tr>
@@ -69,6 +68,6 @@ export function TabelaProgressao({ variant }: { variant: 'screen' | 'print' }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
