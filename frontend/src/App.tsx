@@ -31,6 +31,9 @@ const ExerciseCardPrototype = import.meta.env.DEV
 const ProgressoPrototype = import.meta.env.DEV
   ? lazy(() => import('./pages/prototypes/ProgressoPrototype').then((m) => ({ default: m.ProgressoPrototype })))
   : null;
+const VolumePrototype = import.meta.env.DEV
+  ? lazy(() => import('./pages/prototypes/VolumePrototype').then((m) => ({ default: m.VolumePrototype })))
+  : null;
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signed, loading } = useAuth();
@@ -95,6 +98,12 @@ function App() {
               <Route
                 path="/prototypes/progresso"
                 element={<Suspense fallback={null}><ProgressoPrototype /></Suspense>}
+              />
+            )}
+            {VolumePrototype && (
+              <Route
+                path="/prototypes/volume"
+                element={<Suspense fallback={null}><VolumePrototype /></Suspense>}
               />
             )}
 

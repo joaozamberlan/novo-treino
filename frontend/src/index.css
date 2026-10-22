@@ -1760,6 +1760,14 @@ body.light-theme {
   border-top: 1px solid var(--border-strong);
 }
 
+.vol-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .vol-head h2 {
   margin: 0;
   font-size: 0.95rem;
@@ -1773,7 +1781,7 @@ body.light-theme {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin-top: 0.75rem;
+  width: min(100%, 15rem);
   padding: 2px;
   background: var(--bg-2);
   border-radius: var(--radius-m);
@@ -1822,10 +1830,104 @@ body.light-theme {
   color: var(--text-0);
 }
 
-.vol-resumo {
-  margin: 0.75rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.4;
+/* Corpo à esquerda (onde o treino bate) e placar à direita (quanto). */
+.vol-corpo-placar {
+  display: grid;
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+
+.vol-corpo-coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* A ilustração tem margem própria: as duas vistas se sobrepõem um pouco */
+.vol-corpo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+.vol-corpo > :first-child {
+  margin-right: -12%;
+}
+
+.vol-corpo > :last-child {
+  margin-left: -12%;
+}
+
+/* Espaço reservado enquanto a ilustração carrega: o placar não pula */
+.vol-corpo--carregando {
+  aspect-ratio: 722 / 542;
+  background: var(--bg-1);
+  border-radius: var(--radius-s);
+}
+
+.vol-corpo-vista {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Masculino | Feminino: texto pequeno, o escolhido sublinhado em vermelho */
+.vol-sexo {
+  display: flex;
+  gap: 1rem;
+}
+
+.vol-sexo button {
+  min-height: 32px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 140ms var(--ease-out), border-color 140ms var(--ease-out);
+}
+
+.vol-sexo button[aria-pressed="true"] {
+  color: var(--text-0);
+  border-bottom-color: var(--accent);
+}
+
+.vol-sexo button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Total no número grande de placar */
+.vol-total {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.vol-total strong {
+  font-family: var(--font);
+  font-stretch: var(--stretch-placar);
+  font-weight: 800;
+  font-size: 4rem;
+  line-height: 0.82;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-0);
+}
+
+.vol-total span {
+  padding-bottom: 0.2rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
   color: var(--text-1);
 }
 
@@ -1837,69 +1939,121 @@ body.light-theme {
 
 .vol-lista {
   list-style: none;
-  margin: 0.5rem 0 0;
+  margin: 0;
   padding: 0;
+  border-top: 1px solid var(--border-strong);
 }
 
 .vol-linha {
   display: grid;
-  grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 4.75rem;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr) 2.25rem;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 2.25rem;
-  border-top: 1px solid var(--border);
+  gap: 0.85rem;
+  min-height: 2.5rem;
+  padding: 0 0.25rem;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  transition: background-color 140ms var(--ease-out);
 }
 
-.vol-linha:first-child { border-top: none; }
+.vol-linha.em-foco {
+  background: var(--bg-1);
+}
+
+.vol-linha:focus-visible {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
 
 .vol-grupo {
-  padding: 0.4rem 0;
-  font-size: 0.82rem;
-  font-weight: 500;
-  line-height: 1.25;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   color: var(--text-0);
   overflow-wrap: anywhere;
+  transition: color 140ms var(--ease-out);
 }
 
-.vol-trilho {
+.vol-linha.em-foco .vol-grupo {
+  color: var(--accent-text);
+}
+
+/* Um bloco por série; os vazios completam a escala (mín. 10 casas) */
+.vol-blocos {
   display: flex;
-  align-items: center;
-  height: 100%;
+  gap: 3px;
   min-width: 0;
 }
 
-/* Cresce da base à esquerda; só a ponta do dado é arredondada. */
-.vol-barra {
-  height: 10px;
-  border-radius: 0 4px 4px 0;
-  background: var(--vol-barra);
+.vol-bloco {
+  flex: 1 1 0;
+  max-width: 1.5rem;
+  height: 16px;
+  border-radius: 1px;
+  background: var(--bg-2);
+}
+
+.vol-bloco.cheio {
+  background: var(--accent);
+  animation: volBlocoAcende 180ms var(--ease-out) both;
+}
+
+@keyframes volBlocoAcende {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
 }
 
 .vol-valor {
   justify-self: end;
-  font-size: 0.72rem;
-  color: var(--text-2);
-  white-space: nowrap;
 }
 
 .vol-valor b {
-  font-family: var(--font-mono);
+  font-family: var(--font);
+  font-stretch: var(--stretch-placar);
+  font-weight: 800;
+  font-size: 1.35rem;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  font-size: 0.82rem;
-  font-weight: 700;
   color: var(--text-0);
+}
+
+@media (max-width: 760px) {
+  .vol-corpo-placar {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .vol-corpo-coluna {
+    max-width: 22rem;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .vol-total strong {
+    font-size: 3.25rem;
+  }
 }
 
 @media (max-width: 420px) {
   .vol-linha {
-    grid-template-columns: minmax(0, 6.75rem) minmax(0, 1fr) 4.25rem;
+    grid-template-columns: minmax(0, 6rem) minmax(0, 1fr) 2rem;
     gap: 0.6rem;
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .vol-bloco.cheio {
+    animation: none;
+  }
+}
+
 @media (forced-colors: active) {
-  .vol-barra { background: CanvasText; }
+  .vol-bloco.cheio { background: CanvasText; }
   .vol-segmentado button[aria-pressed="true"] { outline: 2px solid CanvasText; }
+  .vol-sexo button[aria-pressed="true"] { outline: 2px solid CanvasText; }
 }
 
 /* ── Settings Page ─────────────────────────────────────────────────────── */
