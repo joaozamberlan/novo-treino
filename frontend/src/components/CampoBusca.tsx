@@ -19,6 +19,12 @@ interface Props<T> {
   destaque?: (item: T) => string | undefined;
   apoio?: (item: T) => string | undefined;
   onEscolher: (item: T) => void;
+  // Na barra do topo o rótulo é só para leitor de tela e há a dica do atalho
+  rotuloOculto?: boolean;
+  dica?: string;
+  idCampo?: string;
+  onFocus?: () => void;
+  className?: string;
 }
 
 // Sem acento e em minúsculas: "flexao" acha "Flexão"
@@ -37,6 +43,11 @@ export function CampoBusca<T>({
   destaque,
   apoio,
   onEscolher,
+  rotuloOculto,
+  dica,
+  idCampo,
+  onFocus,
+  className,
 }: Props<T>) {
   const [busca, setBusca] = useState('');
   // A lista abre com a largura do campo inteiro (lupa incluída)
@@ -57,7 +68,7 @@ export function CampoBusca<T>({
 
   return (
     <ComboBox
-      className="seletor campo-busca"
+      className={`seletor campo-busca${className ? ` ${className}` : ''}`}
       items={resultados.map((item) => ({ id: chave(item), item }))}
       inputValue={busca}
       onInputChange={setBusca}
@@ -72,10 +83,11 @@ export function CampoBusca<T>({
       // "Nenhum resultado" só com algo digitado; campo vazio fecha a lista
       allowsEmptyCollection={busca.trim().length > 0}
     >
-      <Label className="form-label">{label}</Label>
+      <Label className={rotuloOculto ? 'sr-only' : 'form-label'}>{label}</Label>
       <div className="campo-busca-campo" ref={campoRef}>
         <MagnifyingGlassIcon size={15} aria-hidden="true" />
-        <Input className="form-input" placeholder={placeholder} />
+        <Input id={idCampo} className="form-input" placeholder={placeholder} onFocus={onFocus} />
+        {dica && !busca && <kbd className="campo-busca-dica" aria-hidden="true">{dica}</kbd>}
       </div>
       <Popover className="seletor-popover" offset={4} triggerRef={campoRef}>
         <ListBox

@@ -151,6 +151,18 @@ const getDiasAtras = (dateStr: string) => {
 
 const fimDoDescanso = (segundos: number) => Date.now() + segundos * 1000;
 
+// Safari antigo só expõe o áudio com prefixo
+type JanelaComWebkit = Window & { webkitAudioContext?: typeof AudioContext };
+const contextoDeAudio = () => window.AudioContext || (window as JanelaComWebkit).webkitAudioContext;
+
+// Série como vem em seriesHoje do GET /aluno/sessao/:idTreino
+interface SerieDoServidor {
+  numeroSerie: number;
+  cargaKg?: number | null;
+  repeticoes?: number | null;
+  concluido?: boolean;
+}
+
 // iPadOS 13+ se identifica como Mac; o toque múltiplo o distingue de um Mac de verdade.
 const isIosDevice = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -193,7 +205,7 @@ export const AreaAluno: React.FC = () => {
   // Som de celebração tátil (acorde em C maior)
   const playCelebrationSound = () => {
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx = contextoDeAudio();
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
       const now = ctx.currentTime;
@@ -222,7 +234,7 @@ export const AreaAluno: React.FC = () => {
     setsProgressMapRef.current = setsProgressMap;
   }, [setsProgressMap]);
 
-  const syncTimeoutRef = useRef<Record<number, any>>({});
+  const syncTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // Exercícios cujas séries não chegaram ao servidor (idTreinoExercicio → idSessao).
   // Os dados continuam no localStorage; o aviso some quando o reenvio funciona.
@@ -302,7 +314,7 @@ export const AreaAluno: React.FC = () => {
     if (sId) {
       try {
         localStorage.setItem(`workout-sets-progress-${sId}`, JSON.stringify(newMap));
-      } catch {}
+      } catch { /* armazenamento cheio ou bloqueado: o progresso segue na memória */ }
     }
   };
 
@@ -498,7 +510,7 @@ export const AreaAluno: React.FC = () => {
 
   const toggleSetCompleted = (item: PrescribedExercise, setIndex: number, allSets: ExerciseSetEntry[]) => {
     if ('vibrate' in navigator) {
-      try { navigator.vibrate(15); } catch {}
+      try { navigator.vibrate(15); } catch { /* aparelho sem vibração */ }
     }
     const sets = currentSets(item.idTreinoExercicio, allSets);
     if (!sets[setIndex]) return;
@@ -511,9 +523,44 @@ export const AreaAluno: React.FC = () => {
     }
 
     commitSets(item.idTreinoExercicio, sets);
+    // Última série do exercício: a tela desce até o próximo que falta
+    if (willBeCompleted && sets.every(s => s.completed)) irParaProximo(item.idTreinoExercicio);
     // O servidor marca o exercício como concluído a partir das próprias séries.
     // Chamar também o /toggle criava uma corrida que podia desfazer a marcação.
     syncNow(item.idTreinoExercicio, sets);
+  };
+
+  // Séries feitas pelo que está na ref, que o commitSets atualiza na hora: a
+  // descida roda 600ms depois do toque e não pode olhar o render daquele momento
+  const exercicioFeito = (idTreinoExercicio: number) => {
+    const sets = setsProgressMapRef.current[idTreinoExercicio];
+    return !!sets && sets.length > 0 && sets.every(s => s.completed);
+  };
+
+  // Primeiro exercício não concluído depois de `depoisDe` (ou desde o topo);
+  // se todos estiverem feitos, o fim da lista, onde fica o Encerrar treino
+  const alvoDoProximo = (depoisDe?: number) => {
+    const ordem = [...(fichas?.protocolo?.treinos.find(t => t.idTreino === activeTabId)?.exercicios ?? [])]
+      .sort((a, b) => a.ordem - b.ordem);
+    const inicio = depoisDe === undefined ? 0 : ordem.findIndex(ex => ex.idTreinoExercicio === depoisDe) + 1;
+    const falta = (ex: PrescribedExercise) =>
+      ex.idTreinoExercicio !== depoisDe && !exercicioFeito(ex.idTreinoExercicio);
+    const proximo = ordem.slice(inicio).find(falta) ?? ordem.slice(0, inicio).find(falta);
+    return document.getElementById(proximo ? `exercicio-${proximo.idTreinoExercicio}` : 'fim-do-treino');
+  };
+
+  const rolarAte = (alvo: HTMLElement | null) => {
+    if (!alvo) return;
+    const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    alvo.scrollIntoView({ behavior: reduzir ? 'auto' : 'smooth', block: 'start' });
+  };
+
+  // Espera o ✓ entrar antes de descer, para a tela não parecer fugir do dedo.
+  // Se nesse meio-tempo o aluno desmarcou uma série, fica onde está.
+  const irParaProximo = (idConcluido: number) => {
+    window.setTimeout(() => {
+      if (exercicioFeito(idConcluido)) rolarAte(alvoDoProximo(idConcluido));
+    }, 600);
   };
 
   const copyPreviousSets = (item: PrescribedExercise, allSets: ExerciseSetEntry[]) => {
@@ -521,7 +568,7 @@ export const AreaAluno: React.FC = () => {
     if (!prevSets || prevSets.length === 0) return;
 
     if ('vibrate' in navigator) {
-      try { navigator.vibrate(12); } catch {}
+      try { navigator.vibrate(12); } catch { /* aparelho sem vibração */ }
     }
 
     const updated = currentSets(item.idTreinoExercicio, allSets).map(s => {
@@ -644,27 +691,27 @@ export const AreaAluno: React.FC = () => {
     document.title = perfil ? `Treino: ${perfil.aluno.nome} | No Game` : 'Meu treino | No Game';
   }, [perfil]);
 
-  // Countdown timer logic
+  // Fim do descanso já avisado, pelo horário em que acabaria: o tique do
+  // intervalo e o de voltar para a aba podem chegar juntos no zero
+  const fimAvisadoRef = useRef(0);
+
+  // Countdown timer logic. O intervalo vive enquanto o timer roda; quem
+  // encerra é o próprio tique, ao chegar no zero.
   useEffect(() => {
-    let interval: any;
-    if (timerRunning && timeLeft > 0) {
-      const tick = () => setTimeLeft(Math.max(0, Math.ceil((timerEndRef.current - Date.now()) / 1000)));
-      interval = setInterval(tick, 1000);
-      // Ao voltar para a aba/desbloquear, corrige na hora em vez de esperar o próximo tick.
-      document.addEventListener('visibilitychange', tick);
-      return () => {
-        clearInterval(interval);
-        document.removeEventListener('visibilitychange', tick);
-      };
-    } else if (timeLeft === 0 && timerRunning) {
+    if (!timerRunning) return;
+    const terminar = () => {
+      if (fimAvisadoRef.current === timerEndRef.current) return;
+      fimAvisadoRef.current = timerEndRef.current;
       setTimerRunning(false);
       setTimerDuration(null);
       // Play a subtle sound or vibrate if supported
       if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200]);
+        try { navigator.vibrate([200, 100, 200]); } catch { /* aparelho sem vibração */ }
       }
       try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioCtx = contextoDeAudio();
+        if (!AudioCtx) return;
+        const audioCtx = new AudioCtx();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         oscillator.connect(gainNode);
@@ -677,9 +724,22 @@ export const AreaAluno: React.FC = () => {
       } catch (e) {
         console.log('Audio Context block:', e);
       }
-    }
-    return () => clearInterval(interval);
-  }, [timerRunning, timeLeft]);
+    };
+    // Conta pelo horário de término, não decrementando: com a tela bloqueada
+    // o iOS pausa o setInterval
+    const tick = () => {
+      const resta = Math.max(0, Math.ceil((timerEndRef.current - Date.now()) / 1000));
+      setTimeLeft(resta);
+      if (resta === 0) terminar();
+    };
+    const interval = setInterval(tick, 1000);
+    // Ao voltar para a aba/desbloquear, corrige na hora em vez de esperar o próximo tick.
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, [timerRunning]);
 
   const startTimer = (seconds: number) => {
     timerEndRef.current = fimDoDescanso(seconds);
@@ -724,7 +784,7 @@ export const AreaAluno: React.FC = () => {
         const next: Record<number, ExerciseSetEntry[]> = {};
         for (const [idStr, serverSets] of Object.entries(res.data.seriesHoje)) {
           const id = Number(idStr);
-          next[id] = (serverSets as any[]).map(s => ({
+          next[id] = (serverSets as SerieDoServidor[]).map(s => ({
             setNumber: s.numeroSerie,
             kg: s.cargaKg !== null && s.cargaKg !== undefined ? String(s.cargaKg) : '',
             reps: s.repeticoes !== null && s.repeticoes !== undefined ? String(s.repeticoes) : '',
@@ -755,6 +815,9 @@ export const AreaAluno: React.FC = () => {
   // leitura: não tem sessão para abrir (o servidor recusaria).
   useEffect(() => {
     if (activeTabId !== null && !somenteLeitura) {
+      // fetchSessao só mexe no estado depois de esperar a rede: não há
+      // render em cascata, que é o que a regra procura
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchSessao(activeTabId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -819,7 +882,7 @@ export const AreaAluno: React.FC = () => {
     setEndingWorkout(true);
     try {
       if ('vibrate' in navigator) {
-        try { navigator.vibrate([100, 50, 100, 50, 200]); } catch {}
+        try { navigator.vibrate([100, 50, 100, 50, 200]); } catch { /* aparelho sem vibração */ }
       }
       playCelebrationSound();
 
@@ -1114,6 +1177,28 @@ export const AreaAluno: React.FC = () => {
               ))}
             </div>
 
+            {/* Progresso fixo no topo ao rolar: um segmento por exercício.
+                Tocar leva ao primeiro que falta. */}
+            {isAtual && !sessaoConcluida && sortedExercicios.length > 0 && (
+              <button
+                type="button"
+                className="treino-progresso"
+                onClick={() => rolarAte(alvoDoProximo())}
+                aria-label={`${completedExercisesCount} de ${sortedExercicios.length} exercícios concluídos. Ir para o próximo.`}
+              >
+                <span className="treino-progresso-barra" aria-hidden="true">
+                  {sortedExercicios.map(ex => {
+                    const s = getExerciseSets(ex);
+                    const feito = s.length > 0 && s.every(x => x.completed);
+                    return <span key={ex.idTreinoExercicio} className={feito ? 'feito' : ''} />;
+                  })}
+                </span>
+                <span className="treino-progresso-texto" aria-hidden="true">
+                  <b>{completedExercisesCount}</b> de {sortedExercicios.length} exercícios
+                </span>
+              </button>
+            )}
+
             {/* Status de Treino Concluído */}
             {sessaoConcluida && (
               <div className="workout-completed-banner" style={{ marginBottom: '1.25rem', marginTop: 0 }}>
@@ -1166,6 +1251,7 @@ export const AreaAluno: React.FC = () => {
                   return (
                     <div 
                       key={item.idTreinoExercicio} 
+                      id={`exercicio-${item.idTreinoExercicio}`}
                       className={`exercise-tactile-card ${isCompleted ? 'completed' : ''}`}
                       style={{ 
                         opacity: isCompleted ? 0.88 : 1, 
@@ -1224,7 +1310,7 @@ export const AreaAluno: React.FC = () => {
                               className="rest-timer-trigger"
                               onClick={() => {
                                 if ('vibrate' in navigator) {
-                                  try { navigator.vibrate(12); } catch {}
+                                  try { navigator.vibrate(12); } catch { /* aparelho sem vibração */ }
                                 }
                                 startTimer(item.descansoSegundos!);
                               }}
@@ -1481,6 +1567,9 @@ export const AreaAluno: React.FC = () => {
             )}
 
             <RodapeTreino texto={rodapeEfetivo(activeFicha?.rodape, profissional.rodapeTreino)} variant="screen" />
+
+            {/* Fim da lista: destino da descida quando todos os exercícios estão feitos */}
+            <div id="fim-do-treino" className="treino-fim" aria-hidden="true" />
 
             {/* Action Bar: Encerrar Treino / Treino Finalizado */}
             {isAtual && (sortedExercicios.length > 0 || cardioFicha) && (
