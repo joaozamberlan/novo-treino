@@ -217,8 +217,9 @@ export const Treinos: React.FC = () => {
   const [exReps, setExReps] = useState('10');
   const [exDescanso, setExDescanso] = useState('60');
   const [exObs, setExObs] = useState('');
-  // "Adicionar e continuar": salva e deixa o modal aberto para o próximo exercício
-  const continuarRef = useRef(false);
+  // Adicionar mantém o modal aberto para o próximo exercício; o contador vai
+  // no botão de fechar ("Concluir · 3 adicionados")
+  const [adicionadosNoModal, setAdicionadosNoModal] = useState(0);
   const formExercicioRef = useRef<HTMLFormElement>(null);
 
   const [error, setError] = useState('');
@@ -249,10 +250,12 @@ export const Treinos: React.FC = () => {
   };
   const closeExerciseModal = () => {
     setShowExerciseModal(false);
+    setAdicionadosNoModal(0);
     cancelEdit();
   };
   const openNewExerciseModal = () => {
     cancelEdit();
+    setAdicionadosNoModal(0);
     setShowExerciseModal(true);
   };
 
@@ -619,8 +622,6 @@ export const Treinos: React.FC = () => {
   // Prescribe Exercise operations com Optimistic UI instantâneo
   const handlePrescribeExercise = async (e: React.FormEvent) => {
     e.preventDefault();
-    const continuar = continuarRef.current;
-    continuarRef.current = false;
     if (!activeTabId || !activeProtocol) return;
 
     const exObj = catalogExercicios.find(e => e.idExercicio === Number(selectedExercicio));
@@ -740,19 +741,16 @@ export const Treinos: React.FC = () => {
         };
       });
 
-      if (continuar) {
-        // Séries, reps, descanso, técnica e grupo costumam se repetir na mesma
-        // ficha; só o exercício e as instruções recomeçam
-        setSelectedExercicio(0);
-        setExObs('');
-        toast.success(`${exObj.nome} adicionado`);
-        // Foco na busca só com mouse/teclado: no celular abriria o teclado por cima
-        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-          formExercicioRef.current?.querySelector<HTMLInputElement>('.campo-busca input')?.focus();
-        }
-      } else {
-        closeExerciseModal();
-        toast.success('Exercício adicionado!');
+      // O modal fica aberto para o próximo. Séries, reps, descanso, técnica e
+      // grupo costumam se repetir na mesma ficha; só o exercício e as
+      // instruções recomeçam.
+      setSelectedExercicio(0);
+      setExObs('');
+      setAdicionadosNoModal((n) => n + 1);
+      toast.success(`${exObj.nome} adicionado`);
+      // Foco na busca só com mouse/teclado: no celular abriria o teclado por cima
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        formExercicioRef.current?.querySelector<HTMLInputElement>('.campo-busca input')?.focus();
       }
 
       // Salva no backend em background e sincroniza o ID real
@@ -1689,32 +1687,17 @@ export const Treinos: React.FC = () => {
                   />
                 </div>
 
-                <div className="modal-footer modal-footer--tres" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
                   <button type="button" className="btn btn-secondary" onClick={closeExerciseModal}>
-                    {editingExercisePrescriptionId ? 'Cancelar' : 'Fechar'}
+                    {editingExercisePrescriptionId
+                      ? 'Cancelar'
+                      : adicionadosNoModal > 0
+                        ? `Concluir · ${adicionadosNoModal} ${adicionadosNoModal === 1 ? 'adicionado' : 'adicionados'}`
+                        : 'Fechar'}
                   </button>
-                  {!editingExercisePrescriptionId && (
-                    // type="button" e requestSubmit: o Enter num campo continua
-                    // acionando o botão principal, que vem depois no DOM
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        // O submit roda na hora e lê a marca antes de qualquer
-                        // await; se a validação barrar o envio, ela não sobra
-                        // para o próximo Enter
-                        continuarRef.current = true;
-                        formExercicioRef.current?.requestSubmit();
-                        continuarRef.current = false;
-                      }}
-                    >
-                      <PlusIcon size={16} />
-                      <span>Adicionar e continuar</span>
-                    </button>
-                  )}
                   <button type="submit" className="btn btn-primary">
-                    <FloppyDiskIcon size={16} />
-                    <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>
+                    {editingExercisePrescriptionId ? <FloppyDiskIcon size={16} /> : <PlusIcon size={16} />}
+                    <span>{editingExercisePrescriptionId ? 'Salvar' : 'Adicionar'}</span>
                   </button>
                 </div>
               </form>

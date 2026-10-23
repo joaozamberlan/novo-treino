@@ -411,6 +411,82 @@ textarea:focus-visible,
   }
 }
 
+/* ── Busca de aluno na barra ──
+   Desktop: campo no meio da barra. Celular: uma lupa à direita; tocada, a
+   busca cobre a barra (marca e botões somem) com um X para fechar. */
+.topbar-busca {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbar-busca .campo-busca {
+  flex: 1;
+  gap: 0;
+}
+
+.topbar-busca .form-input {
+  height: 36px;
+  padding-right: 2.25rem;
+  background: var(--bg-1);
+  border-color: var(--border-strong);
+}
+
+.campo-busca-dica {
+  position: absolute;
+  right: 0.55rem;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-1);
+  pointer-events: none;
+}
+
+.topbar-busca-fechar,
+.topbar-busca-abrir {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .topbar-busca {
+    display: none;
+  }
+
+  .topbar-busca-abrir {
+    display: flex !important;
+  }
+
+  .topbar--buscando .topbar-left,
+  .topbar--buscando .topbar-right {
+    display: none;
+  }
+
+  .topbar--buscando .topbar-busca {
+    display: flex;
+    max-width: none;
+    margin: 0;
+  }
+
+  .topbar--buscando .topbar-busca-fechar {
+    display: flex !important;
+  }
+
+  /* No toque não há teclado físico: a dica do atalho não faz sentido */
+  .campo-busca-dica {
+    display: none;
+  }
+}
+
 .content-area {
   flex: 1;
   padding: 2rem 2.5rem;
@@ -1291,6 +1367,73 @@ body.light-theme .exercise-tactile-card.completed {
 
 /* ── Encerrar Treino & Conclusão (Apple Style) ────────────────────────── */
 
+/* ── Progresso do treino (aluno) ──
+   Gruda no topo ao rolar: um segmento por exercício, cheio quando todas as
+   séries estão feitas. É um botão: leva ao primeiro exercício que falta. */
+.treino-progresso {
+  /* No app instalado do iPhone gruda logo abaixo da barra de status */
+  position: sticky;
+  top: var(--sat);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  margin: -0.5rem 0 1rem;
+  padding: 0.5rem 0;
+  background: var(--bg-0);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-1);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.treino-progresso:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: -2px;
+}
+
+.treino-progresso-barra {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+.treino-progresso-barra > span {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--bg-3);
+  transition: background-color 200ms var(--ease-out);
+}
+
+.treino-progresso-barra > span.feito {
+  background: var(--accent);
+}
+
+.treino-progresso-texto {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.treino-progresso-texto b {
+  font-weight: 800;
+  color: var(--text-0);
+}
+
+/* A faixa fixa não cobre o exercício para onde a tela desceu */
+.exercise-tactile-card,
+.treino-fim {
+  scroll-margin-top: calc(64px + var(--sat));
+}
+
 .workout-finish-bar {
   margin-top: 1.5rem;
   padding: 1.1rem 1.25rem;
@@ -2123,7 +2266,6 @@ body.light-theme {
 
   /* Hide screen-only interactive chrome */
   .app-sidebar,
-  .sidebar-backdrop,
   .no-print,
   .modal-backdrop,
   [data-sonner-toaster],
@@ -2803,42 +2945,11 @@ body.light-theme {
   position: relative;
 }
 
-/* Escurece o conteúdo enquanto o menu está aberto. Começa abaixo da barra do
-   topo, que continua clara e clicável (é nela que fica o botão de fechar). */
-.sidebar-backdrop {
-  position: fixed;
-  top: 52px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 80;
-  background: rgba(0, 0, 0, 0.62);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 200ms var(--ease-out), visibility 200ms var(--ease-out);
-}
-
-body.light-theme .sidebar-backdrop {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.sidebar-backdrop.visivel {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sidebar-backdrop {
-    transition: none;
-  }
-}
-
 /* Uma superfície própria e uma única linha na borda direita separam a barra
    do conteúdo. Sem linhas em cima e embaixo: é uma divisória, não uma moldura. */
 .app-sidebar {
-  width: 52px;
+  width: 88px;
+  flex-shrink: 0;
   background: var(--bg-1);
   border-right: 1px solid var(--border);
   display: flex;
@@ -2907,68 +3018,55 @@ body.light-theme .mobile-tab-bar {
   color: var(--accent-text);
 }
 
-.app-sidebar.expanded {
-  width: 240px;
-}
-
-/* Desktop: aberto, o menu passa por cima do conteúdo em vez de empurrá-lo.
-   A margem negativa mantém o espaço que ele ocupa igual ao da barra recolhida
-   (88px), então nada na tela se desloca ao abrir ou fechar. */
-@media (min-width: 769px) {
-  .app-sidebar.expanded {
-    margin-right: calc(88px - 240px);
-    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.18);
-  }
-}
-
+/* Trilho do desktop: ícone com o nome embaixo, sempre visível. Item atual
+   com um tratamento só: fundo neutro, texto forte e o ícone em vermelho. */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0.75rem 0.75rem 0.5rem;
-  flex: 1;
+  padding: 0.5rem 0.375rem;
 }
 
 .sidebar-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0 0.75rem;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 64px;
+  padding: 0 0.125rem;
   border-radius: var(--radius-m);
   color: var(--text-1);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
   transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
-  height: 40px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-/* O anel de foco fica por dentro do item: por fora ele vazava da barra */
-.sidebar-item:focus-visible,
-.sidebar-subitem:focus-visible {
+/* O anel de foco fica por dentro do item: por fora ele vazava do trilho */
+.sidebar-item:focus-visible {
   outline-offset: -2px;
 }
 
 .sidebar-item:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .sidebar-item svg {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
+/* line-height 1.3: com 1 a cedilha saía cortada */
 .sidebar-label {
-  margin-left: 0.75rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  display: none;
-}
-
-.app-sidebar.expanded .sidebar-label {
-  display: inline-block;
-  animation: fadeIn 160ms var(--ease-out) forwards;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2976,181 +3074,19 @@ body.light-theme .mobile-tab-bar {
     background: var(--bg-2);
     color: var(--text-0);
   }
-
-  /* Instant floating tooltip for collapsed sidebar (macOS/iPadOS style) */
-  .app-sidebar:not(.expanded) {
-    overflow: visible;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-nav {
-    overflow: visible;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip] {
-    position: relative;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%) scale(0.95);
-    background: var(--bg-1);
-    color: var(--text-0);
-    padding: 0.35rem 0.65rem;
-    border-radius: var(--radius-s);
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 120ms var(--ease-out), transform 120ms var(--ease-spring);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--border-strong);
-    z-index: 999;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]:hover::after {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
 }
 
-/* Página atual: fundo neutro, texto forte e só o ícone em vermelho. Antes
-   eram três efeitos juntos (fundo rosa, texto vermelho e barra na esquerda). */
 .sidebar-item.active {
   background: var(--bg-2);
   color: var(--text-0);
-  font-weight: 600;
 }
 
-.sidebar-item.active svg:not(.sidebar-chevron) {
+.sidebar-item.active .sidebar-label {
+  font-weight: 700;
+}
+
+.sidebar-item.active svg {
   color: var(--accent);
-}
-
-/* Grupo aberto com uma página dele ativa: quem fica marcado é o subitem;
-   o grupo só ganha o texto forte e o ícone. */
-.sidebar-item.ancestral {
-  color: var(--text-0);
-  font-weight: 600;
-}
-
-.sidebar-item.ancestral svg:not(.sidebar-chevron) {
-  color: var(--accent);
-}
-
-/* ── Sidebar Group & Submenu ────────────────────────────────────────── */
-.sidebar-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-item-header {
-  width: 100%;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-}
-
-.sidebar-chevron {
-  margin-left: auto;
-  width: 14px !important;
-  height: 14px !important;
-  color: var(--text-1);
-  transition: transform 180ms var(--ease-out);
-  display: none;
-}
-
-.app-sidebar.expanded .sidebar-chevron {
-  display: inline-block;
-}
-
-.sidebar-submenu {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 2px 0 0.25rem;
-  overflow: hidden;
-  animation: fadeIn 160ms var(--ease-out);
-}
-
-.app-sidebar:not(.expanded) .sidebar-submenu {
-  display: none;
-}
-
-/* O texto do subitem começa na mesma coluna do rótulo do grupo:
-   0.75rem (recuo do item) + 18px (ícone) + 0.75rem (espaço) */
-.sidebar-subitem {
-  display: flex;
-  align-items: center;
-  padding: 0 0.75rem 0 calc(1.5rem + 18px);
-  border-radius: var(--radius-m);
-  color: var(--text-1);
-  text-decoration: none;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  height: 34px;
-  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
-  user-select: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .sidebar-subitem:hover {
-    background: var(--bg-2);
-    color: var(--text-0);
-  }
-}
-
-.sidebar-subitem.active {
-  background: var(--bg-2);
-  color: var(--text-0);
-  font-weight: 600;
-}
-
-/* ── Desktop: barra encolhida com ícone e nome embaixo (estilo YouTube) ── */
-@media (min-width: 769px) {
-  .app-sidebar:not(.expanded) {
-    width: 88px;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-nav {
-    padding: 0.5rem 0.375rem;
-    gap: 2px;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-item {
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.35rem;
-    height: 64px;
-    padding: 0 0.125rem;
-  }
-
-  .app-sidebar:not(.expanded) .sidebar-item svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* line-height 1.3: com 1 a cedilha de "Configurações" saía cortada */
-  .app-sidebar:not(.expanded) .sidebar-label {
-    display: block;
-    margin: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.625rem;
-    font-weight: 500;
-    line-height: 1.3;
-  }
-
-  /* O nome já aparece embaixo do ícone; o balão de hover fica redundante */
-  .app-sidebar:not(.expanded) .sidebar-item[data-tooltip]::after {
-    display: none;
-  }
-
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
@@ -3184,9 +3120,7 @@ body.light-theme .mobile-tab-bar {
   
 
   /* Sidebar drawer replaced by the bottom tab bar on mobile */
-  .sidebar-backdrop,
-  .app-sidebar,
-  .menu-toggle-btn {
+  .app-sidebar {
     display: none !important;
   }
 
@@ -3329,23 +3263,6 @@ body.light-theme .mobile-tab-bar {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--border);
-}
-
-/* Três ações (Fechar, Adicionar e continuar, Adicionar): no celular a
-   principal ocupa a linha de cima e as outras duas dividem a de baixo */
-@media (max-width: 640px) {
-  .modal-footer--tres {
-    flex-wrap: wrap;
-  }
-
-  .modal-footer--tres > .btn {
-    flex: 1 1 0;
-  }
-
-  .modal-footer--tres > .btn-primary {
-    flex-basis: 100%;
-    order: -1;
-  }
 }
 
 /* Com um modal aberto, o fundo não rola (ModalPortal) */
@@ -3600,11 +3517,6 @@ body.modal-aberto {
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-
-  .sidebar-backdrop {
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: none;
   }
 }
 

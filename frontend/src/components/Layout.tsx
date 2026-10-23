@@ -1,55 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { PageTransition } from './PageTransition';
 import { PressScale } from './PressScale';
 import { useAuth } from '../contexts/AuthContext';
 import {
   BarbellIcon,
-  CaretDownIcon,
   DeviceMobileIcon,
   DownloadSimpleIcon,
   GearIcon,
   HouseIcon,
-  ListIcon,
+  MagnifyingGlassIcon,
   MoonIcon,
   ShieldIcon,
   SignOutIcon,
   SunIcon,
   UsersIcon,
+  XIcon,
 } from '@phosphor-icons/react';
 import { BrandLogo } from './BrandLogo';
 import { ActionMenu, type ActionMenuItem } from './ActionMenu';
+import { CampoBusca } from './CampoBusca';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { ModalPortal } from './ModalPortal';
+import api from '../services/api';
+import { memoryCache } from '../services/cache';
 
-// Abas da Biblioteca: as três ficam na mesma rota e mudam pelo ?tab=
-const SUBITENS_BIBLIOTECA = [
-  { tab: 'exercicios', rotulo: 'Exercícios' },
-  { tab: 'grupos', rotulo: 'Grupos Musculares' },
-  { tab: 'tecnicas', rotulo: 'Técnicas de Treino' },
-];
+// O que a busca da barra precisa de cada aluno; a lista vem do mesmo cache
+// ('alunos') que a tela de Alunos preenche
+interface AlunoBusca {
+  idAluno: number;
+  nome: string;
+}
+
+const ID_BUSCA = 'busca-aluno-topo';
+
+// Foco num campo de texto: o "/" é do texto, não atalho
+const digitandoEm = (el: Element | null) =>
+  el instanceof HTMLInputElement ||
+  el instanceof HTMLTextAreaElement ||
+  el instanceof HTMLSelectElement ||
+  (el instanceof HTMLElement && el.isContentEditable);
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const currentTab = searchParams.get('tab');
   const isExerciciosRoute = location.pathname.startsWith('/exercicios');
 
   const { canInstall, install } = usePWAInstall();
   const [showIosHint, setShowIosHint] = useState(false);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(() => isExerciciosRoute);
-  // O menu aberto é uma camada por cima da tela, com o resto escurecido. Por
-  // isso sempre começa recolhido e fecha ao navegar, em vez de ficar salvo.
-  const [isExpanded, setIsExpanded] = useState(false);
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
 
+  const [alunosBusca, setAlunosBusca] = useState<AlunoBusca[]>(() => memoryCache.get<AlunoBusca[]>('alunos') ?? []);
+  // No celular a busca abre por cima da barra, no lugar da marca. Fecha ao
+  // trocar de tela (inclusive pela barra de baixo): o caminho guardado aqui é
+  // comparado durante o render, sem efeito.
+  const [buscaAberta, setBuscaAberta] = useState(false);
+  const [caminhoDaBusca, setCaminhoDaBusca] = useState(location.pathname);
+  if (caminhoDaBusca !== location.pathname) {
+    setCaminhoDaBusca(location.pathname);
+    setBuscaAberta(false);
+  }
+
   // Detecta iOS (Safari não suporta beforeinstallprompt)
   const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandalone = (window.navigator as any).standalone === true;
+  const isStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
   const showIosInstall = isIos && !isStandalone;
 
   // Toggle theme class on body
@@ -78,43 +95,40 @@ export const Layout: React.FC = () => {
     });
   };
 
-  // Auto-expand library submenu when on exercicios route
+  // "/" ou Ctrl+K (Cmd+K no Mac) levam à busca de qualquer tela
   useEffect(() => {
-    if (isExerciciosRoute) {
-      setIsLibraryOpen(true);
-    }
-  }, [isExerciciosRoute]);
-
-  // Track screen size to auto-collapse on small screens
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 768) {
-        setIsExpanded(false);
-      }
+    const aoTeclar = (e: KeyboardEvent) => {
+      const atalhoK = e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey);
+      const barra = e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !digitandoEm(document.activeElement);
+      if (!atalhoK && !barra) return;
+      // Com um modal aberto o atalho não tira o foco de dentro dele
+      if (document.body.classList.contains('modal-aberto')) return;
+      e.preventDefault();
+      setBuscaAberta(true);
+      // O campo do celular só existe depois de abrir; o do desktop já está lá
+      window.setTimeout(() => document.getElementById(ID_BUSCA)?.focus(), 0);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
   }, []);
+
+  // A lista vem do cache na hora; se tiver mais de um minuto, atualiza por trás
+  const carregarAlunos = () => {
+    const emCache = memoryCache.get<AlunoBusca[]>('alunos');
+    if (emCache) setAlunosBusca(emCache);
+    if (emCache && memoryCache.isFresh('alunos')) return;
+    api.get('/alunos')
+      .then((res) => {
+        memoryCache.set('alunos', res.data);
+        setAlunosBusca(res.data);
+      })
+      .catch(() => { /* sem rede: a busca segue com o que estiver em cache */ });
+  };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-
-  const toggleSidebar = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(prev => !prev);
-  };
-
-  // Esc fecha o menu aberto, como num modal
-  useEffect(() => {
-    if (!isExpanded) return;
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsExpanded(false);
-    };
-    window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, [isExpanded]);
 
   // Só o que é da conta. Tema e instalar ficam visíveis na barra: são coisas
   // que a pessoa procura com o olho, e escondidas no avatar ninguém acha.
@@ -122,6 +136,8 @@ export const Layout: React.FC = () => {
     { label: 'Configurações', icon: <GearIcon size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
     { label: 'Sair', icon: <SignOutIcon size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
   ];
+
+  const itemDoTrilho = ({ isActive }: { isActive: boolean }) => `sidebar-item ${isActive ? 'active' : ''}`;
 
   return (
     <div className="app-shell">
@@ -140,14 +156,14 @@ export const Layout: React.FC = () => {
               onClick={e => e.stopPropagation()}
               style={{ textAlign: 'center' }}
             >
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '12px', 
-                backgroundColor: 'var(--accent-dim)', 
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--accent-dim)',
                 color: 'var(--accent-text)',
-                display: 'flex', 
-                alignItems: 'center', 
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto'
               }}>
@@ -173,24 +189,61 @@ export const Layout: React.FC = () => {
       {/* Top Header Bar */}
       {/* Sempre escura (.painel-escuro), nos dois temas: o mesmo preto com
           vermelho das telas de entrada */}
-      <header className="topbar painel-escuro">
+      <header className={`topbar painel-escuro${buscaAberta ? ' topbar--buscando' : ''}`}>
         <div className="topbar-left">
-          <button
-            className="topbar-btn menu-toggle-btn"
-            onClick={toggleSidebar}
-            title={isExpanded ? "Recolher menu" : "Expandir menu"}
-            aria-label={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
-            aria-expanded={isExpanded}
-            style={{ marginRight: '0.25rem' }}
-          >
-            <ListIcon size={18} aria-hidden="true" />
-          </button>
           <NavLink to="/" className="topbar-brand" aria-label="No Game - Página Inicial">
             <BrandLogo size={22} text="No Game" />
           </NavLink>
         </div>
 
+        {/* Busca de aluno: abre direto as periodizações do escolhido. Esc com
+            o campo vazio sai da busca (com texto, o Esc só limpa, como antes). */}
+        <div
+          className="topbar-busca"
+          onKeyDownCapture={(e) => {
+            if (e.key !== 'Escape' || (e.target as HTMLInputElement).value) return;
+            (e.target as HTMLElement).blur();
+            setBuscaAberta(false);
+          }}
+        >
+          <CampoBusca
+            label="Buscar aluno"
+            rotuloOculto
+            placeholder="Buscar aluno…"
+            dica="/"
+            idCampo={ID_BUSCA}
+            itens={alunosBusca}
+            chave={(a) => a.idAluno}
+            texto={(a) => a.nome}
+            onFocus={carregarAlunos}
+            onEscolher={(a) => {
+              (document.activeElement as HTMLElement | null)?.blur();
+              setBuscaAberta(false);
+              navigate(`/alunos/${a.idAluno}/periodizacoes`);
+            }}
+          />
+          <button
+            type="button"
+            className="topbar-btn topbar-busca-fechar"
+            onClick={() => setBuscaAberta(false)}
+            aria-label="Fechar busca"
+          >
+            <XIcon size={18} aria-hidden="true" />
+          </button>
+        </div>
+
         <div className="topbar-right">
+          <button
+            type="button"
+            className="topbar-btn topbar-busca-abrir"
+            onClick={() => {
+              setBuscaAberta(true);
+              window.setTimeout(() => document.getElementById(ID_BUSCA)?.focus(), 0);
+            }}
+            aria-label="Buscar aluno"
+          >
+            <MagnifyingGlassIcon size={18} aria-hidden="true" />
+          </button>
           {(canInstall || showIosInstall) && (
             <button
               type="button"
@@ -236,121 +289,39 @@ export const Layout: React.FC = () => {
 
       {/* Main Layout containing Sidebar and Page Content */}
       <div className="main-layout">
-        {/* Escurece o resto da tela enquanto o menu está aberto; clicar fecha */}
-        <div
-          className={`sidebar-backdrop ${isExpanded ? 'visivel' : ''}`}
-          onClick={() => setIsExpanded(false)}
-          aria-hidden="true"
-        />
-        <aside className={`app-sidebar ${isExpanded ? 'expanded' : ''}`}>
-          <nav className="sidebar-nav">
-            <NavLink 
-              to="/" 
-              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              data-tooltip="Início"
-              onClick={() => {
-                setIsExpanded(false);
-              }}
-              end
-            >
-              <HouseIcon size={16} />
+        {/* Trilho fixo do desktop: ícone com o nome embaixo, sempre visível */}
+        <aside className="app-sidebar">
+          <nav className="sidebar-nav" aria-label="Navegação principal">
+            <NavLink to="/" className={itemDoTrilho} end>
+              <HouseIcon size={20} aria-hidden="true" />
               <span className="sidebar-label">Início</span>
             </NavLink>
 
-            <NavLink 
-              to="/alunos" 
-              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              data-tooltip="Alunos"
-              onClick={() => {
-                setIsExpanded(false);
-              }}
-            >
-              <UsersIcon size={16} />
+            <NavLink to="/alunos" className={itemDoTrilho}>
+              <UsersIcon size={20} aria-hidden="true" />
               <span className="sidebar-label">Alunos</span>
             </NavLink>
 
-            {/* Biblioteca com Dropdown */}
-            <div className="sidebar-group">
-              <button 
-                type="button"
-                // Com o grupo aberto quem fica marcado é o subitem da página;
-                // fechado (ou com a barra recolhida), o próprio grupo.
-                className={`sidebar-item sidebar-item-header ${
-                  isExerciciosRoute ? (isExpanded && isLibraryOpen ? 'ancestral' : 'active') : ''
-                }`}
-                data-tooltip="Biblioteca"
-                aria-expanded={isExpanded && isLibraryOpen}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isExpanded) {
-                    setIsExpanded(true);
-                    setIsLibraryOpen(true);
-                  } else {
-                    setIsLibraryOpen(prev => !prev);
-                  }
-                }}
-              >
-                <BarbellIcon size={16} />
-                <span className="sidebar-label">Biblioteca</span>
-                <CaretDownIcon 
-                  size={14} 
-                  className="sidebar-chevron"
-                  style={{ 
-                    transform: isLibraryOpen ? 'rotate(180deg)' : 'none',
-                    transition: 'transform 180ms var(--ease)' 
-                  }} 
-                />
-              </button>
-
-              {/* Link, e não NavLink: as três abas moram na mesma rota (/exercicios),
-                  e o NavLink marcaria as três como ativas ao mesmo tempo. */}
-              {isLibraryOpen && (
-                <div className="sidebar-submenu">
-                  {SUBITENS_BIBLIOTECA.map(({ tab, rotulo }) => {
-                    const ativo = isExerciciosRoute && (currentTab ?? 'exercicios') === tab;
-                    return (
-                      <Link
-                        key={tab}
-                        to={`/exercicios?tab=${tab}`}
-                        className={`sidebar-subitem ${ativo ? 'active' : ''}`}
-                        aria-current={ativo ? 'page' : undefined}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsExpanded(false);
-                        }}
-                      >
-                        {rotulo}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            {/* As abas da Biblioteca ficam na própria página (?tab=) */}
+            <NavLink
+              to="/exercicios"
+              className={`sidebar-item ${isExerciciosRoute ? 'active' : ''}`}
+              aria-current={isExerciciosRoute ? 'page' : undefined}
+            >
+              <BarbellIcon size={20} aria-hidden="true" />
+              <span className="sidebar-label">Biblioteca</span>
+            </NavLink>
 
             {user?.role === 'SUPERADMIN' && (
-              <NavLink 
-                to="/admin" 
-                className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-                data-tooltip="Administração"
-                onClick={() => {
-                  setIsExpanded(false);
-                }}
-              >
-                <ShieldIcon size={16} />
-                <span className="sidebar-label">Administração</span>
+              <NavLink to="/admin" className={itemDoTrilho}>
+                <ShieldIcon size={20} aria-hidden="true" />
+                <span className="sidebar-label">Admin</span>
               </NavLink>
             )}
 
-            <NavLink 
-              to="/configuracoes" 
-              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} 
-              data-tooltip="Configurações"
-              onClick={() => {
-                setIsExpanded(false);
-              }}
-            >
-              <GearIcon size={16} />
-              <span className="sidebar-label">Configurações</span>
+            <NavLink to="/configuracoes" className={itemDoTrilho}>
+              <GearIcon size={20} aria-hidden="true" />
+              <span className="sidebar-label">Config.</span>
             </NavLink>
           </nav>
         </aside>
