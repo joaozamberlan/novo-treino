@@ -26,7 +26,9 @@ import {
   XIcon,
 } from '@phosphor-icons/react';
 import { ModalPortal } from '../components/ModalPortal';
+import { fecharSoPeloTeclado } from '../utils/modal';
 import { Seletor } from '../components/Seletor';
+import { CampoBusca } from '../components/CampoBusca';
 
 interface Aluno {
   idAluno: number;
@@ -689,6 +691,16 @@ export const Periodizacoes: React.FC = () => {
                   A cópia mantém o nome, vira a periodização atual e pode ser editada depois.
                 </p>
 
+                <CampoBusca
+                  label="Buscar aluno"
+                  placeholder="Digite o nome do aluno"
+                  itens={alunosOrigem}
+                  chave={(a) => a.idAluno}
+                  texto={(a) => a.nome}
+                  apoio={(a) => (a.idAluno === Number(idAluno) ? 'este aluno' : undefined)}
+                  onEscolher={(a) => handleSelectAlunoOrigem(a.idAluno)}
+                />
+
                 <div className="form-group">
                   <Seletor
                     label="Aluno de origem *"
@@ -800,7 +812,7 @@ export const Periodizacoes: React.FC = () => {
         <ModalPortal>
           <div
             className="modal-backdrop"
-            onClick={closeFormModal}
+            onClick={fecharSoPeloTeclado(closeFormModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalPeriodizacaoTitle"

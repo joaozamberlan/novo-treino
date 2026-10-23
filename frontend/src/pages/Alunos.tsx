@@ -7,6 +7,7 @@ import { PlusIcon, CaretRightIcon, PencilSimpleIcon, TrashIcon, XIcon, UsersIcon
 import { memoryCache } from '../services/cache';
 import { estadoPeriodo, formatarDia, ROTULO_ESTADO } from '../utils/periodo';
 import { ModalPortal } from '../components/ModalPortal';
+import { fecharSoPeloTeclado } from '../utils/modal';
 import { Seletor } from '../components/Seletor';
 import { mensagemDeErro, telefoneValido } from '../utils/alunoAcesso';
 import { ROTULO_ACESSO, type AcessoAluno } from '../utils/acessoAluno';
@@ -417,7 +418,7 @@ export const Alunos: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={() => setShowAddForm(false)}
+            onClick={fecharSoPeloTeclado(() => setShowAddForm(false))}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalNovoAlunoTitle"
@@ -524,7 +525,7 @@ export const Alunos: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={cancelEdit}
+            onClick={fecharSoPeloTeclado(cancelEdit)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalEditAlunoTitle"
