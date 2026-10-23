@@ -3,22 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   ArrowRightIcon,
-  CheckIcon,
-  ClockIcon,
-  CloudIcon,
   EyeIcon,
   EyeSlashIcon,
-  HardDrivesIcon,
-  SlidersHorizontalIcon,
 } from '@phosphor-icons/react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
-import { useTema } from '../hooks/useTema';
-import { useTopoEscuro } from '../hooks/useTopoEscuro';
+import { AcessoShell } from '../components/AcessoShell';
 
 export const Register: React.FC = () => {
-  // O formulário segue o tema salvo; o painel de marca é sempre escuro
-  useTema();
-  useTopoEscuro();
   const nomeField = useFieldValidation('', (v) => {
     if (!v.trim()) return 'Informe seu nome completo';
     if (v.trim().length < 3) return 'Nome deve ter pelo menos 3 caracteres';
@@ -92,268 +83,183 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="login-wrapper">
-      {/* ─── Left Panel: High Impact Brand & Interactive Mockup ─── */}
-      <div className="login-left-panel painel-escuro">
-        <div className="login-brand-header">
-          <div className="login-brand-pill">
-            TREINOS APP • PRESCRIÇÃO PROFISSIONAL
+    <AcessoShell
+      titulo="Criar conta"
+      subtitulo="Monte fichas, envie o link para cada aluno e acompanhe as cargas registradas."
+      largo
+      rodape={[<>Já tem conta? <Link to="/login">Entrar</Link></>]}
+    >
+      <form onSubmit={handleSubmit} noValidate className="acesso-form">
+        {error && (
+          <div className="auth-error" role="alert">
+            {error}
           </div>
-          <h1 className="login-hero-title">
-            Prescreva com estrutura <span>e sem complicações.</span>
-          </h1>
-          <p className="login-hero-desc">
-            Organize periodizações, acompanhe o histórico de cargas e entregue fichas limpas em link interativo ou PDF para cada aluno.
-          </p>
+        )}
 
-          {/* No celular o painel vira uma faixa escura e leva o título da tela */}
-          <div className="login-mobile-head">
-            <div className="login-form-eyebrow">CADASTRO PROFISSIONAL</div>
-            <h2 className="login-form-title">Criar conta</h2>
-            <p className="login-form-sub">Preencha seus dados para começar a prescrever treinos.</p>
-          </div>
-        </div>
-
-        {/* Live Interactive Workout Card Mockup */}
-        <div className="login-card-preview">
-          <div className="login-card-preview-head">
-            <div>
-              <div className="login-card-tag">EXERCÍCIO 01 // PEITORAL E OMBRO</div>
-              <div className="login-card-name">Supino Inclinado com Halteres</div>
-            </div>
-            <div className="login-card-pill-muscle">PEITORAL SUPERIOR</div>
-          </div>
-
-          {/* Sets Rows */}
-          <div className="login-mock-row completed">
-            <div className="mock-badge-num">1</div>
-            <div><strong>12 reps</strong></div>
-            <div>30 kg</div>
-            <div><span className="mock-pr-tag">PR +2.5kg</span></div>
-            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckIcon size={14} />
-            </div>
-          </div>
-
-          <div className="login-mock-row completed">
-            <div className="mock-badge-num">2</div>
-            <div><strong>10 reps</strong></div>
-            <div>32 kg</div>
-            <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
-            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckIcon size={14} />
-            </div>
-          </div>
-
-          <div className="login-mock-row" style={{ borderColor: 'var(--accent)', background: 'var(--accent-dim)' }}>
-            <div className="mock-badge-num" style={{ background: 'var(--accent)', color: '#fff' }}>3</div>
-            <div><strong>8-10 reps</strong></div>
-            <div>34 kg</div>
-            <div style={{ color: 'var(--accent-text)', fontWeight: 700 }}>REST-PAUSE</div>
-            <div style={{ color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
-              <ClockIcon size={12} />
-              <span>90s</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Left Footer: Clean Technical Highlights */}
-        <div className="login-left-footer">
-          <div className="login-tech-feature">
-            <CloudIcon size={14} color="var(--accent)" />
-            <span>Sincronização em Nuvem</span>
-          </div>
-          <div className="login-tech-feature">
-            <HardDrivesIcon size={14} color="var(--accent)" />
-            <span>Armazenamento Offline Nativo</span>
-          </div>
-          <div className="login-tech-feature">
-            <SlidersHorizontalIcon size={14} color="var(--accent)" />
-            <span>Cálculo Dinâmico de Séries e Cargas</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Right Panel: Form Box ─── */}
-      <div className="login-right-panel">
-        <div className="login-form-container register-form-container">
-          <div className="login-desktop-head">
-            <div className="login-form-eyebrow">CADASTRO PROFISSIONAL</div>
-            <h2 className="login-form-title">Criar conta</h2>
-            <p className="login-form-sub">Preencha seus dados para começar a prescrever treinos.</p>
-          </div>
-
-          {error && (
-            <div className="auth-error" role="alert">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" htmlFor="nome">Nome completo</label>
-              <div className="login-input-wrap">
-                <input
-                  id="nome"
-                  type="text"
-                  className={`form-input ${nomeField.inputClass}`}
-                  placeholder="Ex: Prof. João Silva"
-                  value={nomeField.value}
-                  maxLength={120}
-                  onChange={nomeField.onChange}
-                  onBlur={nomeField.onBlur}
-                  autoComplete="name"
-                />
-              </div>
-              {nomeField.error && (
-                <span className="field-error" role="alert">{nomeField.error}</span>
-              )}
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" htmlFor="email">E-mail de acesso</label>
-              <div className="login-input-wrap">
-                <input
-                  id="email"
-                  type="email"
-                  className={`form-input ${emailField.inputClass}`}
-                  placeholder="treinador@exemplo.com"
-                  value={emailField.value}
-                  maxLength={254}
-                  onChange={emailField.onChange}
-                  onBlur={emailField.onBlur}
-                  autoComplete="email"
-                />
-              </div>
-              {emailField.error && (
-                <span className="field-error" role="alert">{emailField.error}</span>
-              )}
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" htmlFor="senha">Senha</label>
-              <div className="login-input-wrap">
-                <input
-                  id="senha"
-                  type={showPassword ? 'text' : 'password'}
-                  className={`form-input ${senhaField.inputClass}`}
-                  placeholder="Mínimo 6 caracteres"
-                  value={senhaField.value}
-                  maxLength={72}
-                  onChange={senhaField.onChange}
-                  onBlur={senhaField.onBlur}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  className="login-toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-                >
-                  {showPassword ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
-                </button>
-              </div>
-              {senhaField.error && (
-                <span className="field-error" role="alert">{senhaField.error}</span>
-              )}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="cref">CREF <span style={{ color: 'var(--text-1)', fontWeight: 400 }}>(opcional)</span></label>
-                <div className="login-input-wrap">
-                  <input
-                    id="cref"
-                    type="text"
-                    className={`form-input ${crefField.inputClass}`}
-                    placeholder="000000-G/UF"
-                    maxLength={20}
-                    value={crefField.value}
-                    onChange={crefField.onChange}
-                    onBlur={crefField.onBlur}
-                  />
-                </div>
-                {crefField.error && (
-                  <span className="field-error" role="alert">{crefField.error}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="profissao">Profissão</label>
-                <div className="login-input-wrap">
-                  <input
-                    id="profissao"
-                    type="text"
-                    className="form-input"
-                    placeholder="Personal Trainer"
-                    value={profissao}
-                    maxLength={80}
-                    onChange={(e) => setProfissao(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="telefone">
-                  Telefone <span style={{ color: 'var(--text-1)', fontWeight: 400 }}>(opcional)</span>
-                </label>
-                <div className="login-input-wrap">
-                  <input
-                    id="telefone"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    className="form-input"
-                    placeholder="(00) 90000-0000"
-                    value={telefone}
-                    maxLength={30}
-                    onChange={(e) => setTelefone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="instagram">
-                  Instagram <span style={{ color: 'var(--text-1)', fontWeight: 400 }}>(opcional)</span>
-                </label>
-                <div className="login-input-wrap">
-                  <input
-                    id="instagram"
-                    type="text"
-                    className="form-input"
-                    placeholder="@seuperfil"
-                    value={instagram}
-                    maxLength={100}
-                    onChange={(e) => setInstagram(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn-login-submit"
+        <div className="form-group">
+          <label className="form-label" htmlFor="nome">Nome completo</label>
+          <div className="login-input-wrap">
+            <input
+              id="nome"
+              type="text"
+              className={`form-input ${nomeField.inputClass}`}
+              value={nomeField.value}
+              maxLength={120}
+              onChange={nomeField.onChange}
+              onBlur={nomeField.onBlur}
+              autoComplete="name"
               disabled={loading}
-            >
-              {loading ? (
-                'Criando conta...'
-              ) : (
-                <>
-                  <span>Criar Conta</span>
-                  <ArrowRightIcon size={16} />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="login-footer-support">
-            Já possui uma conta? <Link to="/login">Entrar na plataforma</Link>
+            />
           </div>
+          {nomeField.error && (
+            <span className="field-error" role="alert">{nomeField.error}</span>
+          )}
         </div>
-      </div>
-    </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="email">E-mail</label>
+          <div className="login-input-wrap">
+            <input
+              id="email"
+              type="email"
+              className={`form-input ${emailField.inputClass}`}
+              placeholder="voce@exemplo.com"
+              value={emailField.value}
+              maxLength={254}
+              onChange={emailField.onChange}
+              onBlur={emailField.onBlur}
+              autoComplete="email"
+              spellCheck={false}
+              disabled={loading}
+            />
+          </div>
+          {emailField.error && (
+            <span className="field-error" role="alert">{emailField.error}</span>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="senha">Senha</label>
+          <div className="login-input-wrap">
+            <input
+              id="senha"
+              type={showPassword ? 'text' : 'password'}
+              className={`form-input ${senhaField.inputClass}`}
+              value={senhaField.value}
+              maxLength={72}
+              onChange={senhaField.onChange}
+              onBlur={senhaField.onBlur}
+              autoComplete="new-password"
+              aria-describedby={senhaField.error ? undefined : 'senha-dica'}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="login-toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeSlashIcon size={18} /> : <EyeIcon size={18} />}
+            </button>
+          </div>
+          {senhaField.error ? (
+            <span className="field-error" role="alert">{senhaField.error}</span>
+          ) : (
+            <span className="field-hint" id="senha-dica">Pelo menos 6 caracteres.</span>
+          )}
+        </div>
+
+        {/* Dados do perfil: saem no cabeçalho da ficha em PDF */}
+        <fieldset className="acesso-grupo" disabled={loading}>
+          <legend className="acesso-grupo-titulo">
+            Perfil na ficha
+            <span>Aparece no cabeçalho do PDF. Dá para mudar depois em Configurações.</span>
+          </legend>
+
+          <div className="acesso-grade">
+            <div className="form-group">
+              <label className="form-label" htmlFor="profissao">Profissão</label>
+              <div className="login-input-wrap">
+                <input
+                  id="profissao"
+                  type="text"
+                  className="form-input"
+                  placeholder="Personal Trainer"
+                  value={profissao}
+                  maxLength={80}
+                  onChange={(e) => setProfissao(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="cref">
+                CREF <span className="form-label-opcional">opcional</span>
+              </label>
+              <div className="login-input-wrap">
+                <input
+                  id="cref"
+                  type="text"
+                  className={`form-input ${crefField.inputClass}`}
+                  placeholder="000000-G/UF"
+                  maxLength={20}
+                  value={crefField.value}
+                  onChange={crefField.onChange}
+                  onBlur={crefField.onBlur}
+                  spellCheck={false}
+                />
+              </div>
+              {crefField.error && (
+                <span className="field-error" role="alert">{crefField.error}</span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="telefone">
+                WhatsApp <span className="form-label-opcional">opcional</span>
+              </label>
+              <div className="login-input-wrap">
+                <input
+                  id="telefone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  className="form-input"
+                  placeholder="(00) 90000-0000"
+                  value={telefone}
+                  maxLength={30}
+                  onChange={(e) => setTelefone(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="instagram">
+                Instagram <span className="form-label-opcional">opcional</span>
+              </label>
+              <div className="login-input-wrap">
+                <input
+                  id="instagram"
+                  type="text"
+                  className="form-input"
+                  placeholder="@seuperfil"
+                  value={instagram}
+                  maxLength={100}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  spellCheck={false}
+                  autoCapitalize="none"
+                />
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <button type="submit" className="btn-login-submit" disabled={loading}>
+          <span>{loading ? 'Criando conta…' : 'Criar conta'}</span>
+          <ArrowRightIcon size={16} aria-hidden="true" />
+        </button>
+      </form>
+    </AcessoShell>
   );
 };

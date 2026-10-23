@@ -1,67 +1,7 @@
 import React from 'react';
-import { PainelMarca } from './PainelMarca';
-import { useTema } from '../hooks/useTema';
 
-// Peças comuns das telas de entrada do aluno (primeiro acesso pelo link e
-// login por telefone + PIN). Mesmo desenho do login do treinador: painel de
-// marca à esquerda no desktop, formulário direto sobre o fundo.
-
-interface ShellProps {
-  // Treinador do link; aparece acima do título quando a tela é dele
-  profissional?: { nome: string; logoUrl?: string | null } | null;
-  titulo: string;
-  subtitulo?: React.ReactNode;
-  children: React.ReactNode;
-  rodape?: React.ReactNode;
-}
-
-export const AlunoAcessoShell: React.FC<ShellProps> = ({ profissional, titulo, subtitulo, children, rodape }) => {
-  useTema();
-
-  // Desenhado duas vezes e mostrado uma: dentro do painel escuro no celular
-  // (título branco sobre preto) e na coluna do formulário no desktop. O CSS
-  // esconde a cópia que não vale, então leitores de tela veem um título só.
-  const cabecalho = (
-    <>
-      {profissional && (
-        <div className="acesso-treinador">
-          {profissional.logoUrl ? (
-            <img src={profissional.logoUrl} alt="" width={44} height={44} className="acesso-treinador-logo" />
-          ) : (
-            <span className="acesso-treinador-logo" aria-hidden="true">
-              {profissional.nome.charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span className="acesso-treinador-texto">
-            <span>Seu treinador</span>
-            <strong>{profissional.nome}</strong>
-          </span>
-        </div>
-      )}
-
-      <h1 className="acesso-titulo">{titulo}</h1>
-      {subtitulo && <p className="acesso-sub">{subtitulo}</p>}
-    </>
-  );
-
-  return (
-    <div className="entrada entrada--form animate-in">
-      <PainelMarca>
-        <div className="acesso-cabecalho acesso-cabecalho--celular">{cabecalho}</div>
-      </PainelMarca>
-
-      <main className="entrada-escolha">
-        <div className="entrada-escolha-conteudo acesso">
-          <div className="acesso-cabecalho acesso-cabecalho--desktop">{cabecalho}</div>
-
-          {children}
-
-          {rodape && <div className="login-footer-support">{rodape}</div>}
-        </div>
-      </main>
-    </div>
-  );
-};
+// Campos das telas de entrada do aluno (primeiro acesso pelo link e login por
+// telefone + PIN). A moldura da tela é o AcessoShell, a mesma do treinador.
 
 // Foco automático só onde há mouse/teclado: no celular ele abriria o teclado
 // por cima da tela antes de a pessoa ler o que está sendo pedido.
@@ -105,6 +45,8 @@ interface CampoPinProps extends CampoProps {
   novo?: boolean;
   // Atalho ao lado do rótulo (ex.: "Esqueci meu PIN")
   acao?: React.ReactNode;
+  // Muda a cada PIN recusado; a troca remonta as casas e elas tremem uma vez
+  tremer?: number;
 }
 
 const DIGITOS = [0, 1, 2, 3];
@@ -112,13 +54,16 @@ const DIGITOS = [0, 1, 2, 3];
 // PIN em quatro casas, como a senha do celular. É um <input> de verdade por
 // cima das casas (invisível): teclado numérico, colar e gerenciador de senhas
 // funcionam, e as casas só desenham quantos dígitos já foram digitados.
-export const CampoPin: React.FC<CampoPinProps> = ({ id, label, value, onChange, disabled, autoFocus, hint, novo, acao }) => (
+export const CampoPin: React.FC<CampoPinProps> = ({ id, label, value, onChange, disabled, autoFocus, hint, novo, acao, tremer = 0 }) => (
   <div className="form-group">
     <div className="pin-rotulo">
       <label className="form-label" htmlFor={id}>{label}</label>
       {acao}
     </div>
-    <div className={`pin-campo${disabled ? ' pin-campo--desativado' : ''}`}>
+    <div
+      key={tremer}
+      className={`pin-campo${disabled ? ' pin-campo--desativado' : ''}${tremer > 0 ? ' pin-campo--recusado' : ''}`}
+    >
       <input
         id={id}
         name={id}

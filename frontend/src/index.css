@@ -3611,399 +3611,602 @@ body.modal-aberto {
   }
 }
 
-/* ── New Streetwear / Science Login Screen ─────────────────────────────── */
-.login-wrapper {
+/* ── Telas de entrada ─────────────────────────────────────────────────────
+   Escolha de perfil, login e cadastro do treinador, nova senha, login do
+   aluno e primeiro acesso. Todas usam a mesma moldura (AcessoShell ou a
+   própria .entrada): painel de marca sempre escuro (.painel-escuro) com um
+   filete vermelho na borda, que é a assinatura dessas telas, e a coluna do
+   formulário no tema da página, sem caixa em volta. No celular o painel é a
+   faixa do topo; do tablet largo em diante, a metade esquerda. */
+
+.entrada {
   min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 1.15fr 1fr;
-}
-
-@media (max-width: 960px) {
-  .login-wrapper {
-    grid-template-columns: 1fr;
-  }
-}
-
-.login-left-panel {
-  background: radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 46%),
-              linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
-  color: var(--text-0);
-  border-right: 1px solid var(--border-strong);
-  padding: 3.5rem 3rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Cabeçalho do formulário dentro do painel escuro: só existe no celular */
-.login-mobile-head {
-  display: none;
-}
-
-/* No celular o painel vira uma faixa escura no topo com a marca e o título
-   da tela; a ficha e os textos longos ficam para o desktop. */
-@media (max-width: 960px) {
-  .login-wrapper {
-    grid-template-rows: auto 1fr;
-  }
-
-  .login-left-panel {
-    display: block;
-    border-right: 0;
-    padding: calc(1.5rem + var(--sat)) 1.25rem 1.75rem;
-  }
-
-  .login-left-panel .login-hero-title,
-  .login-left-panel .login-hero-desc,
-  .login-left-panel .login-card-preview,
-  .login-left-panel .login-left-footer {
-    display: none;
-  }
-
-  .login-left-panel .login-brand-pill {
-    margin-bottom: 1.25rem;
-  }
-
-  /* Mesma coluna do formulário logo abaixo: em janelas mais largas que um
-     celular o título ficaria colado à esquerda e o formulário, centralizado. */
-  .login-left-panel .login-brand-header {
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  /* O formulário de cadastro é um pouco mais largo */
-  .login-wrapper:has(.register-form-container) .login-brand-header {
-    max-width: 460px;
-  }
-
-  .login-mobile-head {
-    display: block;
-  }
-
-  .login-mobile-head .login-form-sub {
-    margin-bottom: 0;
-  }
-
-  .login-desktop-head {
-    display: none;
-  }
-}
-
-/* Texto pequeno sobre o painel escuro: vermelho e cinza com contraste ≥ 4,5:1 */
-.painel-escuro .login-brand-pill,
-.painel-escuro .login-form-eyebrow,
-.painel-escuro .login-card-tag,
-.painel-escuro .mock-pr-tag,
-.painel-escuro .entrada-mock-atual > div:nth-child(4),
-.painel-escuro .entrada-mock-descanso {
-  color: var(--accent-text);
-}
-
-/* Título vermelho do painel: o tom mais claro dá 4,4:1 sobre o preto (o
-   --accent puro dá 3,5:1) e ainda passa de 3:1 em cima do brilho. */
-.painel-escuro .entrada-titulo span,
-.painel-escuro .login-hero-title span {
-  color: var(--accent-hover);
-}
-
-.painel-escuro .login-tech-feature {
-  color: var(--text-1);
-}
-
-.painel-escuro .login-tech-feature svg {
-  stroke: var(--accent-text);
-}
-
-.login-brand-header {
-  position: relative;
-  z-index: 2;
-}
-
-.login-brand-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-s);
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-}
-
-.login-hero-title {
-  font-size: 2.25rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 1.15;
-  text-transform: uppercase;
-  margin-bottom: 0.85rem;
+  background: var(--bg-0);
   color: var(--text-0);
 }
 
-.login-hero-title span {
-  color: var(--accent);
+.entrada ::selection {
+  background: var(--accent);
+  color: #fff;
 }
 
-.login-hero-desc {
-  font-size: 0.95rem;
-  color: var(--text-1);
-  max-width: 480px;
-  line-height: 1.6;
-}
-
-.login-card-preview {
+/* Fundo chapado, sem brilho nem degradê: a separação é o filete de 2px */
+.entrada-marca {
   position: relative;
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, calc(12vh - 3.75rem), 3.5rem);
+  padding: calc(clamp(1rem, calc(8vh - 2.25rem), 2.75rem) + var(--sat)) 1.25rem clamp(1.25rem, 4vh, 2.5rem);
+  background: var(--bg-0);
+  color: var(--text-0);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* No celular e no tablet o conteúdo da faixa escura segue a mesma coluna
+   centralizada do que vem abaixo (escolha de perfil ou formulário). */
+@media (max-width: 960px) {
+  .entrada-marca > * {
+    width: 100%;
+    max-width: 440px;
+    margin-inline: auto;
+  }
+
+  .entrada:has(.acesso--largo) .entrada-marca > * {
+    max-width: 520px;
+  }
+}
+
+.entrada-logo {
+  align-self: flex-start;
+}
+
+/* Chamada: uma cor só, caixa normal, tracking negativo que aperta com o tamanho */
+.entrada-titulo {
+  max-width: 17ch;
+  margin: 0;
+  font-size: clamp(2rem, 8.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-wrap: balance;
+  /* nas telas de formulário a chamada é um <p>, que herdaria a cor de parágrafo */
+  color: var(--text-0);
+}
+
+.entrada-desc {
+  margin-top: 0.9rem;
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-1);
+  text-wrap: pretty;
+}
+
+/* ── Ficha de amostra (só no painel do desktop) ──
+   Linhas com fio, como a ficha do app; a série atual é marcada só pelo
+   número em vermelho e pelo descanso, sem fundo tingido. */
+.entrada-ficha {
+  display: none;
+  max-width: 480px;
+  padding: 1.1rem 1.25rem 0.35rem;
   background: var(--bg-1);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-l);
-  padding: 1.25rem;
-  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
-  max-width: 480px;
-  margin: 2rem 0;
+  border-radius: var(--radius-xl);
+  /* A única sombra forte da tela */
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
 }
 
-.login-card-preview-head {
+.entrada-ficha-topo {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.85rem;
 }
 
-.login-card-tag {
+.entrada-ficha-indice {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 800;
-  color: var(--accent-text);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 0.2rem;
-}
-
-.login-card-name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.login-card-pill-muscle {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--text-1);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 0.15rem 0.45rem;
-  border-radius: var(--radius-s);
+  color: var(--accent-text);
 }
 
-.login-mock-row {
-  display: grid;
-  grid-template-columns: 28px 1fr 1fr 1.2fr 48px;
-  gap: 0.4rem;
-  align-items: center;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.6rem;
-  border-radius: var(--radius-s);
-  margin-bottom: 0.4rem;
+.entrada-ficha-nome {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.entrada-ficha-musculo {
+  margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  color: var(--text-1);
 }
 
-.login-mock-row.completed {
-  background: rgba(45, 168, 104, 0.08);
-  border-color: rgba(45, 168, 104, 0.3);
+.entrada-ficha-colunas,
+.entrada-ficha-serie {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr 1fr 1.4fr 3.5rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.mock-badge-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 3px;
-  background: var(--bg-3);
+.entrada-ficha-colunas {
+  padding: 0.7rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.entrada-ficha-serie {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-1);
+}
+
+.entrada-ficha-serie b {
+  font-weight: 700;
   color: var(--text-0);
-  font-weight: 800;
+}
+
+.entrada-ficha-num {
+  width: 1.5rem;
+  height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-}
-
-.login-mock-row.completed .mock-badge-num {
-  background: rgba(45, 168, 104, 0.25);
+  border-radius: var(--radius-s);
+  background: var(--bg-2);
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--success-text);
 }
 
-.mock-pr-tag {
-  font-size: 0.625rem;
-  font-weight: 800;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  padding: 0.05rem 0.35rem;
-  border-radius: 2px;
-  border: 1px solid var(--accent-border);
+.entrada-ficha-serie--atual .entrada-ficha-num {
+  background: var(--accent);
+  color: #fff;
 }
 
-.login-left-footer {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  border-top: 1px solid var(--border);
-  padding-top: 1.25rem;
-}
-
-.login-tech-feature {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+.entrada-ficha-nota--pr {
+  color: var(--pr-gold);
   font-weight: 700;
-  color: var(--text-2);
+}
+
+.entrada-ficha-serie--atual .entrada-ficha-nota,
+.entrada-ficha-descanso {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.entrada-ficha-feita,
+.entrada-ficha-descanso {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  justify-content: flex-end;
+  gap: 0.25rem;
 }
 
-.login-right-panel {
-  background: var(--bg-0);
+.entrada-ficha-feita {
+  color: var(--success-text);
+}
+
+/* ── Entrada do painel: o único momento orquestrado ──
+   As palavras da chamada sobem de um leve desfoque, uma a uma; depois o
+   texto e a ficha. Só com no-preference: o padrão é tudo visível. */
+@media (prefers-reduced-motion: no-preference) {
+  .entrada-titulo .palavra {
+    display: inline-block;
+    animation: palavraSobe 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 55ms + 80ms);
+  }
+
+  .entrada-marca .entra {
+    animation: entraSobe 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 90ms + 420ms);
+  }
+}
+
+@keyframes palavraSobe {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+    filter: blur(8px);
+  }
+}
+
+@keyframes entraSobe {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* ── Coluna da escolha ou do formulário ── */
+
+.entrada-escolha {
+  flex: 1;
   display: flex;
-  justify-content: center;
-  padding: 2.5rem 2rem;
-  overflow-y: auto;
-  max-height: 100dvh;
+  flex-direction: column;
+  padding: clamp(1.5rem, calc(10vh - 3rem), 3rem) 1.25rem calc(1.5rem + var(--sab));
 }
 
-@media (max-width: 960px) {
-  .login-right-panel {
-    max-height: none;
-    padding: 1.75rem 1.25rem calc(2.5rem + var(--sab));
+.entrada-escolha-conteudo {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.acesso--largo {
+  max-width: 520px;
+}
+
+.entrada-pergunta {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Escolha de perfil: duas linhas com fio, não dois cartões */
+.entrada-opcoes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-strong);
+}
+
+.entrada-opcao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.15rem 0.25rem 1.1rem;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-0);
+  text-decoration: none;
+  touch-action: manipulation;
+  transition: border-color 160ms var(--ease-out), background-color 120ms var(--ease-out);
+}
+
+.entrada-opcao:active {
+  background: color-mix(in srgb, var(--text-0) 4%, transparent);
+}
+
+.entrada-opcao:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-s);
+}
+
+/* Um sinal só no hover: o fio escurece e a seta anda */
+@media (hover: hover) and (pointer: fine) {
+  .entrada-opcao:hover {
+    border-bottom-color: var(--text-0);
   }
 
-  .login-right-panel .login-form-container {
-    margin: 0;
+  .entrada-opcao:hover .entrada-opcao-topo > svg {
+    color: var(--accent-text);
+    transform: translateX(4px);
   }
 }
 
-/* Lado claro das telas de entrada: texto de apoio e placeholder com
-   contraste ≥ 4,5:1 (o --text-2 dá 3,1:1 sobre o fundo claro) */
-.login-right-panel .login-footer-support,
-.login-right-panel .field-hint,
-.entrada-escolha .login-footer-support,
-.entrada-escolha .field-hint {
+.entrada-opcao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.entrada-opcao-topo > svg {
+  flex-shrink: 0;
+  color: var(--text-1);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), color 160ms var(--ease-out);
+}
+
+.entrada-opcao-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.entrada-opcao-texto strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.entrada-opcao-texto span {
+  font-size: 0.875rem;
+  line-height: 1.45;
   color: var(--text-1);
 }
 
-.login-right-panel .form-input::placeholder,
-.entrada-escolha .form-input::placeholder {
+/* Amostra do que cada perfil faz no app, solta na linha. É dado de treino
+   (carga, reps, descanso), por isso a fonte condensada com numerais alinhados. */
+.entrada-amostra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 28px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+}
+
+.entrada-amostra b {
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+.entrada-amostra-num {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-s);
+  background: var(--bg-2);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--success-text);
+}
+
+.entrada-amostra-nome {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-0);
+  white-space: nowrap;
+}
+
+.entrada-amostra-check {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-s);
+  background: var(--accent);
+  color: #fff;
+  /* A série sendo marcada como feita, depois que o painel assentou */
+  animation: entradaSerieFeita 420ms var(--ease-spring-bounce) 1100ms backwards;
+}
+
+@keyframes entradaSerieFeita {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+.entrada-amostra-descanso {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-amostra-check {
+    animation: fadeIn 160ms var(--ease-out) 300ms backwards;
+  }
+}
+
+/* ── Formulários de entrada ── */
+
+/* Nas telas de formulário o painel do celular encolhe para logo e título:
+   o formulário precisa caber acima do teclado. A chamada fica para o desktop. */
+.entrada--form .entrada-chamada {
+  display: none;
+}
+
+.entrada--form .entrada-marca {
+  gap: clamp(1rem, 3vh, 1.5rem);
+  padding-bottom: clamp(1.25rem, 3vh, 1.75rem);
+}
+
+/* O cabeçalho (treinador, título, subtítulo) é desenhado duas vezes: na faixa
+   escura no celular e na coluna do formulário no desktop. */
+.acesso-cabecalho--desktop {
+  display: none;
+}
+
+.acesso-titulo {
+  margin: 0;
+  font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.acesso-sub {
+  margin-top: 0.5rem;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-1);
+  text-wrap: pretty;
+}
+
+.acesso-treinador {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: clamp(1rem, 2.6vh, 1.5rem);
+  min-width: 0;
+}
+
+.acesso-treinador-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-1);
+  object-fit: cover;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-0);
+}
+
+.acesso-treinador-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.acesso-treinador-texto span {
+  font-size: 0.75rem;
+  color: var(--text-1);
+}
+
+.acesso-treinador-texto strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acesso-form,
+.aluno-acesso-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.acesso-form .auth-error,
+.aluno-acesso-form .auth-error {
+  margin-bottom: 0;
+}
+
+.acesso > .auth-error {
+  margin-bottom: 1.1rem;
+}
+
+.acesso .form-group {
+  gap: 0.4rem;
+}
+
+.acesso .form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.form-label-opcional {
+  margin-left: 0.25rem;
+  font-weight: 400;
+  color: var(--text-1);
+}
+
+/* Texto de apoio e placeholder com contraste ≥ 4,5:1 (o --text-2 dá 3,1:1
+   sobre o fundo claro) */
+.acesso .field-hint {
+  font-size: 0.75rem;
+  color: var(--text-1);
+}
+
+.acesso .form-input::placeholder {
   color: color-mix(in srgb, var(--text-1) 85%, var(--bg-1));
   opacity: 1;
 }
 
-.login-right-panel .auth-error,
-.entrada-escolha .auth-error {
+.acesso .auth-error {
   color: color-mix(in srgb, var(--danger) 80%, var(--text-0));
 }
 
-.btn-login-submit:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.login-form-container {
-  width: 100%;
-  max-width: 400px;
-  margin: auto 0;
-}
-
-.login-form-container.register-form-container {
-  max-width: 460px;
-  padding: 1rem 0;
-}
-
-.login-form-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--accent-text);
-  text-transform: uppercase;
-  margin-bottom: 0.35rem;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.login-form-eyebrow::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--accent);
-  border-radius: 1px;
-}
-
-.login-form-title {
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  margin-bottom: 0.35rem;
-}
-
-.login-form-sub {
-  font-size: 0.875rem;
-  color: var(--text-1);
-  margin-bottom: 1.75rem;
-}
-
+/* Campo com botão sobreposto (mostrar senha). Também usado em Configurações. */
 .login-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
+/* Fundo um degrau acima da página, borda de 1px e, no foco, anel de 2px na
+   cor de marca: sem brilho e sem troca de fundo */
 .login-input-wrap .form-input {
   width: 100%;
   height: 44px;
+  padding: 0 0.875rem;
   background: var(--bg-1);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-m);
   color: var(--text-0);
-  padding: 0 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   outline: none;
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 140ms;
-  transition-timing-function: var(--ease);
+  transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
 }
 
-.login-input-wrap .form-input:focus {
+.login-input-wrap:has(.login-toggle-password) .form-input {
+  padding-right: 3rem;
+}
+
+.login-input-wrap .form-input:focus,
+.login-input-wrap .form-input:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent-border);
-  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--accent);
+  outline: none;
+}
+
+.login-input-wrap .form-input--error:focus {
+  box-shadow: 0 0 0 1px var(--danger);
 }
 
 .login-toggle-password {
   position: absolute;
-  right: 0.75rem;
-  background: transparent;
-  border: none;
-  color: var(--text-2);
-  cursor: pointer;
-  padding: 0.25rem;
+  right: 2px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 140ms ease;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-s);
+  color: var(--text-1);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 160ms var(--ease-out);
+}
+
+.login-toggle-password:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: -4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4012,60 +4215,516 @@ body.modal-aberto {
   }
 }
 
+/* No toque, campo e botão de mostrar senha com alvo de 48/44px */
+@media (pointer: coarse) {
+  .acesso .login-input-wrap .form-input {
+    height: 48px;
+  }
+
+  .acesso .login-toggle-password {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Senha ou PIN recusado: o campo treme uma vez. É raro, então pode. */
+.login-input-wrap--recusado,
+.pin-campo--recusado {
+  animation: campoRecusado 400ms var(--ease-out);
+}
+
+@keyframes campoRecusado {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-input-wrap--recusado,
+  .pin-campo--recusado {
+    animation: none;
+  }
+}
+
+/* Cadastro: dados do perfil, separados dos de acesso por um fio */
+.acesso-grupo {
+  min-width: 0;
+  margin: 0.4rem 0 0;
+  padding: 1.25rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Legend flutuando não abre o recorte na borda do fieldset */
+.acesso-grupo-titulo {
+  float: left;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-0);
+}
+
+.acesso-grupo-titulo span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-1);
+  text-wrap: pretty;
+}
+
+.acesso-grade {
+  clear: both;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 0.75rem;
+}
+
+@media (max-width: 420px) {
+  .acesso-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Ação principal: verbo em caixa normal, sem sombra. O hover escurece em vez
+   de clarear, para o branco seguir acima de 4,5:1. */
 .btn-login-submit {
   width: 100%;
   height: 48px;
-  background: var(--accent);
-  border: none;
-  border-radius: var(--radius-m);
-  color: #ffffff;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  margin-top: 0.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(207, 52, 39, 0.35);
-  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
-  transition-duration: 140ms;
-  transition-timing-function: var(--ease);
-  margin-top: 0.75rem;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  transition: background-color 150ms var(--ease-out), transform 140ms var(--ease-out);
+}
+
+.btn-login-submit svg {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-login-submit:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .btn-login-submit:hover:not(:disabled) {
-    background: var(--accent-hover);
+    background: color-mix(in srgb, var(--accent) 86%, #000);
+  }
+
+  .btn-login-submit:hover:not(:disabled) svg {
+    transform: translateX(4px);
   }
 }
 
+.btn-login-submit:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+}
+
 .btn-login-submit:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.login-footer-support {
-  margin-top: 1.75rem;
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  padding-top: 1.25rem;
+/* Outras formas de entrar: linhas com fio no fim da coluna */
+.acesso-rodape {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
   border-top: 1px solid var(--border);
 }
 
-.login-footer-support a {
+.acesso-rodape li {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+.acesso-rodape a {
+  display: inline-block;
   color: var(--text-0);
-  font-weight: 700;
-  text-decoration: none;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  transition: color 160ms var(--ease-out), text-decoration-color 160ms var(--ease-out);
+}
+
+.acesso-rodape a:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .login-footer-support a:hover {
+  .acesso-rodape a:hover {
     color: var(--accent-text);
+    text-decoration-color: currentColor;
+  }
+}
+
+@media (pointer: coarse) {
+  .acesso-rodape a {
+    padding: 0.6rem 0;
+    margin: -0.6rem 0;
+  }
+}
+
+/* ── Aluno: PIN em quatro casas ── */
+
+.pin-rotulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pin-campo {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+/* O input real cobre as casas e fica invisível; quem aparece são elas */
+.pin-campo input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  font-size: 16px;
+  cursor: text;
+}
+
+.pin-celula {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+}
+
+.pin-celula--cheia::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-0);
+  animation: pinDigito 180ms var(--ease-spring-bounce) backwards;
+}
+
+@keyframes pinDigito {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.pin-campo:focus-within .pin-celula--atual {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.pin-campo--desativado {
+  opacity: 0.6;
+}
+
+.pin-campo--desativado input {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-celula--cheia::after {
+    animation: none;
+  }
+}
+
+/* Campos do aluno: 16px evita o zoom automático do iOS ao focar */
+.aluno-acesso-form .login-input-wrap .form-input {
+  height: 52px;
+  font-size: 1rem;
+}
+
+.aluno-acesso-form .btn-login-submit {
+  height: 52px;
+}
+
+.aluno-acesso-link {
+  min-height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font: 600 0.8125rem var(--font);
+  cursor: pointer;
+}
+
+.aluno-acesso-link:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aluno-acesso-link:hover {
     text-decoration: underline;
+  }
+}
+
+@media (pointer: coarse) {
+  .aluno-acesso-link {
+    min-height: 44px;
+  }
+}
+
+.aluno-acesso-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-0);
+}
+
+.aluno-acesso-aviso svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aluno-acesso-aviso--erro svg {
+  color: var(--danger-text);
+}
+
+.aluno-acesso-nota {
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+/* "Abrindo seu treino…" antes de saber qual tela mostrar */
+.aluno-acesso {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+  background: var(--bg-0);
+  color: var(--text-0);
+}
+
+/* Telefone com mais de um treinador: uma linha por conta */
+.perfil-opcoes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-strong);
+}
+
+.perfil-opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 68px;
+  padding: 0.75rem 0.25rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-0);
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 160ms var(--ease-out), background-color 120ms var(--ease-out);
+}
+
+.perfil-opcao:active {
+  background: color-mix(in srgb, var(--text-0) 4%, transparent);
+}
+
+.perfil-opcao:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-s);
+}
+
+.perfil-opcao > svg {
+  flex-shrink: 0;
+  color: var(--text-1);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), color 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .perfil-opcao:hover {
+    border-bottom-color: var(--text-0);
+  }
+
+  .perfil-opcao:hover > svg {
+    color: var(--accent-text);
+    transform: translateX(4px);
+  }
+}
+
+.perfil-opcao-icone {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-weight: 800;
+  object-fit: cover;
+}
+
+.perfil-opcao-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.perfil-opcao-texto strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.perfil-opcao-texto span {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-1);
+}
+
+/* ── Recuperar senha (modal do login) ── */
+
+.recuperar {
+  max-width: 440px;
+}
+
+.recuperar-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-1);
+}
+
+.recuperar-texto p {
+  text-wrap: pretty;
+}
+
+.recuperar-passos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.85rem 0 0 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.recuperar-passos strong {
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+/* ── Desktop: painel à esquerda, coluna à direita ── */
+@media (min-width: 961px) {
+  .entrada {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+  }
+
+  /* Preso à altura da tela: no cadastro, que é mais longo, a coluna do
+     formulário rola e o painel fica */
+  .entrada-marca {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    justify-content: space-between;
+    gap: 2.5rem;
+    padding: 3.5rem 3rem;
+    box-shadow: inset -2px 0 0 var(--accent);
+  }
+
+  .entrada--form .entrada-marca {
+    gap: 2.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .entrada-titulo {
+    font-size: clamp(2.5rem, 1.2rem + 2.7vw, 4rem);
+    line-height: 1.04;
+  }
+
+  .entrada-desc {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .entrada-ficha {
+    display: block;
+  }
+
+  .entrada--form .entrada-chamada {
+    display: block;
+  }
+
+  .entrada-escolha {
+    justify-content: center;
+    padding: 3rem 2.5rem;
+  }
+
+  .entrada-pergunta {
+    margin-bottom: 1.25rem;
+    font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.25rem);
+    letter-spacing: -0.035em;
+    line-height: 1.12;
+  }
+
+  .acesso-cabecalho--celular {
+    display: none;
+  }
+
+  .acesso-cabecalho--desktop {
+    display: block;
+    margin-bottom: 2rem;
   }
 }
 
@@ -5184,100 +5843,6 @@ body.modal-aberto {
 .view-switch button[aria-selected="true"] { background: var(--bg-1); color: var(--text-0); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
 .view-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-/* ── Aluno: "abrindo seu treino" (antes de saber qual tela mostrar) ────── */
-
-.aluno-acesso {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.5rem 1rem;
-  background: var(--bg-0);
-  color: var(--text-0);
-}
-
-/* Lista de contas quando o telefone está com mais de um treinador */
-
-.perfil-opcoes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 1.25rem;
-}
-
-.perfil-opcao {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  width: 100%;
-  min-height: 68px;
-  padding: 0.75rem 0.9rem;
-  background: var(--bg-0);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-m);
-  color: var(--text-0);
-  font-family: var(--font);
-  text-align: left;
-  cursor: pointer;
-  transition: transform 140ms var(--ease-out), border-color var(--transition), background-color var(--transition);
-}
-
-.perfil-opcao:active {
-  transform: scale(0.98);
-}
-
-.perfil-opcao:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .perfil-opcao:hover {
-    border-color: var(--accent-border);
-    background: var(--accent-dim);
-  }
-}
-
-.perfil-opcao > svg {
-  flex-shrink: 0;
-  color: var(--text-2);
-}
-
-.perfil-opcao-icone {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-m);
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-weight: 800;
-  object-fit: cover;
-}
-
-.perfil-opcao-texto {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.perfil-opcao-texto strong {
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.perfil-opcao-texto span {
-  font-size: 0.78rem;
-  color: var(--text-1);
-  line-height: 1.35;
-}
-
 /* ── Área do aluno: seletor de protocolo e modo somente leitura ─────────── */
 
 .protocolo-seletor {
@@ -5315,651 +5880,6 @@ body.modal-aberto {
   font: 700 0.8rem var(--font);
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* ── Entrada: escolha "Sou aluno / Sou treinador" ────────────────────────
-   Fala a mesma língua da tela de login: título pesado em caixa alta, a ficha
-   de exercício como motivo da marca e dados em fonte mono. No celular a
-   chamada fica no topo e as duas opções na zona do polegar. */
-
-.entrada {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-0);
-  color: var(--text-0);
-}
-
-.entrada ::selection {
-  background: var(--accent-soft);
-  color: var(--text-0);
-}
-
-/* Os espaços verticais acompanham a altura da tela: apertados num celular
-   pequeno (sem rolagem), folgados num alto (sem um vazio no meio). */
-/* Sempre escuro (.painel-escuro), com o brilho vermelho no canto: é a metade
-   "preta com vermelho" da tela; a escolha ou o formulário ficam na clara. */
-.entrada-marca {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1rem, calc(12vh - 3.75rem), 3.5rem);
-  padding: calc(clamp(1rem, calc(8vh - 2.25rem), 2.75rem) + var(--sat)) 1.25rem clamp(1.25rem, 4vh, 2.5rem);
-  background:
-    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 46%),
-    linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
-  color: var(--text-0);
-}
-
-.entrada-logo {
-  align-self: flex-start;
-}
-
-.entrada-titulo {
-  font-size: clamp(2rem, 9vw, 2.5rem);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 1.06;
-  text-transform: uppercase;
-  text-wrap: balance;
-  margin: 0;
-  /* nas telas de formulário a chamada é um <p>, que herdaria a cor de parágrafo */
-  color: var(--text-0);
-}
-
-/* A segunda metade da frase desce de linha inteira, nunca partida */
-.entrada-titulo span {
-  display: block;
-  color: var(--accent);
-}
-
-.entrada-desc {
-  margin-top: 0.85rem;
-  max-width: 34ch;
-  font-size: 0.95rem;
-  line-height: 1.55;
-  color: var(--text-1);
-}
-
-/* A ficha grande só cabe no painel do desktop; no celular as amostras das
-   opções já mostram o produto */
-.entrada-ficha {
-  display: none;
-}
-
-.entrada-mock-feito {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--success-text);
-}
-
-.entrada-mock-atual {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-
-.entrada-mock-atual .mock-badge-num {
-  background: var(--accent);
-  color: #fff;
-}
-
-.entrada-mock-atual > div:nth-child(4),
-.entrada-mock-descanso {
-  color: var(--accent-text);
-  font-weight: 700;
-}
-
-.entrada-mock-descanso {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.entrada-escolha {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(1.25rem, calc(10vh - 3rem), 3rem) 1.25rem calc(1.25rem + var(--sab));
-}
-
-.entrada-escolha-conteudo {
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.entrada-pergunta {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.15rem;
-}
-
-.entrada-opcao {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  width: 100%;
-  padding: 1rem 1rem 0.9rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-l);
-  color: var(--text-0);
-  font-family: var(--font);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    transform 140ms var(--ease-out),
-    border-color var(--transition),
-    background-color var(--transition);
-}
-
-.entrada-opcao:active {
-  transform: scale(0.985);
-}
-
-.entrada-opcao:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .entrada-opcao:hover {
-    border-color: var(--accent);
-  }
-
-  .entrada-opcao:hover .entrada-opcao-topo > svg {
-    color: var(--accent);
-    transform: translateX(3px);
-  }
-}
-
-.entrada-opcao-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.entrada-opcao-topo > svg {
-  flex-shrink: 0;
-  color: var(--text-2);
-  transition: transform 160ms var(--ease-out), color var(--transition);
-}
-
-.entrada-opcao-texto {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.entrada-opcao-texto strong {
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-.entrada-opcao-texto span {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--text-1);
-}
-
-/* Amostra do que cada perfil faz no app. É dado de treino (carga, reps,
-   descanso), por isso a fonte mono com numerais alinhados. */
-.entrada-amostra {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 40px;
-  padding: 0.4rem 0.6rem;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-s);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-1);
-}
-
-.entrada-amostra b {
-  font-weight: 800;
-  color: var(--text-0);
-}
-
-.entrada-amostra--aluno {
-  background: color-mix(in srgb, var(--success) 9%, transparent);
-  border-color: color-mix(in srgb, var(--success) 32%, transparent);
-}
-
-.entrada-amostra-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--success) 24%, transparent);
-  color: var(--success-text);
-  font-size: 0.7rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.entrada-amostra-nome {
-  font-family: var(--font);
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-0);
-  white-space: nowrap;
-}
-
-.entrada-amostra-check,
-.entrada-amostra-descanso {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.entrada-amostra-check {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-s);
-  background: var(--accent);
-  color: #fff;
-  /* O único movimento da tela: a série sendo marcada como feita */
-  animation: entradaSerieFeita 420ms var(--ease-spring-bounce) 650ms backwards;
-}
-
-@keyframes entradaSerieFeita {
-  from {
-    transform: scale(0.4);
-    opacity: 0;
-  }
-}
-
-.entrada-amostra-descanso {
-  gap: 0.3rem;
-  padding: 0.15rem 0.45rem;
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius-s);
-  background: var(--accent-dim);
-  color: var(--accent-text);
-  font-weight: 700;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .entrada-amostra-check {
-    animation: none;
-  }
-}
-
-/* Desktop: mesma divisão da tela de login. Marca e ficha à esquerda, escolha à direita. */
-@media (min-width: 961px) {
-  .entrada {
-    display: grid;
-    grid-template-columns: 1.15fr 1fr;
-  }
-
-  .entrada-marca {
-    justify-content: space-between;
-    gap: 2.5rem;
-    padding: 3.5rem 3rem;
-    border-right: 1px solid var(--border-strong);
-  }
-
-  .entrada-titulo {
-    font-size: clamp(2.5rem, 3.6vw, 3.5rem);
-  }
-
-  .entrada-desc {
-    max-width: 42ch;
-    font-size: 1rem;
-  }
-
-  .entrada-ficha {
-    display: block;
-    margin: 0;
-  }
-
-  .entrada-escolha {
-    justify-content: center;
-    padding: 2.5rem 2rem;
-  }
-
-  .entrada-escolha-conteudo {
-    max-width: 420px;
-    gap: 0.9rem;
-  }
-
-  .entrada-pergunta {
-    font-size: 1.75rem;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1.2;
-    margin-bottom: 0.6rem;
-  }
-}
-
-/* ── Login do aluno e primeiro acesso ────────────────────────────────────
-   Mesma base da tela de entrada (.entrada) e mesmos campos e botão do login
-   do treinador. No celular o painel de marca encolhe para o logo: o
-   formulário precisa caber acima do teclado. */
-
-.entrada--form .entrada-chamada {
-  display: none;
-}
-
-.entrada--form .entrada-marca {
-  gap: clamp(1rem, 3vh, 1.5rem);
-  padding-bottom: clamp(1.1rem, 3vh, 1.75rem);
-}
-
-/* No celular e no tablet o conteúdo da faixa escura segue a mesma coluna
-   centralizada do que vem abaixo (escolha de perfil ou formulário). */
-@media (max-width: 960px) {
-  .entrada-marca > * {
-    width: 100%;
-    max-width: 440px;
-    margin-inline: auto;
-  }
-}
-
-.entrada--form .entrada-escolha {
-  padding-top: 1.5rem;
-}
-
-/* O cabeçalho (treinador, título, subtítulo) é desenhado duas vezes: na faixa
-   escura no celular e na coluna do formulário no desktop. */
-.acesso-cabecalho--desktop {
-  display: none;
-}
-
-.acesso-cabecalho .acesso-sub {
-  color: var(--text-1);
-}
-
-.acesso {
-  gap: 0;
-}
-
-.acesso-treinador {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: clamp(1rem, 2.6vh, 1.5rem);
-  min-width: 0;
-}
-
-.acesso-treinador-logo {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: var(--radius-m);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-1);
-  object-fit: cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  font-weight: 900;
-  color: var(--accent);
-}
-
-.acesso-treinador-texto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.3;
-}
-
-.acesso-treinador-texto span {
-  font-size: 0.75rem;
-  color: var(--text-1);
-}
-
-.acesso-treinador-texto strong {
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.acesso-titulo {
-  font-size: clamp(1.75rem, 7.5vw, 2.1rem);
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-  text-wrap: balance;
-  margin: 0;
-}
-
-.acesso-sub {
-  margin-top: 0.5rem;
-  max-width: 38ch;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--text-1);
-}
-
-.aluno-acesso-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
-
-.aluno-acesso-form .auth-error {
-  margin-bottom: 0;
-}
-
-.aluno-acesso-form .form-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* 16px evita o zoom automático do iOS ao focar o campo */
-.aluno-acesso-form .login-input-wrap .form-input {
-  height: 52px;
-  font-size: 1rem;
-}
-
-.aluno-acesso-form .login-input-wrap .form-input::placeholder {
-  color: var(--text-2);
-}
-
-.aluno-acesso-form .btn-login-submit {
-  height: 52px;
-  margin-top: 0.4rem;
-}
-
-.aluno-acesso-form .btn-login-submit:active:not(:disabled) {
-  transform: scale(0.985);
-}
-
-.aluno-acesso-form .btn-login-submit:focus-visible,
-.aluno-acesso-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* PIN em quatro casas */
-.pin-rotulo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.pin-campo {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.6rem;
-}
-
-/* O input real cobre as casas e fica invisível; quem aparece são elas */
-.pin-campo input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  opacity: 0;
-  font-size: 16px;
-  cursor: text;
-}
-
-.pin-celula {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-1);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-m);
-  transition: border-color 140ms var(--ease-out), background-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
-}
-
-.pin-celula--cheia::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--text-0);
-  /* O único movimento da tela: o dígito entrando */
-  animation: pinDigito 180ms var(--ease-spring-bounce) backwards;
-}
-
-@keyframes pinDigito {
-  from {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-}
-
-.pin-campo:focus-within .pin-celula--atual {
-  border-color: var(--accent);
-  background: var(--bg-2);
-  box-shadow: 0 0 0 1px var(--accent-border);
-}
-
-.pin-campo--desativado {
-  opacity: 0.6;
-}
-
-.pin-campo--desativado input {
-  cursor: not-allowed;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pin-celula--cheia::after {
-    animation: none;
-  }
-}
-
-.aluno-acesso-link {
-  min-height: 32px;
-  padding: 0;
-  background: none;
-  border: none;
-  color: var(--accent-text);
-  font: 600 0.78rem var(--font);
-  cursor: pointer;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .aluno-acesso-link:hover {
-    text-decoration: underline;
-  }
-}
-
-.aluno-acesso-aviso {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 0.9rem;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-m);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--text-0);
-}
-
-/* Fora do formulário (link inválido, cadastro a atualizar) o aviso é o conteúdo */
-.acesso > .aluno-acesso-aviso {
-  margin-top: 0;
-}
-
-.aluno-acesso-aviso svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.aluno-acesso-aviso--erro svg {
-  color: var(--danger-text);
-}
-
-.aluno-acesso-nota {
-  margin-top: 1.25rem;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--text-1);
-}
-
-.acesso .login-footer-support a {
-  display: inline-block;
-  padding: 0.35rem 0;
-}
-
-.acesso .perfil-opcoes {
-  margin-top: 0;
-}
-
-.acesso .perfil-opcao {
-  background: var(--bg-1);
-  border-color: var(--border-strong);
-  border-radius: var(--radius-l);
-}
-
-@media (min-width: 961px) {
-  .entrada--form .entrada-chamada {
-    display: block;
-  }
-
-  .entrada--form .entrada-marca {
-    gap: 2.5rem;
-    padding-bottom: 3.5rem;
-  }
-
-  .entrada--form .entrada-escolha {
-    padding-top: 2.5rem;
-  }
-
-  .acesso-cabecalho--celular {
-    display: none;
-  }
-
-  .acesso-cabecalho--desktop {
-    display: block;
-    margin-bottom: 1.75rem;
-  }
-
-  .acesso-titulo {
-    font-size: 1.9rem;
-  }
 }
 
 /* ── Exercício da ficha em tela estreita ──────────────────────────────────

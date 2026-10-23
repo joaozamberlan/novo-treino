@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { WarningCircleIcon, ArrowRightIcon, ArrowsClockwiseIcon } from '@phosphor-icons/react';
 import alunoApi from '../../services/alunoApi';
-import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
+import { AcessoShell } from '../../components/AcessoShell';
+import { CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
 import { mensagemDeErro, telefoneValido } from '../../utils/alunoAcesso';
 import { useAlunoAuth } from '../../contexts/AlunoAuthContext';
 
@@ -33,6 +34,8 @@ export const AlunoLink: React.FC = () => {
   const [pinRepetido, setPinRepetido] = useState('');
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
+  // Conta as recusas do servidor: cada uma faz as casas do PIN tremerem uma vez
+  const [recusas, setRecusas] = useState(0);
 
   useEffect(() => {
     document.title = 'Meu treino | No Game';
@@ -56,12 +59,12 @@ export const AlunoLink: React.FC = () => {
 
   if (erroLink) {
     return (
-      <AlunoAcessoShell titulo="Não foi possível abrir o treino">
+      <AcessoShell titulo="Não foi possível abrir o treino">
         <p className="aluno-acesso-aviso aluno-acesso-aviso--erro" role="alert">
           <WarningCircleIcon size={16} aria-hidden="true" />
           <span>{erroLink}</span>
         </p>
-      </AlunoAcessoShell>
+      </AcessoShell>
     );
   }
 
@@ -81,11 +84,11 @@ export const AlunoLink: React.FC = () => {
 
   if (acesso.estado === 'ATUALIZAR_CADASTRO') {
     return (
-      <AlunoAcessoShell profissional={acesso.profissional} titulo={`Olá, ${acesso.primeiroNome}`}>
+      <AcessoShell profissional={acesso.profissional} titulo={`Olá, ${acesso.primeiroNome}`}>
         <p className="aluno-acesso-aviso" role="status">
           Fale com seu treinador para atualizar seu cadastro. Falta um telefone válido para liberar seu acesso.
         </p>
-      </AlunoAcessoShell>
+      </AcessoShell>
     );
   }
 
@@ -121,6 +124,7 @@ export const AlunoLink: React.FC = () => {
       const doLink = contas.find((c) => c.aluno.idAluno === acesso.idAluno);
       if (!doLink) {
         setPin('');
+        setRecusas((n) => n + 1);
         setErro('Telefone ou PIN incorretos.');
         return;
       }
@@ -130,6 +134,7 @@ export const AlunoLink: React.FC = () => {
       const status = (err as { response?: { status?: number } })?.response?.status;
       setPin('');
       setPinRepetido('');
+      if (status === 401) setRecusas((n) => n + 1);
       // 409: o PIN foi criado em outro aparelho enquanto esta tela estava aberta
       if (criando && status === 409) setAcesso({ ...acesso, estado: 'LOGIN' });
       setErro(mensagemDeErro(err, criando ? 'Não foi possível criar o PIN.' : 'Telefone ou PIN incorretos.'));
@@ -140,7 +145,7 @@ export const AlunoLink: React.FC = () => {
   };
 
   return (
-    <AlunoAcessoShell
+    <AcessoShell
       profissional={acesso.profissional}
       titulo={`Olá, ${acesso.primeiroNome}`}
       subtitulo={
@@ -161,7 +166,7 @@ export const AlunoLink: React.FC = () => {
           autoFocus
           hint={criando ? 'O mesmo número em que você recebeu este link.' : undefined}
         />
-        <CampoPin id="pin" label={criando ? 'Crie um PIN de 4 dígitos' : 'PIN'} value={pin} onChange={setPin} disabled={enviando} novo={criando} />
+        <CampoPin id="pin" label={criando ? 'Crie um PIN de 4 dígitos' : 'PIN'} value={pin} onChange={setPin} disabled={enviando} novo={criando} tremer={recusas} />
         {criando && (
           <CampoPin id="pin-repetido" label="Repita o PIN" value={pinRepetido} onChange={setPinRepetido} disabled={enviando} novo />
         )}
@@ -177,6 +182,6 @@ export const AlunoLink: React.FC = () => {
           Esqueceu o PIN? Peça ao seu treinador para redefinir.
         </p>
       )}
-    </AlunoAcessoShell>
+    </AcessoShell>
   );
 };

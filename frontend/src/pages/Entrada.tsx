@@ -19,45 +19,47 @@ export const Entrada: React.FC = () => {
   const lembrar = (perfil: Perfil) => localStorage.setItem(PERFIL_KEY, perfil);
 
   return (
-    <div className="entrada animate-in">
+    <div className="entrada">
       <PainelMarca chamadaComo="h1" />
 
       <main className="entrada-escolha">
         <div className="entrada-escolha-conteudo">
           <h2 className="entrada-pergunta">Como você usa o No Game?</h2>
 
-          <Link to="/aluno/entrar" className="entrada-opcao" onClick={() => lembrar('aluno')}>
-            <span className="entrada-opcao-topo">
-              <span className="entrada-opcao-texto">
-                <strong>Sou aluno</strong>
-                <span>Ver meu treino e registrar minhas cargas</span>
+          <nav className="entrada-opcoes" aria-label="Perfil">
+            <Link to="/aluno/entrar" className="entrada-opcao" onClick={() => lembrar('aluno')}>
+              <span className="entrada-opcao-topo">
+                <span className="entrada-opcao-texto">
+                  <strong>Sou aluno</strong>
+                  <span>Ver meu treino e registrar minhas cargas</span>
+                </span>
+                <ArrowRightIcon size={18} aria-hidden="true" />
               </span>
-              <ArrowRightIcon size={18} aria-hidden="true" />
-            </span>
-            {/* O que o aluno faz no app: marca a série feita */}
-            <span className="entrada-amostra entrada-amostra--aluno" aria-hidden="true">
-              <span className="entrada-amostra-num">1</span>
-              <span className="entrada-amostra-dado"><b>40</b> kg</span>
-              <span className="entrada-amostra-dado"><b>10</b> reps</span>
-              <span className="entrada-amostra-check"><CheckIcon size={14} /></span>
-            </span>
-          </Link>
+              {/* O que o aluno faz no app: marca a série feita */}
+              <span className="entrada-amostra entrada-amostra--aluno" aria-hidden="true">
+                <span className="entrada-amostra-num">1</span>
+                <span className="entrada-amostra-dado"><b>40</b> kg</span>
+                <span className="entrada-amostra-dado"><b>10</b> reps</span>
+                <span className="entrada-amostra-check"><CheckIcon size={14} /></span>
+              </span>
+            </Link>
 
-          <Link to="/login" className="entrada-opcao" onClick={() => lembrar('treinador')}>
-            <span className="entrada-opcao-topo">
-              <span className="entrada-opcao-texto">
-                <strong>Sou treinador</strong>
-                <span>Montar fichas e acompanhar meus alunos</span>
+            <Link to="/login" className="entrada-opcao" onClick={() => lembrar('treinador')}>
+              <span className="entrada-opcao-topo">
+                <span className="entrada-opcao-texto">
+                  <strong>Sou treinador</strong>
+                  <span>Montar fichas e acompanhar meus alunos</span>
+                </span>
+                <ArrowRightIcon size={18} aria-hidden="true" />
               </span>
-              <ArrowRightIcon size={18} aria-hidden="true" />
-            </span>
-            {/* O que o treinador faz no app: prescreve o exercício */}
-            <span className="entrada-amostra" aria-hidden="true">
-              <span className="entrada-amostra-nome">Supino reto</span>
-              <span className="entrada-amostra-dado"><b>3</b> × <b>8-12</b></span>
-              <span className="entrada-amostra-descanso"><TimerIcon size={11} />90s</span>
-            </span>
-          </Link>
+              {/* O que o treinador faz no app: prescreve o exercício */}
+              <span className="entrada-amostra" aria-hidden="true">
+                <span className="entrada-amostra-nome">Supino reto</span>
+                <span className="entrada-amostra-dado"><b>3</b> × <b>8-12</b></span>
+                <span className="entrada-amostra-descanso"><TimerIcon size={11} />90s</span>
+              </span>
+            </Link>
+          </nav>
         </div>
       </main>
     </div>

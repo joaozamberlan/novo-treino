@@ -3,26 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   ArrowRightIcon,
-  CheckIcon,
-  ClockIcon,
-  CloudIcon,
   EyeIcon,
   EyeSlashIcon,
-  HardDrivesIcon,
-  PasswordIcon,
-  SlidersHorizontalIcon,
   XIcon,
 } from '@phosphor-icons/react';
 import api from '../services/api';
 import { useFieldValidation } from '../hooks/useFieldValidation';
-import { useTema } from '../hooks/useTema';
-import { useTopoEscuro } from '../hooks/useTopoEscuro';
+import { AcessoShell } from '../components/AcessoShell';
 import { ModalPortal } from '../components/ModalPortal';
 
 export const Login: React.FC = () => {
-  // O formulário segue o tema salvo; o painel de marca é sempre escuro
-  useTema();
-  useTopoEscuro();
   const emailField = useFieldValidation('', (v) => {
     if (!v.trim()) return 'Informe seu e-mail';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'E-mail inválido';
@@ -43,6 +33,8 @@ export const Login: React.FC = () => {
   const [erroRecuperacao, setErroRecuperacao] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Conta as senhas recusadas: cada uma faz o campo tremer uma vez
+  const [recusas, setRecusas] = useState(0);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +58,8 @@ export const Login: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       console.error(err);
+      // Só senha recusada treme; falha de rede não é erro de quem digitou
+      if (err.response?.status === 401) setRecusas((n) => n + 1);
       setError(
         err.response?.data?.message ||
         'Credenciais inválidas. Verifique seu e-mail e senha.'
@@ -112,184 +106,85 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-wrapper">
-      {/* ─── Left Panel: High Impact Brand & Interactive Mockup ─── */}
-      <div className="login-left-panel painel-escuro">
-        <div className="login-brand-header">
-          <div className="login-brand-pill">
-            TREINOS APP • PRESCRIÇÃO PROFISSIONAL
+    <>
+    <AcessoShell
+      titulo="Entrar"
+      subtitulo="Acesse suas fichas, alunos e periodizações."
+      rodape={[
+        <>Ainda não tem conta? <Link to="/register">Criar conta</Link></>,
+        <>É aluno? <Link to="/aluno/entrar">Entrar no meu treino</Link></>,
+      ]}
+    >
+      <form onSubmit={handleSubmit} noValidate className="acesso-form">
+        {error && (
+          <div className="auth-error" role="alert">
+            {error}
           </div>
-          <h1 className="login-hero-title">
-            Estrutura, precisão e velocidade <span>na prescrição de treinos.</span>
-          </h1>
-          <p className="login-hero-desc">
-            Organize periodizações, registre cargas e volumes sem atrito e entregue prescrições limpas e diretas aos seus alunos.
-          </p>
+        )}
 
-          {/* No celular o painel vira uma faixa escura e leva o título da tela */}
-          <div className="login-mobile-head">
-            <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
-            <h2 className="login-form-title">Entrar na plataforma</h2>
-            <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
-          </div>
-        </div>
-
-        {/* Live Interactive Workout Card Mockup */}
-        <div className="login-card-preview">
-          <div className="login-card-preview-head">
-            <div>
-              <div className="login-card-tag">EXERCÍCIO 01 // PEITORAL E OMBRO</div>
-              <div className="login-card-name">Supino Inclinado com Halteres</div>
-            </div>
-            <div className="login-card-pill-muscle">PEITORAL SUPERIOR</div>
-          </div>
-
-          {/* Sets Rows */}
-          <div className="login-mock-row completed">
-            <div className="mock-badge-num">1</div>
-            <div><strong>12 reps</strong></div>
-            <div>30 kg</div>
-            <div><span className="mock-pr-tag">PR +2.5kg</span></div>
-            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckIcon size={14} />
-            </div>
-          </div>
-
-          <div className="login-mock-row completed">
-            <div className="mock-badge-num">2</div>
-            <div><strong>10 reps</strong></div>
-            <div>32 kg</div>
-            <div style={{ color: 'var(--text-1)' }}>RIR 1</div>
-            <div style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckIcon size={14} />
-            </div>
-          </div>
-
-          <div className="login-mock-row" style={{ borderColor: 'var(--accent)', background: 'var(--accent-dim)' }}>
-            <div className="mock-badge-num" style={{ background: 'var(--accent)', color: '#fff' }}>3</div>
-            <div><strong>8-10 reps</strong></div>
-            <div>34 kg</div>
-            <div style={{ color: 'var(--accent-text)', fontWeight: 700 }}>REST-PAUSE</div>
-            <div style={{ color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontWeight: 700 }}>
-              <ClockIcon size={12} />
-              <span>90s</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Left Footer: Clean Technical Highlights (Zero emojis) */}
-        <div className="login-left-footer">
-          <div className="login-tech-feature">
-            <CloudIcon size={14} color="var(--accent)" />
-            <span>Sincronização em Nuvem</span>
-          </div>
-          <div className="login-tech-feature">
-            <HardDrivesIcon size={14} color="var(--accent)" />
-            <span>Armazenamento Offline Nativo</span>
-          </div>
-          <div className="login-tech-feature">
-            <SlidersHorizontalIcon size={14} color="var(--accent)" />
-            <span>Cálculo Dinâmico de Séries e Cargas</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Right Panel: Form Box ─── */}
-      <div className="login-right-panel">
-        <div className="login-form-container">
-          <div className="login-desktop-head">
-            <div className="login-form-eyebrow">ACESSO PROFISSIONAL</div>
-            <h2 className="login-form-title">Entrar na plataforma</h2>
-            <p className="login-form-sub">Informe suas credenciais para gerenciar prescrições.</p>
-          </div>
-
-          {error && (
-            <div className="auth-error" role="alert">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: '1.15rem' }}>
-              <div className="form-label-row" style={{ marginBottom: '0.35rem' }}>
-                <label className="form-label" htmlFor="email">E-mail Profissional</label>
-              </div>
-              <div className="login-input-wrap">
-                <input
-                  id="email"
-                  type="email"
-                  className={`form-input ${emailField.inputClass}`}
-                  placeholder="exemplo@treinador.com"
-                  value={emailField.value}
-                  maxLength={254}
-                  onChange={emailField.onChange}
-                  onBlur={emailField.onBlur}
-                  autoComplete="email"
-                  disabled={loading}
-                />
-              </div>
-              {emailField.error && (
-                <span className="field-error" role="alert">{emailField.error}</span>
-              )}
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-              <div className="form-label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                <label className="form-label" htmlFor="senha" style={{ marginBottom: 0 }}>Senha de Acesso</label>
-                <button
-                  type="button"
-                  onClick={abrirRecuperacao}
-                  className="link-acao"
-                >
-                  Esqueceu a senha?
-                </button>
-              </div>
-              <div className="login-input-wrap">
-                <input
-                  id="senha"
-                  type={showPassword ? 'text' : 'password'}
-                  className={`form-input ${senhaField.inputClass}`}
-                  placeholder="••••••••"
-                  value={senhaField.value}
-                  maxLength={200}
-                  onChange={senhaField.onChange}
-                  onBlur={senhaField.onBlur}
-                  autoComplete="current-password"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  className="login-toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeSlashIcon size={18} /> : <EyeIcon size={18} />}
-                </button>
-              </div>
-              {senhaField.error && (
-                <span className="field-error" role="alert">{senhaField.error}</span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="btn-login-submit"
+        <div className="form-group">
+          <label className="form-label" htmlFor="email">E-mail</label>
+          <div className="login-input-wrap">
+            <input
+              id="email"
+              type="email"
+              className={`form-input ${emailField.inputClass}`}
+              placeholder="voce@exemplo.com"
+              value={emailField.value}
+              maxLength={254}
+              onChange={emailField.onChange}
+              onBlur={emailField.onBlur}
+              autoComplete="email"
+              spellCheck={false}
               disabled={loading}
-            >
-              <span>{loading ? 'Acessando…' : 'Acessar Painel'}</span>
-              <ArrowRightIcon size={16} />
-            </button>
-          </form>
-
-          <div className="login-footer-support">
-            Não possui uma conta? <Link to="/register">Criar conta</Link>
+            />
           </div>
-          <div className="login-footer-support">
-            É aluno? <Link to="/aluno/entrar">Entrar no meu treino</Link>
-          </div>
+          {emailField.error && (
+            <span className="field-error" role="alert">{emailField.error}</span>
+          )}
         </div>
-      </div>
+
+        <div className="form-group">
+          <div className="form-label-row">
+            <label className="form-label" htmlFor="senha">Senha</label>
+            <button type="button" onClick={abrirRecuperacao} className="link-acao">
+              Esqueceu a senha?
+            </button>
+          </div>
+          {/* A cada senha recusada o campo remonta e treme uma vez */}
+          <div key={recusas} className={`login-input-wrap${recusas > 0 ? ' login-input-wrap--recusado' : ''}`}>
+            <input
+              id="senha"
+              type={showPassword ? 'text' : 'password'}
+              className={`form-input ${senhaField.inputClass}`}
+              value={senhaField.value}
+              maxLength={200}
+              onChange={senhaField.onChange}
+              onBlur={senhaField.onBlur}
+              autoComplete="current-password"
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="login-toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeSlashIcon size={18} /> : <EyeIcon size={18} />}
+            </button>
+          </div>
+          {senhaField.error && (
+            <span className="field-error" role="alert">{senhaField.error}</span>
+          )}
+        </div>
+
+        <button type="submit" className="btn-login-submit" disabled={loading}>
+          <span>{loading ? 'Entrando…' : 'Entrar'}</span>
+          <ArrowRightIcon size={16} aria-hidden="true" />
+        </button>
+      </form>
+    </AcessoShell>
 
       {/* ─── Modal: Esqueceu a Senha ─── */}
       {showForgotModal && (
@@ -301,49 +196,32 @@ export const Login: React.FC = () => {
           aria-modal="true"
           aria-labelledby="modalRecuperarSenhaTitulo"
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+          <div className="modal-content recuperar" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
-                  background: 'var(--accent-soft)',
-                  border: '1px solid var(--accent-border)',
-                  color: 'var(--accent-text)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <PasswordIcon size={20} aria-hidden="true" />
-                </div>
-                <h3 id="modalRecuperarSenhaTitulo" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Recuperação de Senha</h3>
-              </div>
+              <h2 id="modalRecuperarSenhaTitulo">Recuperar senha</h2>
               <button
                 type="button"
                 className="modal-close"
                 onClick={() => setShowForgotModal(false)}
-                title="Fechar"
-                aria-label="Fechar modal"
+                aria-label="Fechar recuperação de senha"
               >
                 <XIcon size={18} />
               </button>
             </div>
 
             {recuperacaoPorEmail === null && (
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-1)' }} role="status">Carregando…</p>
+              <p className="recuperar-texto" role="status">Carregando…</p>
             )}
 
             {recuperacaoPorEmail === true && avisoLinkEnviado && (
               <>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }} role="status">
+                <div className="recuperar-texto" role="status">
                   <p>{avisoLinkEnviado}</p>
                   <p>O link vale por 60 minutos. Se o e-mail não chegar em alguns minutos, confira a caixa de spam.</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
-                    Entendido
+                    Voltar ao login
                   </button>
                 </div>
               </>
@@ -351,7 +229,7 @@ export const Login: React.FC = () => {
 
             {recuperacaoPorEmail === true && !avisoLinkEnviado && (
               <form onSubmit={handleEnviarLink} noValidate>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="recuperar-texto">
                   <p>
                     Informe o e-mail da sua conta. Enviaremos um link para você criar uma senha nova.
                   </p>
@@ -361,11 +239,12 @@ export const Login: React.FC = () => {
                       id="emailRecuperacao"
                       type="email"
                       className={`form-input ${erroRecuperacao ? 'form-input--error' : ''}`}
-                      placeholder="exemplo@treinador.com"
+                      placeholder="voce@exemplo.com"
                       value={emailRecuperacao}
                       maxLength={254}
                       onChange={(e) => setEmailRecuperacao(e.target.value)}
                       autoComplete="email"
+                      spellCheck={false}
                       disabled={enviandoLink}
                     />
                     {erroRecuperacao && (
@@ -386,31 +265,20 @@ export const Login: React.FC = () => {
 
             {recuperacaoPorEmail === false && (
               <>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-1)', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="recuperar-texto">
                   <p>
-                    Para sua segurança, a redefinição de acesso é realizada mediante validação da equipe de administração.
+                    Por segurança, quem redefine a senha é o administrador do sistema.
                   </p>
-
-                  <div style={{
-                    backgroundColor: 'var(--bg-2)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-m)',
-                    padding: '0.85rem 1rem',
-                  }}>
-                    <div style={{ fontWeight: 700, color: 'var(--text-0)', marginBottom: '0.35rem' }}>
-                      Como recuperar seu acesso:
-                    </div>
-                    <ol style={{ paddingLeft: '1.2rem', margin: 0, fontSize: '0.8125rem', color: 'var(--text-1)', lineHeight: '1.5' }}>
-                      <li>Solicite a redefinição ao <strong>Administrador</strong> do sistema.</li>
-                      <li>O administrador gerará uma <strong>senha temporária</strong> para sua conta.</li>
-                      <li>Após entrar na plataforma, você poderá cadastrar sua nova senha em <strong>Configurações &gt; Segurança</strong>.</li>
-                    </ol>
-                  </div>
+                  <ol className="recuperar-passos">
+                    <li>Peça a redefinição ao <strong>administrador</strong>.</li>
+                    <li>Ele gera uma <strong>senha temporária</strong> para a sua conta.</li>
+                    <li>Entre com ela e crie a senha nova em <strong>Configurações, Segurança</strong>.</li>
+                  </ol>
                 </div>
 
                 <div className="modal-footer">
                   <button type="button" className="btn btn-primary" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>
-                    Entendido
+                    Voltar ao login
                   </button>
                 </div>
               </>
@@ -419,6 +287,6 @@ export const Login: React.FC = () => {
         </div>
         </ModalPortal>
       )}
-    </div>
+    </>
   );
 };
