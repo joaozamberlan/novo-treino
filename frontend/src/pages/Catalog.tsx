@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import type { GrupoMuscular, Exercicio, TecnicaTreino } from '../types/treino';
 import type { Instrucao } from '../components/InstrucaoAutocomplete';
 import { ModalPortal } from '../components/ModalPortal';
+import { fecharSoPeloTeclado } from '../utils/modal';
 import { Seletor } from '../components/Seletor';
 
 export const Catalog: React.FC = () => {
@@ -817,7 +818,7 @@ export const Catalog: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeExModal}
+            onClick={fecharSoPeloTeclado(closeExModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalExercicioTitle"
@@ -975,7 +976,7 @@ export const Catalog: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeTecModal}
+            onClick={fecharSoPeloTeclado(closeTecModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalTecnicaTitle"
@@ -1056,7 +1057,7 @@ export const Catalog: React.FC = () => {
         <ModalPortal>
           <div
             className="modal-backdrop"
-            onClick={closeInsModal}
+            onClick={fecharSoPeloTeclado(closeInsModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalInstrucaoTitle"
@@ -1119,7 +1120,7 @@ export const Catalog: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeGrupoTabModal}
+            onClick={fecharSoPeloTeclado(closeGrupoTabModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalGrupoTitle"

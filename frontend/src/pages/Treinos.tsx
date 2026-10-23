@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useConfirmar } from '../hooks/useConfirmar';
 import { PainelProgresso } from '../components/Progresso';
 import type { Progresso } from '../utils/progresso';
@@ -34,6 +34,7 @@ import { memoryCache } from '../services/cache';
 import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAutocomplete';
 import { CaixaMarcar } from '../components/CaixaMarcar';
 import { Seletor } from '../components/Seletor';
+import { CampoBusca } from '../components/CampoBusca';
 import { mapaOcorrencias, nomesDasFichas, outrasOcorrencias } from '../utils/repetidos';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
@@ -43,6 +44,7 @@ import { linkWhatsApp } from '../utils/whatsapp';
 import { ActionMenu } from '../components/ActionMenu';
 import type { GrupoMuscular, Exercicio, TecnicaTreino, PrescribedExercise, FichaTreino, Protocolo } from '../types/treino';
 import { ModalPortal } from '../components/ModalPortal';
+import { fecharSoPeloTeclado } from '../utils/modal';
 import { CardioCampos } from '../components/Cardio';
 import { cardioDaFicha, parseMinutosCardio } from '../utils/cardio';
 
@@ -215,6 +217,9 @@ export const Treinos: React.FC = () => {
   const [exReps, setExReps] = useState('10');
   const [exDescanso, setExDescanso] = useState('60');
   const [exObs, setExObs] = useState('');
+  // "Adicionar e continuar": salva e deixa o modal aberto para o próximo exercício
+  const continuarRef = useRef(false);
+  const formExercicioRef = useRef<HTMLFormElement>(null);
 
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -614,6 +619,8 @@ export const Treinos: React.FC = () => {
   // Prescribe Exercise operations com Optimistic UI instantâneo
   const handlePrescribeExercise = async (e: React.FormEvent) => {
     e.preventDefault();
+    const continuar = continuarRef.current;
+    continuarRef.current = false;
     if (!activeTabId || !activeProtocol) return;
 
     const exObj = catalogExercicios.find(e => e.idExercicio === Number(selectedExercicio));
@@ -733,8 +740,20 @@ export const Treinos: React.FC = () => {
         };
       });
 
-      closeExerciseModal();
-      toast.success('Exercício adicionado!');
+      if (continuar) {
+        // Séries, reps, descanso, técnica e grupo costumam se repetir na mesma
+        // ficha; só o exercício e as instruções recomeçam
+        setSelectedExercicio(0);
+        setExObs('');
+        toast.success(`${exObj.nome} adicionado`);
+        // Foco na busca só com mouse/teclado: no celular abriria o teclado por cima
+        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+          formExercicioRef.current?.querySelector<HTMLInputElement>('.campo-busca input')?.focus();
+        }
+      } else {
+        closeExerciseModal();
+        toast.success('Exercício adicionado!');
+      }
 
       // Salva no backend em background e sincroniza o ID real
       try {
@@ -925,6 +944,15 @@ export const Treinos: React.FC = () => {
     const fichas = nomesDasFichas(outras, idTreino);
     if (fichas) return `também em ${fichas}`;
     return `${outras.length + 1}× nesta ficha`;
+  };
+  // Detalhe das opções do modal de exercício: "em Upper, Pull" para outras
+  // fichas; "já nesta ficha" para a aberta
+  const descreverOcorrencias = (idExercicio: number) => {
+    const ja = outrasOcorrencias(ocorrencias, idExercicio, editingExercisePrescriptionId);
+    const outras = activeTabId ? nomesDasFichas(ja, activeTabId) : '';
+    const nestaFicha = ja.some(o => o.idTreino === activeTabId);
+    const partes = [outras && `em ${outras}`, nestaFicha && 'já nesta ficha'].filter(Boolean);
+    return partes.join(' · ') || undefined;
   };
 
   if (loading && !aluno) {
@@ -1318,7 +1346,7 @@ export const Treinos: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeTreinoModal}
+            onClick={fecharSoPeloTeclado(closeTreinoModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalTreinoTitle"
@@ -1409,7 +1437,7 @@ export const Treinos: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeEditFichaModal}
+            onClick={fecharSoPeloTeclado(closeEditFichaModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalEditFichaTitle"
@@ -1516,7 +1544,7 @@ export const Treinos: React.FC = () => {
         <ModalPortal>
           <div 
             className="modal-backdrop" 
-            onClick={closeExerciseModal}
+            onClick={fecharSoPeloTeclado(closeExerciseModal)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalExercisePrescriptionTitle"
@@ -1549,7 +1577,22 @@ export const Treinos: React.FC = () => {
                 </button>
               </div>
 
-              <form onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <form ref={formExercicioRef} onSubmit={handlePrescribeExercise} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <CampoBusca
+                  label="Buscar exercício"
+                  placeholder="Ex: declinado, búlgaro, remada"
+                  itens={catalogExercicios}
+                  chave={(ex) => ex.idExercicio}
+                  texto={(ex) => ex.nome}
+                  buscarTambemEm={(ex) => ex.grupoMuscular?.nome ?? ''}
+                  destaque={(ex) => descreverOcorrencias(ex.idExercicio)}
+                  apoio={(ex) => ex.grupoMuscular?.nome}
+                  onEscolher={(ex) => {
+                    setSelectedGrupo(ex.idGrupoMuscular);
+                    setSelectedExercicio(ex.idExercicio);
+                  }}
+                />
+
                 <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
                   <div className="form-group">
                     <Seletor
@@ -1570,14 +1613,7 @@ export const Treinos: React.FC = () => {
                       valor={selectedExercicio}
                       opcoes={catalogExercicios
                         .filter(ex => ex.idGrupoMuscular === selectedGrupo)
-                        .map(ex => {
-                          const ja = outrasOcorrencias(ocorrencias, ex.idExercicio, editingExercisePrescriptionId);
-                          // "em Upper, Pull" para outras fichas; "já nesta ficha" para a aberta
-                          const outras = activeTabId ? nomesDasFichas(ja, activeTabId) : '';
-                          const nestaFicha = ja.some(o => o.idTreino === activeTabId);
-                          const partes = [outras && `em ${outras}`, nestaFicha && 'já nesta ficha'].filter(Boolean);
-                          return { valor: ex.idExercicio, texto: ex.nome, detalhe: partes.join(' · ') || undefined };
-                        })}
+                        .map(ex => ({ valor: ex.idExercicio, texto: ex.nome, detalhe: descreverOcorrencias(ex.idExercicio) }))}
                       onChange={setSelectedExercicio}
                       placeholder={!selectedGrupo ? 'Escolha o grupo primeiro' : 'Selecione o exercício...'}
                       desabilitado={!selectedGrupo}
@@ -1653,10 +1689,29 @@ export const Treinos: React.FC = () => {
                   />
                 </div>
 
-                <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
+                <div className="modal-footer modal-footer--tres" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
                   <button type="button" className="btn btn-secondary" onClick={closeExerciseModal}>
-                    Cancelar
+                    {editingExercisePrescriptionId ? 'Cancelar' : 'Fechar'}
                   </button>
+                  {!editingExercisePrescriptionId && (
+                    // type="button" e requestSubmit: o Enter num campo continua
+                    // acionando o botão principal, que vem depois no DOM
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        // O submit roda na hora e lê a marca antes de qualquer
+                        // await; se a validação barrar o envio, ela não sobra
+                        // para o próximo Enter
+                        continuarRef.current = true;
+                        formExercicioRef.current?.requestSubmit();
+                        continuarRef.current = false;
+                      }}
+                    >
+                      <PlusIcon size={16} />
+                      <span>Adicionar e continuar</span>
+                    </button>
+                  )}
                   <button type="submit" className="btn btn-primary">
                     <FloppyDiskIcon size={16} />
                     <span>{editingExercisePrescriptionId ? 'Atualizar Prescrição' : 'Adicionar à Ficha'}</span>

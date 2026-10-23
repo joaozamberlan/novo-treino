@@ -3331,6 +3331,23 @@ body.light-theme .mobile-tab-bar {
   border-top: 1px solid var(--border);
 }
 
+/* Três ações (Fechar, Adicionar e continuar, Adicionar): no celular a
+   principal ocupa a linha de cima e as outras duas dividem a de baixo */
+@media (max-width: 640px) {
+  .modal-footer--tres {
+    flex-wrap: wrap;
+  }
+
+  .modal-footer--tres > .btn {
+    flex: 1 1 0;
+  }
+
+  .modal-footer--tres > .btn-primary {
+    flex-basis: 100%;
+    order: -1;
+  }
+}
+
 /* Com um modal aberto, o fundo não rola (ModalPortal) */
 body.modal-aberto {
   overflow: hidden;
@@ -6840,4 +6857,44 @@ body.modal-aberto {
   font-weight: 600;
   color: var(--accent-text);
   white-space: nowrap;
+}
+
+/* ── Campo de busca dos modais (exercício, aluno) ──
+   Campo com lupa; a lista reaproveita o popover do seletor e mostra o texto
+   de apoio (ex.: o grupo muscular) à direita. */
+.campo-busca-campo {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.campo-busca-campo > svg {
+  position: absolute;
+  left: 0.7rem;
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+.campo-busca-campo .form-input {
+  padding-left: 2.1rem;
+}
+
+.campo-busca-nome {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campo-busca-apoio {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.campo-busca-vazio {
+  padding: 0.75rem 0.9rem;
+  font-size: 0.8125rem;
+  color: var(--text-1);
 }
