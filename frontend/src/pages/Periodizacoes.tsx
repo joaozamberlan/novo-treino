@@ -267,7 +267,7 @@ export const Periodizacoes: React.FC = () => {
   }, [idAluno]);
 
   useEffect(() => {
-    document.title = aluno ? `Periodizações - ${aluno.nome} | TreinosApp` : 'Periodizações | TreinosApp';
+    document.title = aluno ? `Periodizações - ${aluno.nome} | No Game` : 'Periodizações | No Game';
   }, [aluno]);
 
   const handleSaveProtocolo = async (e: React.FormEvent) => {

@@ -12,7 +12,7 @@ export const Entrada: React.FC = () => {
   useTema();
 
   useEffect(() => {
-    document.title = 'TreinosApp';
+    document.title = 'No Game';
   }, []);
 
   // A escolha fica guardada para a raiz ir direto ao login certo da próxima vez
@@ -24,7 +24,7 @@ export const Entrada: React.FC = () => {
 
       <main className="entrada-escolha">
         <div className="entrada-escolha-conteudo">
-          <h2 className="entrada-pergunta">Como você usa o TreinosApp?</h2>
+          <h2 className="entrada-pergunta">Como você usa o No Game?</h2>
 
           <Link to="/aluno/entrar" className="entrada-opcao" onClick={() => lembrar('aluno')}>
             <span className="entrada-opcao-topo">

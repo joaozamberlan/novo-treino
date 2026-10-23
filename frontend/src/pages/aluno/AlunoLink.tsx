@@ -35,7 +35,7 @@ export const AlunoLink: React.FC = () => {
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    document.title = 'Meu treino | TreinosApp';
+    document.title = 'Meu treino | No Game';
     let cancelado = false;
     alunoApi.get(`/aluno/auth/acesso/${token}`)
       .then((res) => { if (!cancelado) setAcesso(res.data); })

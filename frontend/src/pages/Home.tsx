@@ -37,7 +37,7 @@ export const Home: React.FC = () => {
   const firstName = user?.nome?.split(' ')[0] ?? user?.nome ?? 'Treinador';
 
   useEffect(() => {
-    document.title = 'Painel Operacional | TreinosApp';
+    document.title = 'Painel Operacional | No Game';
 
     // Fetch students in background
     api.get('/alunos')

@@ -641,7 +641,7 @@ export const AreaAluno: React.FC = () => {
   }, [idProtocoloParam, tentativa, setSearchParams]);
 
   useEffect(() => {
-    document.title = perfil ? `Treino: ${perfil.aluno.nome} | TreinosApp` : 'Meu treino | TreinosApp';
+    document.title = perfil ? `Treino: ${perfil.aluno.nome} | No Game` : 'Meu treino | No Game';
   }, [perfil]);
 
   // Countdown timer logic

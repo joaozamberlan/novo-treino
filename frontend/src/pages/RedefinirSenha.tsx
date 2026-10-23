@@ -34,7 +34,7 @@ export const RedefinirSenha: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Nova senha | TreinosApp';
+    document.title = 'Nova senha | No Game';
     // O token não fica no histórico do navegador nem em capturas de tela
     window.history.replaceState(null, '', window.location.pathname);
   }, []);

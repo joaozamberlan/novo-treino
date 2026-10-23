@@ -19,7 +19,7 @@ export const PainelMarca: React.FC<Props> = ({ chamadaComo: Chamada = 'p', child
 
   return (
   <section className="entrada-marca painel-escuro">
-    <BrandLogo size={24} text="Treinos" className="entrada-logo" />
+    <BrandLogo size={24} text="No Game" className="entrada-logo" />
 
     {children}
 

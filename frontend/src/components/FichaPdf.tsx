@@ -284,7 +284,7 @@ export function FichaPdf({
         <footer className="print-footer">
           <div className="print-footer-left">
             <div className="print-footer-brand">
-              <strong>TreinosApp</strong> • Prescrição Técnica Digital
+              <strong>No Game</strong> • Prescrição Técnica Digital
             </div>
             <div className="print-footer-legal">
               Uso exclusivo de <strong>{aluno.nome}</strong> • Treinador: <strong>Prof. {profissional?.nome || 'Personal Trainer'}</strong>{profissional?.cref ? ` (CREF: ${profissional.cref})` : ''}

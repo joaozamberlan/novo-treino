@@ -21,7 +21,7 @@ export const AlunoEntrar: React.FC = () => {
   const [contas, setContas] = useState<ContaComToken[] | null>(null);
 
   useEffect(() => {
-    document.title = 'Entrar | TreinosApp';
+    document.title = 'Entrar | No Game';
   }, []);
 
   // Erro do servidor limpa o PIN; quando o campo volta a ficar ativo, o foco vai para ele

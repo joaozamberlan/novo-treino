@@ -397,9 +397,9 @@ export const Treinos: React.FC = () => {
 
   useEffect(() => {
     if (aluno) {
-      document.title = `Treinos - ${aluno.nome} | TreinosApp`;
+      document.title = `Treinos - ${aluno.nome} | No Game`;
     } else {
-      document.title = 'Prescrever Treino | TreinosApp';
+      document.title = 'Prescrever Treino | No Game';
     }
   }, [aluno]);
 

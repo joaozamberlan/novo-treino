@@ -11,7 +11,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 22, 
   showText = true, 
   className = '',
-  text = 'Treinos'
+  text = 'No Game'
 }) => {
   return (
     <div 

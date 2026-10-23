@@ -166,7 +166,7 @@ export const Catalog: React.FC = () => {
   };
 
   useEffect(() => {
-    document.title = 'Biblioteca | TreinosApp';
+    document.title = 'Biblioteca | No Game';
     loadData();
   }, []);
 
