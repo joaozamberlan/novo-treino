@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowRightIcon } from '@phosphor-icons/react';
-import { AlunoAcessoShell, CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
+import { AcessoShell } from '../../components/AcessoShell';
+import { CampoPin, CampoTelefone } from '../../components/AlunoAcesso';
 import { mensagemDeErro, telefoneValido } from '../../utils/alunoAcesso';
 import { useAlunoAuth, type ContaComToken } from '../../contexts/AlunoAuthContext';
 import { PERFIL_KEY } from '../../constants/storageKeys';
@@ -17,6 +18,8 @@ export const AlunoEntrar: React.FC = () => {
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [esqueci, setEsqueci] = useState(false);
+  // Conta as recusas do servidor: cada uma faz as casas do PIN tremerem uma vez
+  const [recusas, setRecusas] = useState(0);
   // Mesmo telefone e PIN com mais de um treinador: o aluno escolhe qual abrir
   const [contas, setContas] = useState<ContaComToken[] | null>(null);
 
@@ -59,6 +62,8 @@ export const AlunoEntrar: React.FC = () => {
       else setContas(encontradas);
     } catch (err) {
       setPin('');
+      // Só PIN recusado treme; falha de rede não é erro de quem digitou
+      if ((err as { response?: { status?: number } })?.response?.status === 401) setRecusas((n) => n + 1);
       setErro(mensagemDeErro(err, 'Telefone ou PIN incorretos.'));
       focarPin.current = true;
     } finally {
@@ -68,7 +73,7 @@ export const AlunoEntrar: React.FC = () => {
 
   if (contas) {
     return (
-      <AlunoAcessoShell titulo="Qual treino você quer abrir?" subtitulo="Seu telefone está cadastrado com mais de um treinador.">
+      <AcessoShell titulo="Qual treino você quer abrir?" subtitulo="Seu telefone está cadastrado com mais de um treinador.">
         <div className="perfil-opcoes">
           {contas.map((c) => (
             <button key={c.aluno.idAluno} type="button" className="perfil-opcao" onClick={() => abrir(c)}>
@@ -85,22 +90,22 @@ export const AlunoEntrar: React.FC = () => {
             </button>
           ))}
         </div>
-      </AlunoAcessoShell>
+      </AcessoShell>
     );
   }
 
   return (
-    <AlunoAcessoShell
+    <AcessoShell
       titulo="Entrar no meu treino"
       subtitulo="Use o telefone cadastrado pelo seu treinador e o PIN que você criou."
-      rodape={
+      rodape={[
         <>
           É treinador?{' '}
           <Link to="/login" onClick={() => localStorage.setItem(PERFIL_KEY, 'treinador')}>
             Entrar na área do treinador
           </Link>
-        </>
-      }
+        </>,
+      ]}
     >
       <form onSubmit={handleSubmit} noValidate className="aluno-acesso-form">
         {erro && <div className="auth-error" role="alert">{erro}</div>}
@@ -112,6 +117,7 @@ export const AlunoEntrar: React.FC = () => {
           value={pin}
           onChange={setPin}
           disabled={enviando}
+          tremer={recusas}
           acao={
             <button type="button" className="aluno-acesso-link" onClick={() => setEsqueci((v) => !v)} aria-expanded={esqueci}>
               Esqueci meu PIN
@@ -133,6 +139,6 @@ export const AlunoEntrar: React.FC = () => {
       <p className="aluno-acesso-nota">
         Primeiro acesso? Abra o link que seu treinador enviou.
       </p>
-    </AlunoAcessoShell>
+    </AcessoShell>
   );
 };
