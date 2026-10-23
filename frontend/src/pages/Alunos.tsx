@@ -73,7 +73,7 @@ export const Alunos: React.FC = () => {
   };
 
   useEffect(() => {
-    document.title = 'Alunos | TreinosApp';
+    document.title = 'Alunos | No Game';
     fetchAlunos();
   }, []);
 

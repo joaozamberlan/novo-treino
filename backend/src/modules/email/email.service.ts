@@ -9,7 +9,7 @@ import {
 } from './email.templates';
 
 const RESEND_URL = 'https://api.resend.com/emails';
-const NOME_APP_PADRAO = 'TreinosApp';
+const NOME_APP_PADRAO = 'No Game';
 
 // Envio de e-mails transacionais pela API HTTP do Resend (o Railway bloqueia
 // SMTP de saída em alguns planos).
@@ -28,7 +28,7 @@ export class EmailService {
     return this.config.get<string>('RESEND_API_KEY')?.trim() || undefined;
   }
 
-  // Ex.: "TreinosApp <nao-responda@seudominio.com>"
+  // Ex.: "No Game <nao-responda@seudominio.com>"
   private get remetente(): string | undefined {
     return this.config.get<string>('EMAIL_FROM')?.trim() || undefined;
   }

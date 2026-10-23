@@ -48,7 +48,7 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Entrar | TreinosApp';
+    document.title = 'Entrar | No Game';
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -43,6 +44,14 @@ export class AdminController {
       dto.ativo,
       admin.idProfissional,
     );
+  }
+
+  @Delete('profissionais/:id')
+  async recusarCadastro(
+    @GetProfissional() admin: Profissional,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.profissionaisService.recusarCadastro(id, admin.idProfissional);
   }
 
   @Patch('profissionais/:id/role')

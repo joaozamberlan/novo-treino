@@ -53,7 +53,7 @@ export const Register: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Cadastrar | TreinosApp';
+    document.title = 'Cadastrar | No Game';
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

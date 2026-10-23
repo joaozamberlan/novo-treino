@@ -153,7 +153,7 @@ export const Layout: React.FC = () => {
               }}>
                 <DeviceMobileIcon size={24} />
               </div>
-              <h3 style={{ marginBottom: '0.5rem' }}>Instalar TreinosApp</h3>
+              <h3 style={{ marginBottom: '0.5rem' }}>Instalar No Game</h3>
               <p style={{ color: 'var(--text-1)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
                 Toque em <strong>⎋ Compartilhar</strong> na barra do Safari e depois em{' '}
                 <strong>"Adicionar à Tela de Início"</strong>
@@ -185,8 +185,8 @@ export const Layout: React.FC = () => {
           >
             <ListIcon size={18} aria-hidden="true" />
           </button>
-          <NavLink to="/" className="topbar-brand" aria-label="TreinosApp - Página Inicial">
-            <BrandLogo size={22} text="Treinos" />
+          <NavLink to="/" className="topbar-brand" aria-label="No Game - Página Inicial">
+            <BrandLogo size={22} text="No Game" />
           </NavLink>
         </div>
 

@@ -128,6 +128,36 @@ export class ProfissionaisService {
     return atualizado;
   }
 
+  // Recusar apaga o cadastro (e o catálogo padrão criado no registro), o que
+  // libera o e-mail para um novo pedido. Só vale para conta inativa e sem
+  // alunos/protocolos: uma conta suspensa com dados não some por aqui.
+  async recusarCadastro(idProfissional: number, idAdmin: number) {
+    this.impedirAlteracaoPropria(idProfissional, idAdmin);
+    const exists = await this.prisma.profissional.findUnique({
+      where: { idProfissional },
+      select: {
+        ativo: true,
+        _count: { select: { alunos: true, protocolos: true } },
+      },
+    });
+    if (!exists) {
+      throw new NotFoundException('Profissional não encontrado');
+    }
+    if (exists.ativo) {
+      throw new BadRequestException(
+        'Só é possível recusar um cadastro pendente.',
+      );
+    }
+    if (exists._count.alunos > 0 || exists._count.protocolos > 0) {
+      throw new BadRequestException(
+        'Esta conta já tem alunos ou treinos e não pode ser recusada.',
+      );
+    }
+
+    await this.prisma.profissional.delete({ where: { idProfissional } });
+    return { message: 'Cadastro recusado' };
+  }
+
   async updateProfessionalRole(
     idProfissional: number,
     role: string,

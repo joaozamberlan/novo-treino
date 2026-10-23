@@ -83,7 +83,7 @@ export const Configuracoes: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    document.title = 'Configurações | TreinosApp';
+    document.title = 'Configurações | No Game';
     if (user) {
       setNome(user.nome);
       setCref(user.cref);

@@ -165,7 +165,7 @@ export const Dashboard: React.FC = () => {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div>
         <h1>Olá, {user?.nome}</h1>
-        <p>Bem-vindo ao seu painel administrativo do TreinosApp.</p>
+        <p>Bem-vindo ao seu painel administrativo do No Game.</p>
       </div>
 
       {/* Estatísticas Rápidas */}

@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
         // Um manifest só, para treinador e aluno. O app instalado abre sempre na
         // raiz; quem decide a tela é o RequireAuth (App.tsx), pela sessão.
         manifest: {
-          name: 'TreinosApp',
-          short_name: 'TreinosApp',
+          name: 'No Game',
+          short_name: 'No Game',
           description: 'Prescrição e acompanhamento de treinos com seu personal',
           theme_color: '#0d0d0d',
           background_color: '#0d0d0d',

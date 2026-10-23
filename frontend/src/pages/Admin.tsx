@@ -66,7 +66,7 @@ const AdminPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    document.title = 'Painel Admin | TreinosApp';
+    document.title = 'Painel Admin | No Game';
     loadProfessionals();
   }, []);
 
@@ -97,6 +97,31 @@ const AdminPanel: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || 'Erro ao atualizar status do profissional.');
+    }
+  };
+
+  const handleRecusar = async (idProfissional: number, nome: string) => {
+    if (
+      !(await confirmar({
+        titulo: `Recusar o cadastro de ${nome}?`,
+        mensagem: 'O cadastro é apagado e o e-mail fica livre para um novo pedido.',
+        confirmar: 'Recusar',
+        perigo: true,
+      }))
+    ) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+
+    try {
+      await api.delete(`/admin/profissionais/${idProfissional}`);
+      setSuccess('Cadastro recusado.');
+      loadProfessionals();
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Erro ao recusar o cadastro.');
     }
   };
 
@@ -207,7 +232,7 @@ const AdminPanel: React.FC = () => {
           <ShieldWarningIcon size={32} style={{ color: 'var(--accent-text)' }} />
           Painel do SuperAdmin
         </h1>
-        <p>Aprove novas contas, gerencie acessos e defina cargos de SuperAdmin no TreinosApp.</p>
+        <p>Aprove novas contas, gerencie acessos e defina cargos de SuperAdmin do No Game.</p>
       </div>
 
       {/* Alertas */}
@@ -356,6 +381,15 @@ const AdminPanel: React.FC = () => {
                           >
                             {prof.ativo ? 'Suspender' : 'Aprovar'}
                           </button>
+
+                          {!prof.ativo && (
+                            <button
+                              onClick={() => handleRecusar(prof.idProfissional, prof.nome)}
+                              className="btn btn-danger btn-sm"
+                            >
+                              Recusar
+                            </button>
+                          )}
 
                           <button
                             onClick={() => handleToggleRole(prof.idProfissional, prof.role, prof.nome)}
