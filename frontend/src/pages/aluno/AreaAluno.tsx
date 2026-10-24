@@ -38,7 +38,6 @@ import { BrandLogo } from '../../components/BrandLogo';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { useTema } from '../../hooks/useTema';
 import { ModalPortal } from '../../components/ModalPortal';
-import { ActionMenu, type ActionMenuItem } from '../../components/ActionMenu';
 import { mensagemDeErro } from '../../utils/alunoAcesso';
 import { useAlunoAuth } from '../../contexts/AlunoAuthContext';
 import { CardioCabecalho, CardioRegistro } from '../../components/Cardio';
@@ -93,6 +92,9 @@ interface ExerciseSetEntry {
   kg: string;
   reps: string;
   completed: boolean;
+  // Carga copiada da série de cima, ainda não confirmada pelo aluno: continua
+  // acompanhando a de cima até ele digitar nela
+  kgSugerido?: boolean;
 }
 
 // Aeróbico da sessão aberta. minutos null = o aluno ainda não mexeu no campo,
@@ -490,11 +492,17 @@ export const AreaAluno: React.FC = () => {
     const sets = currentSets(idTreinoExercicio, allSets);
     if (!sets[setIndex]) return;
     sets[setIndex].kg = newKg;
-    // Auto-propaga a carga para séries posteriores vazias não concluídas
+    // Digitar na série confirma a carga dela: deixa de ser sugestão
+    sets[setIndex].kgSugerido = false;
+    // Repete a carga nas séries de baixo que estão vazias ou só com a
+    // sugestão. A cada tecla: ao digitar 80, a de baixo passa por 8 e chega a
+    // 80 (antes ela ficava presa no 8, porque só copiava se vazia). Para na
+    // primeira série concluída ou digitada pelo aluno: dali para baixo, quem
+    // manda é ela.
     for (let j = setIndex + 1; j < sets.length; j++) {
-      if (!sets[j].kg && !sets[j].completed) {
-        sets[j].kg = newKg;
-      }
+      if (sets[j].completed || (sets[j].kg && !sets[j].kgSugerido)) break;
+      sets[j].kg = newKg;
+      sets[j].kgSugerido = newKg !== '';
     }
     commitSets(idTreinoExercicio, sets);
     scheduleSyncSets(idTreinoExercicio, sets);
@@ -578,6 +586,8 @@ export const AreaAluno: React.FC = () => {
           ...s,
           kg: found.cargaKg !== null && found.cargaKg !== undefined ? String(found.cargaKg) : s.kg,
           reps: found.repeticoes !== null && found.repeticoes !== undefined ? String(found.repeticoes) : s.reps,
+          // Repetir as cargas é escolha do aluno: o valor vale como confirmado
+          kgSugerido: found.cargaKg !== null && found.cargaKg !== undefined ? false : s.kgSugerido,
         };
       }
       return s;
@@ -593,7 +603,9 @@ export const AreaAluno: React.FC = () => {
       setNumber: sets.length + 1,
       kg: last ? last.kg : '',
       reps: last ? last.reps : '10',
-      completed: false
+      completed: false,
+      // Cópia da última série: sugestão até o aluno digitar
+      kgSugerido: !!last?.kg,
     });
     commitSets(item.idTreinoExercicio, sets);
     syncSetsToServer(item.idTreinoExercicio, sets);
@@ -978,22 +990,6 @@ export const AreaAluno: React.FC = () => {
   };
 
   const instalarNoIos = isIosDevice() && !isStandalone();
-  const menu: ActionMenuItem[] = [
-    ...(canInstall || instalarNoIos
-      ? [{
-          label: 'Instalar app',
-          icon: <DownloadSimpleIcon size={14} aria-hidden="true" />,
-          onClick: () => (canInstall ? install() : setShowIosHint(true)),
-        }]
-      : []),
-    {
-      label: theme === 'dark' ? 'Modo claro' : 'Modo escuro',
-      icon: theme === 'dark' ? <SunIcon size={14} aria-hidden="true" /> : <MoonIcon size={14} aria-hidden="true" />,
-      onClick: toggleTheme,
-    },
-    { label: 'Sair', icon: <SignOutIcon size={14} aria-hidden="true" />, onClick: sair, danger: true },
-  ];
-
   const activeFicha = protocolo?.treinos.find(t => t.idTreino === activeTabId);
   const sortedTreinos = protocolo?.treinos ? [...protocolo.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const sortedExercicios = activeFicha?.exercicios ? [...activeFicha.exercicios].sort((a, b) => a.ordem - b.ordem) : [];
@@ -1090,7 +1086,6 @@ export const AreaAluno: React.FC = () => {
                 <InstagramIcon width={16} height={16} aria-hidden="true" />
               </a>
             )}
-            <ActionMenu label="Mais opções" items={menu} />
           </div>
         </div>
       </header>
@@ -1438,7 +1433,7 @@ export const AreaAluno: React.FC = () => {
                                     syncSetsToServer(item.idTreinoExercicio, currentSets);
                                   }}
                                   placeholder={prevSet?.cargaKg !== null && prevSet?.cargaKg !== undefined ? String(prevSet.cargaKg) : "0"}
-                                  className="set-input"
+                                  className={`set-input${set.kgSugerido ? ' set-input--sugerido' : ''}`}
                                   aria-label={`Série ${set.setNumber} carga em kg`}
                                 />
                                 <span className="set-input-unit">kg</span>
@@ -1650,6 +1645,35 @@ export const AreaAluno: React.FC = () => {
             Nenhum treino ativo disponível. Fale com seu treinador.
           </div>
         )}
+
+        {/* Ajustes e saída à vista, em linhas com texto, no fim da página.
+            Antes ficavam escondidos num menu de três pontos no topo. */}
+        <section className="aluno-conta" aria-labelledby="aluno-conta-titulo">
+          <h2 id="aluno-conta-titulo" className="aluno-conta-titulo">Sua conta</h2>
+          <ul className="aluno-conta-lista">
+            <li>
+              <button type="button" onClick={toggleTheme}>
+                {theme === 'dark' ? <SunIcon size={18} aria-hidden="true" /> : <MoonIcon size={18} aria-hidden="true" />}
+                <span>{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>
+              </button>
+            </li>
+            {(canInstall || instalarNoIos) && (
+              <li>
+                <button type="button" onClick={() => (canInstall ? install() : setShowIosHint(true))}>
+                  <DownloadSimpleIcon size={18} aria-hidden="true" />
+                  <span>Instalar app</span>
+                </button>
+              </li>
+            )}
+            <li>
+              <button type="button" className="aluno-conta-sair" onClick={sair}>
+                <SignOutIcon size={18} aria-hidden="true" />
+                <span>Sair</span>
+                {perfil?.aluno.nome && <span className="aluno-conta-quem">{perfil.aluno.nome}</span>}
+              </button>
+            </li>
+          </ul>
+        </section>
       </main>
 
       {/* Aviso de séries que não chegaram ao servidor */}

@@ -18,7 +18,6 @@ import {
   XIcon,
 } from '@phosphor-icons/react';
 import { BrandLogo } from './BrandLogo';
-import { ActionMenu, type ActionMenuItem } from './ActionMenu';
 import { CampoBusca } from './CampoBusca';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { ModalPortal } from './ModalPortal';
@@ -129,13 +128,6 @@ export const Layout: React.FC = () => {
     logout();
     navigate('/login');
   };
-
-  // Só o que é da conta. Tema e instalar ficam visíveis na barra: são coisas
-  // que a pessoa procura com o olho, e escondidas no avatar ninguém acha.
-  const menuDaConta: ActionMenuItem[] = [
-    { label: 'Configurações', icon: <GearIcon size={14} aria-hidden="true" />, onClick: () => navigate('/configuracoes') },
-    { label: 'Sair', icon: <SignOutIcon size={14} aria-hidden="true" />, onClick: handleLogout, danger: true },
-  ];
 
   const itemDoTrilho = ({ isActive }: { isActive: boolean }) => `sidebar-item ${isActive ? 'active' : ''}`;
 
@@ -264,25 +256,6 @@ export const Layout: React.FC = () => {
           >
             {theme === 'dark' ? <SunIcon size={18} aria-hidden="true" /> : <MoonIcon size={18} aria-hidden="true" />}
           </button>
-          {/* Conta: o avatar abre o menu com configurações e sair */}
-          <ActionMenu
-            label={`Conta de ${user?.nome ?? 'treinador'}`}
-            triggerClassName="topbar-avatar"
-            trigger={
-              user?.logoUrl ? (
-                <img src={user.logoUrl} alt="" width={32} height={32} />
-              ) : (
-                <span aria-hidden="true">{(user?.nome ?? '?').charAt(0).toUpperCase()}</span>
-              )
-            }
-            header={
-              <>
-                <strong>{user?.nome}</strong>
-                <span>{user?.cref ? `CREF ${user.cref}` : user?.profissao || 'Personal Trainer'}</span>
-              </>
-            }
-            items={menuDaConta}
-          />
         </div>
       </header>
 
@@ -324,6 +297,14 @@ export const Layout: React.FC = () => {
               <span className="sidebar-label">Config.</span>
             </NavLink>
           </nav>
+
+          {/* Sair à vista, no pé do trilho (no celular fica no fim de Configurações) */}
+          <div className="sidebar-rodape">
+            <button type="button" className="sidebar-item sidebar-sair" onClick={handleLogout}>
+              <SignOutIcon size={20} aria-hidden="true" />
+              <span className="sidebar-label">Sair</span>
+            </button>
+          </div>
         </aside>
 
         <main className="content-area">

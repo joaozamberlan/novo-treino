@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { RODAPE_SUGERIDO } from '../utils/rodape';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,12 +12,14 @@ import {
   FloppyDiskIcon,
   LockIcon,
   ShieldIcon,
+  SignOutIcon,
   UploadSimpleIcon,
 } from '@phosphor-icons/react';
 import { useFieldValidation } from '../hooks/useFieldValidation';
 
 export const Configuracoes: React.FC = () => {
-  const { user, updateUser, replaceToken } = useAuth();
+  const { user, updateUser, replaceToken, logout } = useAuth();
+  const navigate = useNavigate();
 
   // Profile form
   const [nome, setNome] = useState('');
@@ -522,6 +524,25 @@ export const Configuracoes: React.FC = () => {
           </Link>
         </div>
       )}
+
+      {/* Sair: no celular é o único lugar (a barra lateral não aparece) */}
+      <div className="settings-group">
+        <div className="settings-group-title">Conta</div>
+        <p className="settings-desc">
+          Conectado como <strong>{user?.email}</strong>.
+        </p>
+        <button
+          type="button"
+          className="btn btn-danger btn-sm"
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+        >
+          <SignOutIcon size={14} aria-hidden="true" />
+          <span>Sair da conta</span>
+        </button>
+      </div>
     </div>
   );
 };
