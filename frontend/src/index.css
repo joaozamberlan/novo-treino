@@ -6780,29 +6780,112 @@ body.modal-aberto {
   padding-bottom: 0.5rem;
 }
 
-/* ── Reordenar fichas ──────────────────────────────────────────────────── */
-.ficha-tabs-grupo {
+/* ── Ordenar fichas (modal) ────────────────────────────────────────────
+   Lista vertical: alça de arrastar, letra que a ficha vai ter, nome e
+   setas. Linhas com fio, como o resto das listas do app. */
+.ficha-tabs-barra {
   display: flex;
-  gap: 1.75rem;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .ficha-tabs-grupo .ficha-tab {
-    cursor: grab;
-  }
-
-  .ficha-tabs-grupo .ficha-tab:active {
-    cursor: grabbing;
-  }
+.ficha-tabs-barra > .ficha-tabs {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+  margin-bottom: 0;
 }
 
-.ficha-mover {
-  display: inline-flex;
+/* Fora da área que rola, separado das abas por um fio */
+.ficha-tab-ordenar {
+  flex-shrink: 0;
+  gap: 0.4rem;
+  padding: 0 0 0 0.85rem;
+  margin-left: 0.5rem;
+  box-shadow: inset 1px 0 0 var(--border);
+}
+
+.ordenar-fichas-ajuda {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+.ordenar-fichas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  /* O fundo do modal muda entre desktop e a folha do celular */
+  background: inherit;
+}
+
+.ordenar-ficha {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 0.15rem;
-  padding-right: 0.4rem;
-  margin-right: 0.1rem;
-  border-right: 1px solid var(--border);
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  /* Opaco (o do modal) para cobrir as outras linhas durante o arrasto */
+  background: inherit;
+}
+
+/* Área de toque grande; só ela inicia o arrasto (touch-action: none para o
+   navegador não rolar a página enquanto o dedo arrasta) */
+.ordenar-ficha-alca {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-1);
+  cursor: grab;
+  touch-action: none;
+  border-radius: var(--radius-s);
+}
+
+.ordenar-ficha-alca:active {
+  cursor: grabbing;
+  color: var(--text-0);
+  background: var(--bg-2);
+}
+
+.ordenar-ficha-letra {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-s);
+  /* Sobre o fundo do modal, qualquer que seja (desktop ou folha do celular) */
+  background: color-mix(in srgb, var(--text-0) 8%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--accent-text);
+}
+
+.ordenar-ficha-nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.ordenar-ficha-acoes {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.25rem;
 }
 
 /* ── Exercício repetido na periodização: só aviso ──────────────────────── */
