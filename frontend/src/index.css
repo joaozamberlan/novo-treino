@@ -1513,6 +1513,14 @@ body.light-theme .exercise-tactile-card.completed {
   -webkit-appearance: none;
 }
 
+/* Carga copiada da série de cima, ainda não confirmada: tom apagado e
+   tracejado para o aluno ver que é sugestão (vira normal ao digitar) */
+.set-input--sugerido {
+  color: var(--text-1);
+  font-weight: 500;
+  border-style: dashed;
+}
+
 .set-input:focus-visible {
   border-color: var(--accent);
   background: var(--bg-0);

@@ -92,6 +92,9 @@ interface ExerciseSetEntry {
   kg: string;
   reps: string;
   completed: boolean;
+  // Carga copiada da série de cima, ainda não confirmada pelo aluno: continua
+  // acompanhando a de cima até ele digitar nela
+  kgSugerido?: boolean;
 }
 
 // Aeróbico da sessão aberta. minutos null = o aluno ainda não mexeu no campo,
@@ -489,11 +492,17 @@ export const AreaAluno: React.FC = () => {
     const sets = currentSets(idTreinoExercicio, allSets);
     if (!sets[setIndex]) return;
     sets[setIndex].kg = newKg;
-    // Auto-propaga a carga para séries posteriores vazias não concluídas
+    // Digitar na série confirma a carga dela: deixa de ser sugestão
+    sets[setIndex].kgSugerido = false;
+    // Repete a carga nas séries de baixo que estão vazias ou só com a
+    // sugestão. A cada tecla: ao digitar 80, a de baixo passa por 8 e chega a
+    // 80 (antes ela ficava presa no 8, porque só copiava se vazia). Para na
+    // primeira série concluída ou digitada pelo aluno: dali para baixo, quem
+    // manda é ela.
     for (let j = setIndex + 1; j < sets.length; j++) {
-      if (!sets[j].kg && !sets[j].completed) {
-        sets[j].kg = newKg;
-      }
+      if (sets[j].completed || (sets[j].kg && !sets[j].kgSugerido)) break;
+      sets[j].kg = newKg;
+      sets[j].kgSugerido = newKg !== '';
     }
     commitSets(idTreinoExercicio, sets);
     scheduleSyncSets(idTreinoExercicio, sets);
@@ -577,6 +586,8 @@ export const AreaAluno: React.FC = () => {
           ...s,
           kg: found.cargaKg !== null && found.cargaKg !== undefined ? String(found.cargaKg) : s.kg,
           reps: found.repeticoes !== null && found.repeticoes !== undefined ? String(found.repeticoes) : s.reps,
+          // Repetir as cargas é escolha do aluno: o valor vale como confirmado
+          kgSugerido: found.cargaKg !== null && found.cargaKg !== undefined ? false : s.kgSugerido,
         };
       }
       return s;
@@ -592,7 +603,9 @@ export const AreaAluno: React.FC = () => {
       setNumber: sets.length + 1,
       kg: last ? last.kg : '',
       reps: last ? last.reps : '10',
-      completed: false
+      completed: false,
+      // Cópia da última série: sugestão até o aluno digitar
+      kgSugerido: !!last?.kg,
     });
     commitSets(item.idTreinoExercicio, sets);
     syncSetsToServer(item.idTreinoExercicio, sets);
@@ -1420,7 +1433,7 @@ export const AreaAluno: React.FC = () => {
                                     syncSetsToServer(item.idTreinoExercicio, currentSets);
                                   }}
                                   placeholder={prevSet?.cargaKg !== null && prevSet?.cargaKg !== undefined ? String(prevSet.cargaKg) : "0"}
-                                  className="set-input"
+                                  className={`set-input${set.kgSugerido ? ' set-input--sugerido' : ''}`}
                                   aria-label={`Série ${set.setNumber} carga em kg`}
                                 />
                                 <span className="set-input-unit">kg</span>
