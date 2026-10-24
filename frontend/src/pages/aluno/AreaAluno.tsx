@@ -75,7 +75,7 @@ interface Profissional {
 
 // GET /aluno/me
 interface Perfil {
-  aluno: { idAluno: number; nome: string };
+  aluno: { idAluno: number; nome: string; sexo?: string | null };
   profissional: Profissional;
 }
 
@@ -1642,7 +1642,7 @@ export const AreaAluno: React.FC = () => {
 
             <MeuProgresso progresso={progresso} idTreino={activeTabId} />
 
-            <VolumeSemanal fichas={sortedTreinos} idFichaAtual={activeTabId} />
+            <VolumeSemanal fichas={sortedTreinos} idFichaAtual={activeTabId} sexoDoAluno={perfil?.aluno.sexo} />
           <TabelaProgressao variant="screen" />
           </>
         ) : (

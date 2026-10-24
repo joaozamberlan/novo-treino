@@ -19,11 +19,19 @@ interface Aluno {
   nome: string;
   email?: string | null;
   telefone?: string | null;
+  sexo?: string | null;
   ativo: boolean;
   acesso?: AcessoAluno;
   dataCadastro: string;
   protocolos?: { idProtocolo: number; nome: string; dataFim?: string | null }[];
 }
+
+// Sexo é opcional: '' é "Não informado" (vai como null para a API)
+const OPCOES_SEXO = [
+  { valor: '', texto: 'Não informado' },
+  { valor: 'masculino', texto: 'Masculino' },
+  { valor: 'feminino', texto: 'Feminino' },
+];
 
 const iniciais = (nome: string) => {
   const partes = nome.trim().split(/\s+/);
@@ -43,6 +51,7 @@ export const Alunos: React.FC = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [sexo, setSexo] = useState('');
   // Erro do campo telefone no cadastro e na edição (só um modal abre por vez)
   const [telefoneErro, setTelefoneErro] = useState('');
 
@@ -51,6 +60,7 @@ export const Alunos: React.FC = () => {
   const [editNome, setEditNome] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editTelefone, setEditTelefone] = useState('');
+  const [editSexo, setEditSexo] = useState('');
   const [editAtivo, setEditAtivo] = useState(true);
 
   // Se já tem cache, não bloqueia com loading (0ms de espera)
@@ -110,6 +120,7 @@ export const Alunos: React.FC = () => {
         nome,
         email: email || undefined,
         telefone,
+        sexo: sexo || undefined,
       });
 
       const next = [res.data, ...alunos];
@@ -118,6 +129,7 @@ export const Alunos: React.FC = () => {
       setNome('');
       setEmail('');
       setTelefone('');
+      setSexo('');
       setShowAddForm(false);
       toast.success('Aluno cadastrado com sucesso!');
     } catch (err) {
@@ -142,6 +154,7 @@ export const Alunos: React.FC = () => {
     setEditNome(aluno.nome);
     setEditEmail(aluno.email || '');
     setEditTelefone(aluno.telefone || '');
+    setEditSexo(aluno.sexo || '');
     setEditAtivo(aluno.ativo);
     setTelefoneErro('');
   };
@@ -151,6 +164,7 @@ export const Alunos: React.FC = () => {
     setEditNome('');
     setEditEmail('');
     setEditTelefone('');
+    setEditSexo('');
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -168,6 +182,7 @@ export const Alunos: React.FC = () => {
       nome: editNome,
       email: editEmail || null,
       telefone: editTelefone,
+      sexo: editSexo || null,
       ativo: editAtivo,
     };
 
@@ -498,6 +513,16 @@ export const Alunos: React.FC = () => {
                     : <span id="telAlunoAjuda" className="field-hint">É o login do aluno: ele confirma este número ao abrir o link pela primeira vez.</span>}
                 </div>
 
+                <div className="form-group">
+                  <Seletor
+                    label="Sexo (opcional)"
+                    valor={sexo}
+                    opcoes={OPCOES_SEXO}
+                    onChange={setSexo}
+                  />
+                  <span className="field-hint">Escolhe o corpo do mapa no volume semanal.</span>
+                </div>
+
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>
                   <button
                     type="button"
@@ -601,6 +626,16 @@ export const Alunos: React.FC = () => {
                   {telefoneErro
                     ? <span id="telAlunoEditAjuda" className="field-error" role="alert">{telefoneErro}</span>
                     : <span id="telAlunoEditAjuda" className="field-hint">É o login do aluno: ele confirma este número ao abrir o link pela primeira vez.</span>}
+                </div>
+
+                <div className="form-group">
+                  <Seletor
+                    label="Sexo (opcional)"
+                    valor={editSexo}
+                    opcoes={OPCOES_SEXO}
+                    onChange={setEditSexo}
+                  />
+                  <span className="field-hint">Escolhe o corpo do mapa no volume semanal.</span>
                 </div>
 
                 <Seletor

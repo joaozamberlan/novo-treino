@@ -1,10 +1,12 @@
 import {
   IsBoolean,
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
+import { SEXOS_ALUNO } from './create-aluno.dto';
 
 export class UpdateAlunoDto {
   @IsString()
@@ -25,4 +27,9 @@ export class UpdateAlunoDto {
   @IsBoolean()
   @IsOptional()
   ativo?: boolean;
+
+  // null limpa (volta a "Não informado")
+  @IsOptional()
+  @IsIn(SEXOS_ALUNO, { message: 'Sexo inválido' })
+  sexo?: string | null;
 }

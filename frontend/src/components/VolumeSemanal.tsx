@@ -13,6 +13,8 @@ const MapaCorpo = lazy(() => import('./MapaCorpo'));
 interface VolumeSemanalProps {
   fichas: FichaTreino[];
   idFichaAtual?: number | null;
+  // Sexo do cadastro do aluno ('masculino' | 'feminino'): escolhe o corpo do mapa
+  sexoDoAluno?: string | null;
 }
 
 type Visao = 'ficha' | 'semana';
@@ -51,10 +53,15 @@ function sexoSalvo(): Sexo {
   }
 }
 
-export function VolumeSemanal({ fichas, idFichaAtual }: VolumeSemanalProps) {
+const SEXO_DO_CADASTRO: Record<string, Sexo> = { masculino: 'male', feminino: 'female' };
+
+export function VolumeSemanal({ fichas, idFichaAtual, sexoDoAluno }: VolumeSemanalProps) {
   const tituloId = useId();
   const [visao, setVisao] = useState<Visao>('ficha');
-  const [sexo, setSexo] = useState<Sexo>(sexoSalvo);
+  // Corpo do mapa: a troca feita aqui nesta visita; senão o sexo do cadastro
+  // do aluno; senão a última escolha deste aparelho
+  const [sexoEscolhido, setSexoEscolhido] = useState<Sexo | null>(null);
+  const sexo: Sexo = sexoEscolhido ?? (sexoDoAluno ? SEXO_DO_CADASTRO[sexoDoAluno] : undefined) ?? sexoSalvo();
   const [grupoEmFoco, setGrupoEmFoco] = useState<string | null>(null);
 
   const fichaAtual = fichas.find((f) => f.idTreino === idFichaAtual);
@@ -76,7 +83,7 @@ export function VolumeSemanal({ fichas, idFichaAtual }: VolumeSemanalProps) {
     : `em ${grupos(linhas.length)} · ${fichas.length === 1 ? 'a ficha' : `as ${fichas.length} fichas`} da semana`;
 
   const trocarSexo = (s: Sexo) => {
-    setSexo(s);
+    setSexoEscolhido(s);
     try {
       localStorage.setItem(CHAVE_SEXO, s);
     } catch {

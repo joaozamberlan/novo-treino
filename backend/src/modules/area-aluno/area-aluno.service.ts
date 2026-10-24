@@ -120,6 +120,7 @@ export class AreaAlunoService {
       select: {
         idAluno: true,
         nome: true,
+        sexo: true,
         profissional: { select: AreaAlunoService.ALUNO_PROFISSIONAL_SELECT },
       },
     });
