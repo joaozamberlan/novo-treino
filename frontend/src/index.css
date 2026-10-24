@@ -273,58 +273,6 @@ textarea:focus-visible,
   transform: translateZ(0);
 }
 
-/* Avatar da conta: abre o menu com configurações, tema, instalar e sair */
-.topbar-avatar {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 140ms var(--ease-out);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.topbar-avatar:active {
-  transform: scale(0.94);
-}
-
-.topbar-avatar > img,
-.topbar-avatar > span {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 0 1px var(--border-strong);
-  transition: box-shadow 140ms var(--ease-out);
-}
-
-.topbar-avatar > span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-2);
-  color: var(--text-0);
-  font-size: 0.8125rem;
-  font-weight: 800;
-}
-
-.topbar-avatar[aria-expanded="true"] > img,
-.topbar-avatar[aria-expanded="true"] > span {
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .topbar-avatar:hover > img,
-  .topbar-avatar:hover > span {
-    box-shadow: 0 0 0 2px var(--border-strong);
-  }
-}
-
 .action-menu-header {
   display: flex;
   flex-direction: column;
@@ -1366,6 +1314,84 @@ body.light-theme .exercise-tactile-card.completed {
 }
 
 /* ── Encerrar Treino & Conclusão (Apple Style) ────────────────────────── */
+
+/* ── Sua conta (aluno) ──
+   Tema, instalar e sair à vista no fim da página do treino, em linhas com
+   fio. Antes ficavam num menu de três pontos no topo. */
+.aluno-conta {
+  margin-top: 2.5rem;
+}
+
+.aluno-conta-titulo {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+
+.aluno-conta-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.aluno-conta-lista li {
+  border-bottom: 1px solid var(--border);
+}
+
+.aluno-conta-lista button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.25rem;
+  background: none;
+  border: 0;
+  color: var(--text-0);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 120ms var(--ease-out);
+}
+
+.aluno-conta-lista button > svg {
+  flex-shrink: 0;
+  color: var(--text-1);
+}
+
+.aluno-conta-lista button:active {
+  background: color-mix(in srgb, var(--text-0) 4%, transparent);
+}
+
+.aluno-conta-lista button:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: -2px;
+}
+
+.aluno-conta-lista .aluno-conta-sair,
+.aluno-conta-lista .aluno-conta-sair > svg {
+  color: var(--danger-text);
+}
+
+/* Quem está logado, à direita do Sair */
+.aluno-conta-quem {
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-1);
+}
 
 /* ── Progresso do treino (aluno) ──
    Gruda no topo ao rolar: um segmento por exercício, cheio quando todas as
@@ -3151,6 +3177,27 @@ body.light-theme .mobile-tab-bar {
 
 .sidebar-item.active svg {
   color: var(--accent);
+}
+
+/* Sair no pé do trilho, separado da navegação por um fio */
+.sidebar-rodape {
+  margin-top: auto;
+  padding: 0.5rem 0.375rem calc(0.5rem + var(--sab));
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-sair {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-sair:hover {
+    color: var(--danger-text);
+  }
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
