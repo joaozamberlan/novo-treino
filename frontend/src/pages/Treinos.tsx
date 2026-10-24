@@ -11,10 +11,9 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import {
   ArrowDownIcon,
   RepeatIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
   ArrowLeftIcon,
   ArrowUpIcon,
+  ArrowsDownUpIcon,
   ChatCircleIcon,
   NotePencilIcon,
   CopyIcon,
@@ -35,6 +34,7 @@ import { InstrucaoAutocomplete, type Instrucao } from '../components/InstrucaoAu
 import { CaixaMarcar } from '../components/CaixaMarcar';
 import { Seletor } from '../components/Seletor';
 import { CampoBusca } from '../components/CampoBusca';
+import { OrdenarFichas } from '../components/OrdenarFichas';
 import { mapaOcorrencias, nomesDasFichas, outrasOcorrencias } from '../utils/repetidos';
 import { parseDescanso, formatDescanso, descansoParaInput } from '../utils/descanso';
 import { FichaPdf } from '../components/FichaPdf';
@@ -187,6 +187,7 @@ export const Treinos: React.FC = () => {
 
   // --- PRINT / PDF EXPORT STATES ---
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [ordenandoFichas, setOrdenandoFichas] = useState(false);
   const [abaView, setAbaView] = useState<'fichas' | 'progresso'>('fichas');
   const [progresso, setProgresso] = useState<Progresso | null>(null);
   const [printScope, setPrintScope] = useState<'all' | 'current'>('all');
@@ -862,15 +863,6 @@ export const Treinos: React.FC = () => {
     }
   };
 
-  const handleMoveFicha = (idTreino: number, direcao: -1 | 1) => {
-    const lista = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
-    const i = lista.findIndex((t) => t.idTreino === idTreino);
-    const j = i + direcao;
-    if (i < 0 || j < 0 || j >= lista.length) return;
-    [lista[i], lista[j]] = [lista[j], lista[i]];
-    handleReorderFichas(lista);
-  };
-
   // Reordenação via drag-and-drop — recebe a lista já na nova ordem
   const handleReorderExercises = async (treino: FichaTreino, newOrder: PrescribedExercise[]) => {
     const updatedList = newOrder.map((ex, idx) => ({ ...ex, ordem: idx + 1 }));
@@ -1004,7 +996,6 @@ export const Treinos: React.FC = () => {
     );
   }
 
-  const arrastoComMouse = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const sortedTreinos = activeProtocol ? [...activeProtocol.treinos].sort((a, b) => a.ordem - b.ordem) : [];
   const activeFicha = activeProtocol?.treinos.find(t => t.idTreino === activeTabId);
   const cardioAtivo = cardioDaFicha(activeFicha);
@@ -1106,35 +1097,24 @@ export const Treinos: React.FC = () => {
       {/* Ficha Tabs */}
       {activeProtocol && abaView === 'fichas' && (
         <>
+          {/* As abas rolam para os lados; o "Ordenar" fica fora da rolagem,
+              sempre visível (dentro dela, no celular, ele sumia à direita) */}
+          <div className="ficha-tabs-barra">
           <div className="ficha-tabs">
-            <Reorder.Group
-              as="div"
-              axis="x"
-              values={sortedTreinos}
-              onReorder={handleReorderFichas}
-              className="ficha-tabs-grupo"
-            >
-              {sortedTreinos.map((treino) => (
-                <Reorder.Item
-                  key={treino.idTreino}
-                  value={treino}
-                  as="button"
-                  type="button"
-                  dragListener={arrastoComMouse}
-                  className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
-                  whileDrag={{ scale: 1.04, zIndex: 5 }}
-                  transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
-                  title={arrastoComMouse ? 'Clique para abrir · arraste para reordenar' : undefined}
-                  onClick={() => {
-                    setActiveTabId(treino.idTreino);
-                    setEditingFichaId(null);
-                    cancelEdit();
-                  }}
-                >
-                  {treino.nome}
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
+            {sortedTreinos.map((treino) => (
+              <button
+                key={treino.idTreino}
+                type="button"
+                className={`ficha-tab ${activeTabId === treino.idTreino ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTabId(treino.idTreino);
+                  setEditingFichaId(null);
+                  cancelEdit();
+                }}
+              >
+                {treino.nome}
+              </button>
+            ))}
             <button
               className="ficha-tab ficha-tab-add"
               onClick={() => {
@@ -1150,6 +1130,30 @@ export const Treinos: React.FC = () => {
               <PlusIcon size={16} />
             </button>
           </div>
+            {/* Ordem das fichas num modal: lista vertical, arrastável também no celular */}
+            {sortedTreinos.length > 1 && (
+              <button
+                type="button"
+                className="ficha-tab ficha-tab-add ficha-tab-ordenar"
+                onClick={() => setOrdenandoFichas(true)}
+              >
+                <ArrowsDownUpIcon size={16} aria-hidden="true" />
+                <span>Ordenar</span>
+              </button>
+            )}
+          </div>
+
+          {ordenandoFichas && (
+            <OrdenarFichas
+              fichas={sortedTreinos}
+              onFechar={() => setOrdenandoFichas(false)}
+              onSalvar={(novaOrdem) => {
+                setOrdenandoFichas(false);
+                handleReorderFichas(novaOrdem);
+                toast.success('Ordem das fichas salva');
+              }}
+            />
+          )}
 
           {/* Active Ficha Content */}
           {activeFicha ? (
@@ -1172,30 +1176,6 @@ export const Treinos: React.FC = () => {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                  {sortedTreinos.length > 1 && (
-                    <div className="ficha-mover" role="group" aria-label="Posição da ficha">
-                      <button
-                        type="button"
-                        className="exercise-action-btn"
-                        disabled={sortedTreinos[0]?.idTreino === activeFicha.idTreino}
-                        onClick={() => handleMoveFicha(activeFicha.idTreino, -1)}
-                        aria-label={`Mover ${activeFicha.nome} para a esquerda`}
-                        title="Mover ficha para a esquerda"
-                      >
-                        <CaretLeftIcon size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        className="exercise-action-btn"
-                        disabled={sortedTreinos[sortedTreinos.length - 1]?.idTreino === activeFicha.idTreino}
-                        onClick={() => handleMoveFicha(activeFicha.idTreino, 1)}
-                        aria-label={`Mover ${activeFicha.nome} para a direita`}
-                        title="Mover ficha para a direita"
-                      >
-                        <CaretRightIcon size={14} />
-                      </button>
-                    </div>
-                  )}
                   <button
                     type="button"
                     className="btn btn-primary btn-sm"

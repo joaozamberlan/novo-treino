@@ -46,3 +46,18 @@ de cópia.
 `tsc` + build. No navegador: arrastar abas, botões de mover, recarregar a
 página e conferir que a ordem ficou. Atenção: o backend local usa o banco de
 produção, então o teste de gravação acontece numa periodização real.
+
+## Revisão (2026-10-25): modal "Ordenar fichas"
+
+No uso, o arrasto das abas ficou pouco prático no PC (barra estreita que rola
+para os lados, clique e arrasto no mesmo alvo) e no celular sobravam só as
+setas ← → do cabeçalho, uma posição por toque.
+
+Substituído por um modal próprio, aberto pelo botão "Ordenar" ao lado das
+abas (fora da área que rola, para não sumir no celular):
+
+- Lista vertical das fichas com a letra que cada uma vai ter (A, B, C…),
+  alça de arrastar (mouse e toque, como nos exercícios) e setas ↑ ↓.
+- "Salvar ordem" grava tudo de uma vez; "Cancelar" descarta.
+- Saem o arrasto das abas e as setas ← → do cabeçalho: um jeito só de ordenar.
+- Gravação igual à de antes (`handleReorderFichas`, ordem 1..n).
