@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { MuscleMap, type Highlight } from 'js-rich-body-highlighter/react';
 import { regioesDoGrupo } from '../utils/musculos';
+import { useTemaClaro } from '../hooks/useTemaClaro';
 
 // Frente e costas do corpo com os grupos treinados acesos em vermelho.
 // Carregado sob demanda (React.lazy em VolumeSemanal): a biblioteca e as
@@ -19,16 +19,6 @@ interface MapaCorpoProps {
 
 // 4 tons: a intensidade é a opacidade da camada vermelha sobre a ilustração
 const TONS = [28, 46, 66, 88];
-
-function useTemaClaro() {
-  const [claro, setClaro] = useState(() => document.body.classList.contains('light-theme'));
-  useEffect(() => {
-    const obs = new MutationObserver(() => setClaro(document.body.classList.contains('light-theme')));
-    obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-  return claro;
-}
 
 export default function MapaCorpo({ volume, sexo, grupoEmFoco, onFocarGrupo }: MapaCorpoProps) {
   const claro = useTemaClaro();

@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useConfirmar } from '../hooks/useConfirmar';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import {
-  ChatTextIcon,
+  BarbellIcon,
   FloppyDiskIcon,
-  FolderPlusIcon,
+  LightningIcon,
+  NotePencilIcon,
   PencilSimpleLineIcon,
+  PersonArmsSpreadIcon,
   PlusIcon,
-  SparkleIcon,
-  StackIcon,
   TrashIcon,
   VideoCameraIcon,
   XIcon,
@@ -21,6 +21,10 @@ import type { Instrucao } from '../components/InstrucaoAutocomplete';
 import { ModalPortal } from '../components/ModalPortal';
 import { fecharSoPeloTeclado } from '../utils/modal';
 import { Seletor } from '../components/Seletor';
+import { regioesDoGrupo } from '../utils/musculos';
+
+// Miniatura do corpo da aba Grupos: a ilustração só carrega com a aba aberta
+const MiniaturaMusculo = lazy(() => import('../components/MiniaturaMusculo'));
 
 export const Catalog: React.FC = () => {
   const confirmar = useConfirmar();
@@ -543,7 +547,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'exercicios' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('exercicios')}
           >
-            <StackIcon size={16} aria-hidden="true" />
+            <BarbellIcon size={16} aria-hidden="true" />
             Exercícios
           </button>
           <button
@@ -553,7 +557,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'grupos' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('grupos')}
           >
-            <FolderPlusIcon size={16} aria-hidden="true" />
+            <PersonArmsSpreadIcon size={16} aria-hidden="true" />
             Grupos Musculares
           </button>
           <button
@@ -563,7 +567,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'tecnicas' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('tecnicas')}
           >
-            <SparkleIcon size={16} aria-hidden="true" />
+            <LightningIcon size={16} aria-hidden="true" />
             Técnicas de Treino
           </button>
           <button
@@ -573,7 +577,7 @@ export const Catalog: React.FC = () => {
             className={`cat-aba${activeTab === 'instrucoes' ? ' ativa' : ''}`}
             onClick={() => handleTabChange('instrucoes')}
           >
-            <ChatTextIcon size={16} aria-hidden="true" />
+            <NotePencilIcon size={16} aria-hidden="true" />
             Instruções
           </button>
         </div>
@@ -779,7 +783,19 @@ export const Catalog: React.FC = () => {
                     const count = exercicios.filter(ex => ex.idGrupoMuscular === g.idGrupoMuscular).length;
                     return (
                       <tr key={g.idGrupoMuscular}>
-                        <td data-label="Grupo Muscular" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{g.nome}</td>
+                        <td data-label="Grupo Muscular" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                          <span className="grupo-com-miniatura">
+                            {/* Mesmo espaço com ou sem região no mapa: os nomes ficam alinhados */}
+                            <span className="miniatura-musculo-espaco" aria-hidden="true">
+                              {regioesDoGrupo(g.nome).length > 0 && (
+                                <Suspense fallback={null}>
+                                  <MiniaturaMusculo grupo={g.nome} />
+                                </Suspense>
+                              )}
+                            </span>
+                            {g.nome}
+                          </span>
+                        </td>
                         <td data-label="Exercícios">
                           <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-1)', border: '1px solid var(--border)' }}>
                             {count} {count === 1 ? 'exercício' : 'exercícios'}
@@ -875,7 +891,7 @@ export const Catalog: React.FC = () => {
                       className="link-acao"
                       onClick={() => setShowGrupoForm(!showGrupoForm)}
                     >
-                      <FolderPlusIcon size={12} />
+                      <PlusIcon size={12} />
                       {showGrupoForm ? 'Fechar' : 'Novo Grupo'}
                     </button>
                   </div>

@@ -2004,6 +2004,36 @@ body.light-theme {
   margin-left: -12%;
 }
 
+/* Miniatura do músculo na aba Grupos da Biblioteca: um lado do corpo, com
+   o grupo aceso, recortado na faixa onde ele está (o corpo inteiro nesse
+   tamanho deixava o músculo pequeno demais). O espaço existe mesmo sem
+   miniatura, para alinhar os nomes. */
+.grupo-com-miniatura {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.miniatura-musculo-espaco {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+}
+
+/* A ilustração é desenhada maior que o espaço e deslocada até a faixa */
+.miniatura-musculo {
+  display: block;
+  width: 80px;
+  height: auto;
+  margin-left: -16px;
+}
+
+.miniatura-musculo--tronco { margin-top: -18px; }
+.miniatura-musculo--coxa { margin-top: -44px; }
+.miniatura-musculo--perna { margin-top: -78px; }
+
 /* Espaço reservado enquanto a ilustração carrega: o placar não pula */
 .vol-corpo--carregando {
   aspect-ratio: 722 / 542;

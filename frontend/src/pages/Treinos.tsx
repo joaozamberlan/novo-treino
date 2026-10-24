@@ -16,7 +16,7 @@ import {
   ArrowLeftIcon,
   ArrowUpIcon,
   ChatCircleIcon,
-  ChatTextIcon,
+  NotePencilIcon,
   CopyIcon,
   DotsSixVerticalIcon,
   FileTextIcon,
@@ -129,7 +129,7 @@ const ExerciseBlockRow: React.FC<ExerciseBlockRowProps> = ({ item, index, total,
           )}
           {item.observacao && (
             <span className="exercise-block-note">
-              <ChatTextIcon size={12} aria-hidden="true" />
+              <NotePencilIcon size={12} aria-hidden="true" />
               {item.observacao}
             </span>
           )}
