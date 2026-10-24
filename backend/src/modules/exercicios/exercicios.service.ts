@@ -22,7 +22,11 @@ export class ExerciciosService {
   constructor(private prisma: PrismaService) {}
 
   // --- GRUPOS MUSCULARES ---
-  async createGrupoMuscular(nome: string, idProfissional: number) {
+  async createGrupoMuscular(
+    nome: string,
+    idProfissional: number,
+    regiao?: string,
+  ) {
     const exists = await this.prisma.grupoMuscular.findUnique({
       where: {
         nome_idProfissional: { nome, idProfissional },
@@ -32,7 +36,7 @@ export class ExerciciosService {
       throw new ConflictException('Grupo muscular já cadastrado');
     }
     return this.prisma.grupoMuscular.create({
-      data: { nome, idProfissional },
+      data: { nome, idProfissional, regiao: regiao ?? null },
     });
   }
 
@@ -47,6 +51,7 @@ export class ExerciciosService {
     idGrupoMuscular: number,
     nome: string,
     idProfissional: number,
+    regiao?: string,
   ) {
     const exists = await this.prisma.grupoMuscular.findFirst({
       where: { idGrupoMuscular, idProfissional },
@@ -66,9 +71,10 @@ export class ExerciciosService {
       );
     }
 
+    // Sem região no pedido, a salva continua como está
     return this.prisma.grupoMuscular.update({
       where: { idGrupoMuscular },
-      data: { nome },
+      data: regiao === undefined ? { nome } : { nome, regiao },
     });
   }
 

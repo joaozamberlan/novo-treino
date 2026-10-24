@@ -4,6 +4,8 @@
 export interface GrupoMuscular {
   idGrupoMuscular: number;
   nome: string;
+  // Região do corpo escolhida pelo treinador (ver utils/musculos). Nula: segue o nome
+  regiao?: string | null;
 }
 
 export interface Exercicio {

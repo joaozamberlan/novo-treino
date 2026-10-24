@@ -133,6 +133,8 @@ model GrupoMuscular {
   idGrupoMuscular Int            @id @default(autoincrement())
   idProfissional  Int
   nome            String
+  // Região do corpo na ilustração (ver REGIOES_GRUPO). Nula: segue o nome
+  regiao          String?
   ativo           Boolean        @default(true)
   
   profissional    Profissional   @relation(fields: [idProfissional], references: [idProfissional], onDelete: Cascade)

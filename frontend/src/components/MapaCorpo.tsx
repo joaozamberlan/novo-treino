@@ -1,5 +1,5 @@
 import { MuscleMap, type Highlight } from 'js-rich-body-highlighter/react';
-import { regioesDoGrupo } from '../utils/musculos';
+import { mascarasDaRegiao, type RegiaoGrupo } from '../utils/musculos';
 import { useTemaClaro } from '../hooks/useTemaClaro';
 
 // Frente e costas do corpo com os grupos treinados acesos em vermelho.
@@ -9,8 +9,8 @@ import { useTemaClaro } from '../hooks/useTemaClaro';
 export type Sexo = 'male' | 'female';
 
 interface MapaCorpoProps {
-  // Séries por grupo muscular da visão atual
-  volume: { grupo: string; series: number }[];
+  // Séries por grupo muscular da visão atual, com a região que cada um acende
+  volume: { grupo: string; series: number; regiao: RegiaoGrupo }[];
   sexo: Sexo;
   // Grupo em destaque (linha do placar sob o mouse/foco)
   grupoEmFoco: string | null;
@@ -25,19 +25,31 @@ export default function MapaCorpo({ volume, sexo, grupoEmFoco, onFocarGrupo }: M
   // Lida do CSS a cada tema: o vermelho do claro e do escuro não são o mesmo
   const cor = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#CF3427';
 
-  const maior = Math.max(...volume.map((v) => v.series), 1);
-  const regiaoParaGrupo = new Map<string, string>();
-  const highlights: Highlight[] = [];
-  for (const { grupo, series } of volume) {
-    const tom = TONS[Math.min(TONS.length - 1, Math.ceil((series / maior) * TONS.length) - 1)];
-    const emFoco = grupoEmFoco === grupo;
-    for (const regiao of regioesDoGrupo(grupo)) {
-      regiaoParaGrupo.set(regiao, grupo);
-      // Com um grupo em foco, ele vai ao máximo e os outros recuam
-      const intensidade = grupoEmFoco ? (emFoco ? 100 : Math.round(tom * 0.35)) : tom;
-      highlights.push({ group: regiao, intensity: intensidade, color: cor });
+  // Grupos na mesma região somam no músculo: "Ombro anterior" e "Ombro
+  // posterior" acendem um ombro só, com o total das séries dos dois
+  const porMascara = new Map<string, { series: number; grupos: { grupo: string; series: number }[] }>();
+  for (const { grupo, series, regiao } of volume) {
+    for (const mascara of mascarasDaRegiao(regiao)) {
+      const atual = porMascara.get(mascara) ?? { series: 0, grupos: [] };
+      atual.series += series;
+      atual.grupos.push({ grupo, series });
+      porMascara.set(mascara, atual);
     }
   }
+
+  const maior = Math.max(...[...porMascara.values()].map((m) => m.series), 1);
+  const highlights: Highlight[] = [];
+  for (const [mascara, { series, grupos }] of porMascara) {
+    const tom = TONS[Math.min(TONS.length - 1, Math.ceil((series / maior) * TONS.length) - 1)];
+    const emFoco = grupos.some((g) => g.grupo === grupoEmFoco);
+    // Com um grupo em foco, ele vai ao máximo e os outros recuam
+    const intensidade = grupoEmFoco ? (emFoco ? 100 : Math.round(tom * 0.35)) : tom;
+    highlights.push({ group: mascara, intensity: intensidade, color: cor });
+  }
+
+  // Músculo sob o mouse: foca o grupo com mais séries naquela região
+  const grupoDaMascara = (mascara: string) =>
+    porMascara.get(mascara)?.grupos.reduce((a, b) => (b.series > a.series ? b : a)).grupo ?? null;
 
   const comum = {
     gender: sexo,
@@ -45,9 +57,9 @@ export default function MapaCorpo({ volume, sexo, grupoEmFoco, onFocarGrupo }: M
     highlights,
     color: cor,
     hoverHighlight: false,
-    onMuscleEnter: (m: { group: string }) => onFocarGrupo(regiaoParaGrupo.get(m.group) ?? null),
+    onMuscleEnter: (m: { group: string }) => onFocarGrupo(grupoDaMascara(m.group)),
     onMuscleLeave: () => onFocarGrupo(null),
-    onMuscleClick: (m: { group: string }) => onFocarGrupo(regiaoParaGrupo.get(m.group) ?? null),
+    onMuscleClick: (m: { group: string }) => onFocarGrupo(grupoDaMascara(m.group)),
   };
 
   return (
