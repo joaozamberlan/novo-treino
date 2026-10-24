@@ -54,6 +54,7 @@ interface Aluno {
   email: string;
   telefone?: string | null;
   tokenAcesso?: string;
+  sexo?: string | null;
 }
 
 // Campos de aeróbico do formulário → corpo da API. Tipo vazio = sem aeróbico;
@@ -1296,7 +1297,7 @@ export const Treinos: React.FC = () => {
                 <span>Adicionar Exercício à Ficha</span>
               </button>
 
-              <VolumeSemanal fichas={activeProtocol.treinos} idFichaAtual={activeFicha?.idTreino} />
+              <VolumeSemanal fichas={activeProtocol.treinos} idFichaAtual={activeFicha?.idTreino} sexoDoAluno={aluno?.sexo} />
             </>
           ) : (
             activeProtocol.treinos.length === 0 && (
