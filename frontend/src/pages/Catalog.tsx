@@ -21,7 +21,7 @@ import type { Instrucao } from '../components/InstrucaoAutocomplete';
 import { ModalPortal } from '../components/ModalPortal';
 import { fecharSoPeloTeclado } from '../utils/modal';
 import { Seletor } from '../components/Seletor';
-import { regioesDoGrupo } from '../utils/musculos';
+import { OPCOES_REGIAO, regiaoDoGrupo, sugerirRegiao, temDesenho, type RegiaoGrupo } from '../utils/musculos';
 
 // Miniatura do corpo da aba Grupos: a ilustração só carrega com a aba aberta
 const MiniaturaMusculo = lazy(() => import('../components/MiniaturaMusculo'));
@@ -74,6 +74,10 @@ export const Catalog: React.FC = () => {
   const [showGrupoTabForm, setShowGrupoTabForm] = useState(false);
   const [editingGrupoId, setEditingGrupoId] = useState<number | null>(null);
   const [grupoTabNome, setGrupoTabNome] = useState('');
+  // Região do corpo do grupo. Enquanto o treinador não escolhe à mão, ela
+  // acompanha o nome digitado ("Ombro posterior" → Ombros)
+  const [grupoTabRegiao, setGrupoTabRegiao] = useState<RegiaoGrupo>('nenhuma');
+  const [regiaoEscolhida, setRegiaoEscolhida] = useState(false);
 
   const closeExModal = () => {
     setShowExForm(false);
@@ -103,6 +107,8 @@ export const Catalog: React.FC = () => {
     setShowGrupoTabForm(false);
     setEditingGrupoId(null);
     setGrupoTabNome('');
+    setGrupoTabRegiao('nenhuma');
+    setRegiaoEscolhida(false);
   };
 
   // Close modals on Escape key
@@ -387,10 +393,10 @@ export const Catalog: React.FC = () => {
 
     try {
       if (editingGrupoId) {
-        await api.patch(`/exercicios/grupos/${editingGrupoId}`, { nome: grupoTabNome.trim() });
+        await api.patch(`/exercicios/grupos/${editingGrupoId}`, { nome: grupoTabNome.trim(), regiao: grupoTabRegiao });
         toast.success('Grupo muscular atualizado com sucesso!');
       } else {
-        await api.post('/exercicios/grupos', { nome: grupoTabNome.trim() });
+        await api.post('/exercicios/grupos', { nome: grupoTabNome.trim(), regiao: grupoTabRegiao });
         toast.success('Grupo muscular cadastrado com sucesso!');
       }
 
@@ -405,6 +411,10 @@ export const Catalog: React.FC = () => {
   const handleEditGrupoTab = (g: GrupoMuscular) => {
     setEditingGrupoId(g.idGrupoMuscular);
     setGrupoTabNome(g.nome);
+    // Grupo antigo (sem região salva) abre com o palpite do nome, que continua
+    // acompanhando o nome até o treinador escolher
+    setGrupoTabRegiao(regiaoDoGrupo(g));
+    setRegiaoEscolhida(!!g.regiao);
     setShowGrupoTabForm(true);
   };
 
@@ -785,14 +795,19 @@ export const Catalog: React.FC = () => {
                       <tr key={g.idGrupoMuscular}>
                         <td data-label="Grupo Muscular" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                           <span className="grupo-com-miniatura">
-                            {/* Mesmo espaço com ou sem região no mapa: os nomes ficam alinhados */}
-                            <span className="miniatura-musculo-espaco" aria-hidden="true">
-                              {regioesDoGrupo(g.nome).length > 0 && (
-                                <Suspense fallback={null}>
-                                  <MiniaturaMusculo grupo={g.nome} />
-                                </Suspense>
-                              )}
-                            </span>
+                            {/* Mesmo espaço com ou sem região: os nomes ficam alinhados */}
+                            {(() => {
+                              const regiao = regiaoDoGrupo(g);
+                              return (
+                                <span className="miniatura-musculo-espaco" aria-hidden="true">
+                                  {temDesenho(regiao) && (
+                                    <Suspense fallback={null}>
+                                      <MiniaturaMusculo regiao={regiao} />
+                                    </Suspense>
+                                  )}
+                                </span>
+                              );
+                            })()}
                             {g.nome}
                           </span>
                         </td>
@@ -1179,10 +1194,38 @@ export const Catalog: React.FC = () => {
                     placeholder="Ex: Quadríceps, Peitoral, Dorsal"
                     value={grupoTabNome}
                     maxLength={80}
-                    onChange={(e) => setGrupoTabNome(e.target.value)}
+                    onChange={(e) => {
+                      setGrupoTabNome(e.target.value);
+                      if (!regiaoEscolhida) setGrupoTabRegiao(sugerirRegiao(e.target.value));
+                    }}
                     autoFocus
                     required
                   />
+                </div>
+
+                <div className="grupo-regiao">
+                  <div className="form-group grupo-regiao-campo">
+                    <Seletor<RegiaoGrupo>
+                      label="Região no corpo"
+                      valor={grupoTabRegiao}
+                      opcoes={OPCOES_REGIAO}
+                      onChange={(v) => {
+                        setGrupoTabRegiao(v);
+                        setRegiaoEscolhida(true);
+                      }}
+                    />
+                    <span className="field-hint">
+                      Acende na miniatura e no mapa do volume semanal. Subdivisões usam o músculo inteiro: ombro posterior é Ombros.
+                    </span>
+                  </div>
+                  {/* Prévia da escolha */}
+                  <span className="miniatura-musculo-espaco grupo-regiao-previa" aria-hidden="true">
+                    {temDesenho(grupoTabRegiao) && (
+                      <Suspense fallback={null}>
+                        <MiniaturaMusculo regiao={grupoTabRegiao} />
+                      </Suspense>
+                    )}
+                  </span>
                 </div>
 
                 <div className="modal-footer" style={{ margin: 0, marginTop: '0.5rem', paddingTop: '0.85rem' }}>

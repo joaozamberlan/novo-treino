@@ -1,6 +1,7 @@
 import { lazy, Suspense, useId, useState } from 'react';
 import type { FichaTreino } from '../types/treino';
 import type { Sexo } from './MapaCorpo';
+import { regiaoDoGrupo, type RegiaoGrupo } from '../utils/musculos';
 
 // Séries prescritas por grupo muscular, em duas peças ligadas: o mapa do corpo
 // (onde o treino bate) e o placar de séries (quanto). Um controle segmentado
@@ -19,18 +20,21 @@ type Visao = 'ficha' | 'semana';
 interface LinhaVolume {
   grupo: string;
   series: number;
+  regiao: RegiaoGrupo;
 }
 
 function calcularVolume(fichas: FichaTreino[]): LinhaVolume[] {
-  const porGrupo = new Map<string, number>();
+  const porGrupo = new Map<string, LinhaVolume>();
   for (const ficha of fichas) {
     for (const item of ficha.exercicios || []) {
-      const grupo = item.exercicio.grupoMuscular?.nome || 'Outro';
-      porGrupo.set(grupo, (porGrupo.get(grupo) ?? 0) + (Number(item.series) || 0));
+      const gm = item.exercicio.grupoMuscular;
+      const grupo = gm?.nome || 'Outro';
+      const atual = porGrupo.get(grupo) ?? { grupo, series: 0, regiao: gm ? regiaoDoGrupo(gm) : 'nenhuma' };
+      atual.series += Number(item.series) || 0;
+      porGrupo.set(grupo, atual);
     }
   }
-  return [...porGrupo.entries()]
-    .map(([grupo, series]) => ({ grupo, series }))
+  return [...porGrupo.values()]
     .filter((l) => l.series > 0)
     .sort((a, b) => b.series - a.series || a.grupo.localeCompare(b.grupo, 'pt-BR'));
 }

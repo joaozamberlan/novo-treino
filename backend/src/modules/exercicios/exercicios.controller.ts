@@ -41,6 +41,7 @@ export class ExerciciosController {
     return this.exerciciosService.createGrupoMuscular(
       dto.nome,
       profissional.idProfissional,
+      dto.regiao,
     );
   }
 
@@ -62,6 +63,7 @@ export class ExerciciosController {
       id,
       dto.nome,
       profissional.idProfissional,
+      dto.regiao,
     );
   }
 

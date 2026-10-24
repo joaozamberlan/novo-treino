@@ -2022,12 +2022,46 @@ body.light-theme {
   border-radius: var(--radius-s);
 }
 
+/* Modal de grupo: seletor de região com a prévia da miniatura ao lado */
+.grupo-regiao {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.grupo-regiao-campo {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Alinha a prévia com o seletor (abaixo do rótulo) */
+.grupo-regiao-previa {
+  margin-top: 1.35rem;
+  background: var(--bg-2);
+}
+
 /* A ilustração é desenhada maior que o espaço e deslocada até a faixa */
 .miniatura-musculo {
-  display: block;
+  position: relative;
   width: 80px;
-  height: auto;
   margin-left: -16px;
+}
+
+.miniatura-musculo-mapa {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Marca desenhada por cima (adutores): multiply deixa a textura aparecer,
+   como nas máscaras da própria ilustração */
+.miniatura-musculo-extra {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  opacity: 0.85;
 }
 
 .miniatura-musculo--tronco { margin-top: -18px; }
